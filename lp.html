@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>きずなbaton — 家族に「契約」をそっと手渡すアプリ</title>
+<meta name="description" content="サブスク・保険・ローン…親世代の契約情報を、家族にやさしくバトンする終活アプリ。事前登録受付中。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#FAF8F2;
+  --bg-card:#FFFFFF;
+  --bg-warm:#FAEEDA;
+  --bg-warm-deep:#F5E3C2;
+  --text:#2A2622;
+  --text-sub:#6B6660;
+  --text-mute:#9A958E;
+  --border:#E5E1D6;
+  --border-strong:#C9C4B5;
+  --accent:#854F0B;
+  --accent-soft:#B7741F;
+  --husband:#185FA5;
+  --wife:#D4537E;
+  --child:#1D9E75;
+  --radius-sm:8px;
+  --radius:14px;
+  --radius-lg:22px;
+  --font:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic Medium',sans-serif;
+  --font-serif:'Hiragino Mincho ProN','Yu Mincho',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+
+/* ===== Layout ===== */
+.container{max-width:1080px;margin:0 auto;padding:0 24px}
+section{padding:88px 0}
+@media (max-width:640px){
+  section{padding:64px 0}
+  .container{padding:0 20px}
+}
+
+/* ===== Header ===== */
+.header{position:sticky;top:0;background:rgba(250,248,242,0.92);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--border);z-index:50}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1080px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px;letter-spacing:0.02em}
+.logo .baton-mark{width:28px;height:28px;border-radius:50%;background:var(--bg-warm);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;border:none;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(133,79,11,0.22)}
+.btn-primary:hover{transform:translateY(-1px);background:#6F4109}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border-strong)}
+.btn-ghost:hover{background:#fff}
+.btn-sm{padding:8px 16px;font-size:13px}
+
+/* ===== Hero ===== */
+.hero{background:linear-gradient(180deg,#FAF8F2 0%,#F5EFE0 100%);padding:96px 0 88px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(212,83,126,0.10),transparent 70%)}
+.hero::after{content:'';position:absolute;bottom:-100px;left:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(29,158,117,0.10),transparent 70%)}
+.hero-inner{position:relative;display:grid;grid-template-columns:1.1fr 0.9fr;gap:56px;align-items:center}
+@media (max-width:880px){.hero-inner{grid-template-columns:1fr;gap:40px}}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;background:var(--bg-warm);color:var(--accent);font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;letter-spacing:0.06em;margin-bottom:20px}
+.hero h1{font-family:var(--font-serif);font-size:42px;font-weight:600;line-height:1.45;letter-spacing:0.01em;color:var(--text);margin-bottom:22px}
+.hero h1 .accent{color:var(--accent);background:linear-gradient(transparent 65%,rgba(250,238,218,0.9) 65%)}
+.hero p.lead{font-size:17px;color:var(--text-sub);margin-bottom:32px;line-height:1.9}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hero-meta{margin-top:18px;font-size:13px;color:var(--text-mute);display:flex;align-items:center;gap:8px}
+.hero-meta i{color:var(--accent-soft)}
+@media (max-width:640px){.hero h1{font-size:30px}}
+
+/* Hero visual (phone mock) */
+.hero-visual{display:flex;justify-content:center}
+.phone{width:280px;background:#fff;border-radius:36px;border:1px solid var(--border);box-shadow:0 24px 60px rgba(60,40,10,0.18);overflow:hidden;position:relative}
+.phone-bar{background:#FAEEDA;padding:10px 14px;font-size:11px;color:#854F0B;display:flex;align-items:center;gap:6px;border-bottom:1px solid #EAD8AF}
+.phone-content{padding:18px 16px 22px;background:#FAF8F2}
+.phone-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.mock-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.mock-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:16px}
+.mock-meta{flex:1;min-width:0}
+.mock-name{font-size:13px;font-weight:600}
+.mock-sub{font-size:11px;color:var(--text-mute);margin-top:2px;display:flex;align-items:center;gap:6px}
+.viz-pill{font-size:9px;padding:2px 6px;border-radius:6px;font-weight:600}
+.viz-all{background:#E8F4EC;color:#1D9E75}
+.viz-sel{background:#FDECF1;color:#D4537E}
+.viz-pri{background:#EEEEEE;color:#666}
+.mock-amount{font-size:12px;font-weight:600;color:var(--text)}
+
+/* ===== Section common ===== */
+.section-eyebrow{text-align:center;font-size:12px;letter-spacing:0.16em;color:var(--accent);font-weight:600;margin-bottom:12px;text-transform:uppercase}
+.section-title{font-family:var(--font-serif);font-size:32px;font-weight:600;text-align:center;line-height:1.5;margin-bottom:16px}
+.section-lead{text-align:center;color:var(--text-sub);font-size:16px;max-width:640px;margin:0 auto 56px}
+@media (max-width:640px){.section-title{font-size:24px}}
+
+/* ===== Problem ===== */
+.problem{background:#fff}
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media (max-width:880px){.problem-grid{grid-template-columns:1fr}}
+.problem-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:left}
+.problem-card .qmark{width:36px;height:36px;border-radius:50%;background:var(--bg-warm);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--font-serif);margin-bottom:14px}
+.problem-card h3{font-size:17px;font-weight:600;margin-bottom:10px;line-height:1.5}
+.problem-card p{font-size:14px;color:var(--text-sub);line-height:1.8}
+
+/* ===== Concept ===== */
+.concept{background:var(--bg)}
+.concept-inner{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+@media (max-width:880px){.concept-inner{grid-template-columns:1fr;gap:40px}}
+.concept-eyebrow{font-size:12px;letter-spacing:0.16em;color:var(--accent);font-weight:600;margin-bottom:12px}
+.concept h2{font-family:var(--font-serif);font-size:30px;font-weight:600;line-height:1.55;margin-bottom:20px}
+.concept p{font-size:15px;color:var(--text-sub);line-height:2;margin-bottom:14px}
+.concept-quote{margin-top:24px;padding:18px 22px;background:#fff;border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-family:var(--font-serif);font-size:15px;color:var(--text);line-height:1.9}
+.concept-visual{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 28px;text-align:center;box-shadow:0 8px 24px rgba(60,40,10,0.06)}
+.relay{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px}
+.relay-person{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+.relay-avatar{width:54px;height:54px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600}
+.relay-label{font-size:12px;color:var(--text-sub)}
+.relay-arrow{color:var(--accent-soft);font-size:24px}
+.relay-baton{display:inline-flex;align-items:center;gap:6px;background:var(--bg-warm);color:var(--accent);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600}
+
+/* ===== Features ===== */
+.features{background:#fff}
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+@media (max-width:880px){.features-grid{grid-template-columns:1fr}}
+.feature{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:30px 28px;transition:transform .2s ease,box-shadow .2s ease}
+.feature:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(60,40,10,0.08)}
+.feature-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;margin-bottom:18px}
+.fi-1{background:linear-gradient(135deg,#185FA5,#3b82c6)}
+.fi-2{background:linear-gradient(135deg,#D4537E,#e57aa0)}
+.fi-3{background:linear-gradient(135deg,#1D9E75,#3fbf94)}
+.fi-4{background:linear-gradient(135deg,#854F0B,#b7741f)}
+.feature h3{font-size:18px;font-weight:600;margin-bottom:10px}
+.feature p{font-size:14px;color:var(--text-sub);line-height:1.9}
+.feature ul{margin-top:14px;list-style:none;font-size:13px;color:var(--text-sub)}
+.feature ul li{display:flex;align-items:flex-start;gap:8px;padding:4px 0}
+.feature ul li i{color:var(--accent-soft);margin-top:4px;flex-shrink:0}
+
+/* ===== Safety ===== */
+.safety{background:var(--bg);position:relative}
+.safety-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+@media (max-width:880px){.safety-grid{grid-template-columns:1fr}}
+.safety-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.safety-card h3{font-size:17px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.safety-card h3 i{font-size:22px}
+.safety-card.no h3 i{color:#C24A4A}
+.safety-card.yes h3 i{color:var(--child)}
+.safety-card ul{list-style:none}
+.safety-card li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:14px;color:var(--text-sub);border-bottom:1px dashed var(--border)}
+.safety-card li:last-child{border-bottom:none}
+.safety-card li i{font-size:16px;margin-top:3px;flex-shrink:0}
+.safety-card.no li i{color:#C24A4A}
+.safety-card.yes li i{color:var(--child)}
+.safety-note{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;font-size:13px;color:var(--text-sub);line-height:1.9;text-align:center}
+
+/* ===== Waitlist ===== */
+.waitlist{background:linear-gradient(160deg,#854F0B 0%,#6F4109 100%);color:#fff;text-align:center}
+.waitlist .section-title{color:#fff;font-size:32px}
+.waitlist .section-lead{color:rgba(255,255,255,0.85);margin-bottom:40px}
+.waitlist-eyebrow{display:inline-block;background:rgba(255,255,255,0.14);color:#FAEEDA;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;letter-spacing:0.1em;margin-bottom:18px}
+.form{max-width:520px;margin:0 auto;background:#fff;border-radius:var(--radius);padding:32px 28px;color:var(--text);text-align:left;box-shadow:0 20px 50px rgba(0,0,0,0.25)}
+.form-row{margin-bottom:18px}
+.form-label{display:block;font-size:13px;font-weight:600;margin-bottom:8px}
+.form-label .req{color:#C24A4A;margin-left:4px}
+.form-input,.form-select,.form-textarea{width:100%;padding:13px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:#fff;color:var(--text);transition:border-color .15s ease}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:84px}
+.form-help{font-size:12px;color:var(--text-mute);margin-top:6px;line-height:1.6}
+.form-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-sub);line-height:1.7}
+.form-check input{margin-top:4px;flex-shrink:0}
+.form button[type=submit]{width:100%;margin-top:8px;padding:15px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s ease}
+.form button[type=submit]:hover{background:#6F4109}
+.form .legal{font-size:11px;color:var(--text-mute);margin-top:14px;text-align:center;line-height:1.7}
+
+/* ===== FAQ ===== */
+.faq{background:#fff}
+.faq-list{max-width:760px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border);padding:22px 0}
+.faq-q{display:flex;align-items:flex-start;gap:14px;font-size:16px;font-weight:600;cursor:pointer;list-style:none;color:var(--text)}
+.faq-q::-webkit-details-marker{display:none}
+.faq-q .q-mark{width:26px;height:26px;border-radius:50%;background:var(--bg-warm);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:700;font-family:var(--font-serif)}
+.faq-q .q-text{flex:1;line-height:1.6}
+.faq-q .q-toggle{color:var(--text-mute);transition:transform .2s ease}
+details[open] .faq-q .q-toggle{transform:rotate(180deg)}
+.faq-a{padding:14px 0 4px 40px;font-size:14px;color:var(--text-sub);line-height:1.9}
+
+/* ===== Footer ===== */
+footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32px}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.footer-logo{display:flex;align-items:center;gap:8px;font-weight:600}
+.footer-links{display:flex;gap:24px;font-size:13px;color:var(--text-sub)}
+.footer-links a{text-decoration:none;color:inherit}
+.footer-links a:hover{color:var(--accent)}
+.copyright{font-size:12px;color:var(--text-mute);text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="baton-mark"><i class="ti ti-relation-one-to-many"></i></span>
+      きずなbaton
+    </div>
+    <a href="#waitlist" class="btn btn-primary btn-sm">事前登録する <i class="ti ti-arrow-right"></i></a>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <span class="eyebrow"><i class="ti ti-sparkles"></i> 終活アプリ・事前登録受付中</span>
+      <h1>残す側にも、<br>受け継ぐ側にも。<br><span class="accent">「契約」</span>を<br>家族でつないでいく。</h1>
+      <p class="lead">
+        親の契約整理で苦労した経験がある人も。<br>
+        自分の家族にいつか同じ思いをさせたくない人も。<br>
+        30〜50代の、その両方の立場に寄り添うアプリです。
+      </p>
+      <div class="hero-cta">
+        <a href="#waitlist" class="btn btn-primary">ウェイトリストに登録 <i class="ti ti-arrow-right"></i></a>
+        <a href="#concept" class="btn btn-ghost">コンセプトを見る</a>
+      </div>
+      <div class="hero-meta">
+        <i class="ti ti-shield-check"></i>
+        カード番号や暗証番号は<strong style="color:var(--text)">保存しません</strong>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="phone" aria-hidden="true">
+        <div class="phone-bar"><i class="ti ti-relation-one-to-many"></i> きずなbaton</div>
+        <div class="phone-content">
+          <div class="phone-title"><i class="ti ti-list-details"></i> 契約リスト</div>
+          <div class="mock-card">
+            <div class="mock-icon" style="background:#E50914"><i class="ti ti-device-tv"></i></div>
+            <div class="mock-meta">
+              <div class="mock-name">Netflix</div>
+              <div class="mock-sub"><span class="viz-pill viz-all">全員</span> 月額</div>
+            </div>
+            <div class="mock-amount">¥1,490</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-icon" style="background:#185FA5"><i class="ti ti-shield"></i></div>
+            <div class="mock-meta">
+              <div class="mock-name">生命保険</div>
+              <div class="mock-sub"><span class="viz-pill viz-sel">妻のみ</span> 月額</div>
+            </div>
+            <div class="mock-amount">¥8,200</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-icon" style="background:#1D9E75"><i class="ti ti-bolt"></i></div>
+            <div class="mock-meta">
+              <div class="mock-name">電気</div>
+              <div class="mock-sub"><span class="viz-pill viz-all">全員</span> 月額</div>
+            </div>
+            <div class="mock-amount">¥9,800</div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-icon" style="background:#854F0B"><i class="ti ti-music"></i></div>
+            <div class="mock-meta">
+              <div class="mock-name">趣味サブスク</div>
+              <div class="mock-sub"><span class="viz-pill viz-pri">本人のみ</span> 月額</div>
+            </div>
+            <div class="mock-amount">¥980</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Problem ===== -->
+<section class="problem">
+  <div class="container">
+    <div class="section-eyebrow">こんな経験はありませんか</div>
+    <h2 class="section-title">30〜50代が直面する、<br>ふたつのリアル</h2>
+    <p class="section-lead">受け継ぐ側として苦労を知っているからこそ、残す側として備えができる世代。</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="qmark" style="font-size:16px;font-family:inherit">↑</div>
+        <h3 style="font-size:15px;color:#185FA5">親の契約、整理できていますか？</h3>
+        <p>通帳から引き落とされる謎の課金、どこに連絡すればいいかも分からない保険——。親世代の契約を整理しようとして、途方に暮れた経験はありませんか。</p>
+      </div>
+      <div class="problem-card">
+        <div class="qmark" style="font-size:16px;font-family:inherit">↓</div>
+        <h3 style="font-size:15px;color:#D4537E">自分の契約、家族は知っていますか？</h3>
+        <p>気づけばサブスクは10件超。保険・ローン・公共料金——。自分に何かあったとき、家族が同じ苦労をしないよう、いまのうちに整理したい。</p>
+      </div>
+      <div class="problem-card">
+        <div class="qmark">＝</div>
+        <h3>大切な話ほど、切り出しにくい</h3>
+        <p>元気なうちはなおさら、お金・契約・終活の話は言い出しにくい。きずなbatonは「アプリで整理する」という自然なきっかけをつくります。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Concept ===== -->
+<section class="concept" id="concept">
+  <div class="container concept-inner">
+    <div>
+      <div class="concept-eyebrow">CONCEPT — バトンを、つなぐ</div>
+      <h2>「保管する」のではなく、<br>「手渡す」ためのアプリ。</h2>
+      <p>
+        きずなbatonは、契約の<strong>機密情報そのものを預かるアプリではありません</strong>。
+        カード番号や暗証番号は、これまで通り金庫や1Passwordで安全に保管してください。
+      </p>
+      <p>
+        わたしたちが手渡すのは、「<strong>どんな契約が、どこに、どんな手順で</strong>」という、
+        ご家族がいざというときに困らないための<strong>地図と道しるべ</strong>です。
+      </p>
+      <div class="concept-quote">
+        ——親の契約整理で苦労した、あの経験を繰り返さない。<br>
+        自分の家族には、もっとやさしく手渡せる準備を。
+      </div>
+    </div>
+    <div class="concept-visual">
+      <div class="relay" style="flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;justify-content:center">
+          <div class="relay-person" style="flex:none">
+            <div class="relay-avatar" style="background:#8B7355;width:44px;height:44px;font-size:14px">親</div>
+            <div class="relay-label">親世代</div>
+          </div>
+          <i class="ti ti-arrow-right relay-arrow" style="font-size:18px"></i>
+          <div class="relay-baton" style="font-size:12px;padding:6px 12px"><i class="ti ti-relation-one-to-many"></i> baton</div>
+          <i class="ti ti-arrow-right relay-arrow" style="font-size:18px"></i>
+          <div class="relay-person" style="flex:none">
+            <div class="relay-avatar" style="background:var(--husband);width:44px;height:44px;font-size:13px">あなた</div>
+            <div class="relay-label">受け継ぐ</div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:0.06em">同じアプリで、今度は残す側として</div>
+        <div style="display:flex;align-items:center;gap:10px;justify-content:center">
+          <div class="relay-person" style="flex:none">
+            <div class="relay-avatar" style="background:var(--husband);width:44px;height:44px;font-size:13px">あなた</div>
+            <div class="relay-label">残す側</div>
+          </div>
+          <i class="ti ti-arrow-right relay-arrow" style="font-size:18px"></i>
+          <div class="relay-baton" style="font-size:12px;padding:6px 12px"><i class="ti ti-relation-one-to-many"></i> baton</div>
+          <i class="ti ti-arrow-right relay-arrow" style="font-size:18px"></i>
+          <div class="relay-person" style="flex:none">
+            <div class="relay-avatar" style="background:var(--wife);width:44px;height:44px;font-size:14px">家族</div>
+            <div class="relay-label">次の世代へ</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text-sub);line-height:1.9;margin-top:16px">
+        ひとつのアプリで、夫婦でも・親子でも。<br>
+        どちらの立場でも、自然に使えます。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Features ===== -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-eyebrow">FEATURES</div>
+    <h2 class="section-title">いまの暮らしから、しっかり整える。</h2>
+    <p class="section-lead">「もしもの時」のためのアプリは、ふだん使いやすくなければ意味がない。日々の家計管理にも役立つ設計です。</p>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon fi-1"><i class="ti ti-list-details"></i></div>
+        <h3>契約まるごと一覧管理</h3>
+        <p>サブスク・保険・ローン・公共料金まで、家計のすべての契約をひとつの画面に集約。月額・年額の合計も自動表示。</p>
+        <ul>
+          <li><i class="ti ti-check"></i> カテゴリ別／支払日順／金額順で並べ替え</li>
+          <li><i class="ti ti-check"></i> 月額・年額換算の合計を自動計算</li>
+          <li><i class="ti ti-check"></i> 解約済み契約はアーカイブで保管</li>
+        </ul>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-2"><i class="ti ti-eye"></i></div>
+        <h3>契約ごとの公開範囲設定</h3>
+        <p>「これは妻だけ」「これは家族全員に」「これは自分だけ」。契約ごとに、誰に見せるかを細かく選べます。</p>
+        <ul>
+          <li><i class="ti ti-check"></i> 全員公開／指定メンバー／本人のみの3段階</li>
+          <li><i class="ti ti-check"></i> プライベートな契約はしっかり守る</li>
+          <li><i class="ti ti-check"></i> いつでも公開範囲を変更可能</li>
+        </ul>
+      </div>
+      <div class="feature">
+        <div class="feature-icon fi-3"><i class="ti ti-users"></i></div>
+        <h3>家族メンバー機能</h3>
+        <p>配偶者・お子さま・ご両親を家族として登録。それぞれが自分のアカウントで、共有された契約を確認できます。</p>
+        <ul>
+          <li><i class="ti ti-check"></i> 配偶者・子・親の3区分で登録</li>
+          <li><i class="ti ti-check"></i> 各メンバーに専用カラーで見やすく</li>
+          <li><i class="ti ti-check"></i> 共有関係はいつでも停止可能</li>
+        </ul>
+      </div>
+      <div class="feature" style="position:relative">
+        <div style="position:absolute;top:20px;right:20px;background:var(--bg-warm);color:var(--accent);font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;letter-spacing:0.06em;border:1px solid var(--border-strong)">β後リリース予定</div>
+        <div class="feature-icon fi-4"><i class="ti ti-relation-one-to-many"></i></div>
+        <h3>「ご家族へのバトン」モード</h3>
+        <p>万が一ご本人が確認できなくなったとき、登録済みのご家族へ契約の存在と解約手順を段階的に開示します。β版ではご本人が手動で公開範囲を設定する形で同等の準備ができます。</p>
+        <ul>
+          <li><i class="ti ti-check"></i> 段階的な開示で、相続判断をサポート（準備中）</li>
+          <li><i class="ti ti-check"></i> ご本人のメッセージも添えて手渡し</li>
+          <li><i class="ti ti-check"></i> β版では手動の公開範囲設定で代用可</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Safety ===== -->
+<section class="safety">
+  <div class="container">
+    <div class="section-eyebrow">SAFETY</div>
+    <h2 class="section-title">「預けないこと」が、いちばんの安心。</h2>
+    <p class="section-lead">きずなbatonは、お預かりするデータの範囲を最小限に絞っています。</p>
+    <div class="safety-grid">
+      <div class="safety-card no">
+        <h3><i class="ti ti-shield-x"></i> 保存しないもの</h3>
+        <ul>
+          <li><i class="ti ti-x"></i> クレジットカード番号（フル）</li>
+          <li><i class="ti ti-x"></i> 銀行口座番号</li>
+          <li><i class="ti ti-x"></i> 暗証番号・パスワード・PIN</li>
+          <li><i class="ti ti-x"></i> マイナンバー</li>
+          <li><i class="ti ti-x"></i> 保険証券・身分証の写真</li>
+        </ul>
+      </div>
+      <div class="safety-card yes">
+        <h3><i class="ti ti-shield-check"></i> お預かりするもの</h3>
+        <ul>
+          <li><i class="ti ti-check"></i> 契約名・カテゴリ・金額・支払日</li>
+          <li><i class="ti ti-check"></i> カード会社名・カード下4桁のみ</li>
+          <li><i class="ti ti-check"></i> 銀行名（口座番号は預かりません）</li>
+          <li><i class="ti ti-check"></i> 連絡先・解約手順</li>
+          <li><i class="ti ti-check"></i> 「金庫内の証券」など所在メモ</li>
+        </ul>
+      </div>
+    </div>
+    <div class="safety-note">
+      <i class="ti ti-info-circle" style="color:var(--accent-soft)"></i>
+      機密情報は、これまで通り金庫や1Passwordなどでアプリ外に保管してください。<br>
+      きずなbatonはあくまで「契約の存在と引き継ぎの地図」を担います。
+    </div>
+  </div>
+</section>
+
+<!-- ===== Waitlist ===== -->
+<section class="waitlist" id="waitlist">
+  <div class="container">
+    <span class="waitlist-eyebrow">WAITLIST</span>
+    <h2 class="section-title">事前登録受付中</h2>
+    <p class="section-lead">残す側としても、受け継ぐ側としても。<br>β版の準備が整い次第、ご案内のメールをお送りします。</p>
+    <form class="form" action="https://formspree.io/f/xredoben" method="POST">
+      <div class="form-row">
+        <label class="form-label" for="email">メールアドレス<span class="req">*</span></label>
+        <input class="form-input" type="email" id="email" name="email" required placeholder="example@email.com">
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="name">お名前（ニックネーム可）</label>
+        <input class="form-input" type="text" id="name" name="name" placeholder="山田 / Yamada">
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="role">どんな立場でご利用予定ですか？</label>
+        <select class="form-select" id="role" name="role">
+          <option value="">選択してください</option>
+          <option value="self_prepare">自分の契約を家族に残す準備として</option>
+          <option value="couple">夫婦・パートナーで一緒に管理したい</option>
+          <option value="parent_help">親の契約整理を手伝いたい</option>
+          <option value="both">残す側・受け継ぐ側、両方として</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="message">ご要望・期待される機能（任意）</label>
+        <textarea class="form-textarea" id="message" name="message" placeholder="こんな機能があったら使いたい、こんな悩みがある、など"></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-check">
+          <input type="checkbox" name="agree" required>
+          <span>β版リリースや関連情報のメール配信に同意します。<br>個人情報は本サービスのご案内目的にのみ利用し、第三者には提供しません。</span>
+        </label>
+      </div>
+      <button type="submit">事前登録する <i class="ti ti-send"></i></button>
+      <div class="legal">登録は無料です。いつでも配信停止できます。</div>
+    </form>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="faq">
+  <div class="container">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 class="section-title">よくあるご質問</h2>
+    <p class="section-lead">気になる点があれば、お気軽にお問い合わせください。</p>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary class="faq-q">
+          <span class="q-mark">Q</span>
+          <span class="q-text">親に勧めたいのですが、操作は難しくありませんか？</span>
+          <i class="ti ti-chevron-down q-toggle"></i>
+        </summary>
+        <div class="faq-a">シニア世代の方にも使っていただけるよう、文字サイズ・配色・操作ステップを最小限に設計しています。最初の入力はご家族と一緒に行っていただくのもおすすめです。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span class="q-mark">Q</span>
+          <span class="q-text">他のサブスク管理アプリと何が違いますか？</span>
+          <i class="ti ti-chevron-down q-toggle"></i>
+        </summary>
+        <div class="faq-a">家計簿アプリとの大きな違いは「ご家族への引き継ぎ」を前提に設計していること。公開範囲設定や「もしもの時」モードなど、終活と日々の管理を一本化しています。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span class="q-mark">Q</span>
+          <span class="q-text">本当にカード番号や暗証番号を入れなくて大丈夫ですか？</span>
+          <i class="ti ti-chevron-down q-toggle"></i>
+        </summary>
+        <div class="faq-a">はい。きずなbatonは「契約の存在と解約手順を伝える」ことが目的です。機密情報はこれまで通りアプリ外（金庫・1Password等）で保管いただき、本アプリには「カード下4桁」や「金庫内に保管」といった所在メモのみご記入ください。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span class="q-mark">Q</span>
+          <span class="q-text">料金はかかりますか？</span>
+          <i class="ti ti-chevron-down q-toggle"></i>
+        </summary>
+        <div class="faq-a">β版は無料でご提供予定です。将来的に家族共有などの一部機能を月額200円程度の有料プランとして提供する可能性がありますが、基本機能は無料での利用を継続予定です。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span class="q-mark">Q</span>
+          <span class="q-text">いつ使えるようになりますか？</span>
+          <i class="ti ti-chevron-down q-toggle"></i>
+        </summary>
+        <div class="faq-a">現在β版として限定公開中です。事前登録いただいた方には順次ご案内いたします。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="baton-mark" style="width:26px;height:26px;border-radius:50%;background:var(--bg-warm);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px"><i class="ti ti-relation-one-to-many"></i></span>
+        きずなbaton
+      </div>
+      <div class="footer-links">
+        <a href="#concept">コンセプト</a>
+        <a href="#features">機能</a>
+        <a href="#waitlist">事前登録</a>
+        <a href="docs/privacy-policy.md" target="_blank" rel="noopener">プライバシーポリシー</a>
+      </div>
+    </div>
+    <div class="copyright">
+      © 2026 きずなbaton. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

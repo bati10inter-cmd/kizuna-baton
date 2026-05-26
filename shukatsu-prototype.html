@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>きずなbaton プロトタイプ v23</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="きずなbaton">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{
+  --color-background-primary:#FFFFFF;
+  --color-background-secondary:#F5F4EE;
+  --color-background-tertiary:#EAE8DF;
+  --color-text-primary:#1A1A1A;
+  --color-text-secondary:#555550;
+  --color-text-tertiary:#888880;
+  --color-border-secondary:#C9C7BD;
+  --color-border-tertiary:#DEDCD2;
+  --accent-warm:#FFA875;
+  --accent-warm-bg:#FFF1E6;
+  --accent-warm-border:rgba(255,168,117,0.3);
+  --accent-warm-hover:#FFE3CC;
+  --border-radius-md:6px;
+  --border-radius-lg:10px;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;
+  --font-mono:'SF Mono',Menlo,Consolas,monospace;
+}
+:root.dark{
+  --color-background-primary:#1F1E1B;
+  --color-background-secondary:#2A2924;
+  --color-background-tertiary:#15140F;
+  --color-text-primary:#F2F0E8;
+  --color-text-secondary:#BFBDB3;
+  --color-text-tertiary:#8A8880;
+  --color-border-secondary:#3F3D36;
+  --color-border-tertiary:#34332E;
+  --accent-warm:#FFB893;
+  --accent-warm-bg:rgba(255,168,117,0.18);
+  --accent-warm-border:rgba(255,184,147,0.35);
+  --accent-warm-hover:rgba(255,168,117,0.32);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
+.phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.screen{position:absolute;inset:0;overflow-y:auto;transition:transform 0.25s ease,opacity 0.25s ease}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+
+.user-bar{background:var(--color-background-primary);padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px}
+.user-pill{display:flex;align-items:center;gap:6px;flex:1;background:var(--color-background-secondary);padding:6px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);cursor:pointer;min-width:0}
+.user-pill .av{width:24px;height:24px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.user-pill .info{flex:1;min-width:0}
+.user-pill .label{font-size:9px;color:var(--color-text-tertiary);line-height:1.1}
+.user-pill .name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-pill .arrow{font-size:14px;color:var(--color-text-tertiary)}
+.member-mgmt-icon{padding:6px;border-radius:50%;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center}
+
+.switch-menu{position:absolute;top:54px;left:12px;right:12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:30;display:none;overflow:hidden}
+.switch-menu.open{display:block}
+.switch-item{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary)}
+.switch-item:last-child{border-bottom:none}
+.switch-item:hover{background:var(--color-background-secondary)}
+.switch-item.active{background:var(--color-background-secondary)}
+.switch-item .av{width:30px;height:30px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.switch-item .info{flex:1}
+.switch-item .name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.switch-item .sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.switch-item .check{color:var(--color-text-primary);font-size:16px}
+
+.preview-bar{background:#FAEEDA;border-bottom:0.5px solid #EF9F27;padding:8px 12px;display:none;flex-direction:column;gap:6px;font-size:11px;color:#633806}
+.preview-bar.show{display:flex}
+.preview-bar .pb-top{display:flex;align-items:center;gap:8px}
+.preview-bar .info{flex:1}
+.preview-bar button{background:#EF9F27;color:white;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:500}
+.stage-toggle{display:flex;gap:4px;background:rgba(255,255,255,0.6);padding:3px;border-radius:6px}
+.stage-toggle .st-opt{flex:1;text-align:center;padding:4px 6px;border-radius:4px;font-size:10px;color:#7A5310;cursor:pointer;line-height:1.2;font-weight:500}
+.stage-toggle .st-opt.active{background:#fff;color:#3E2604;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.stage-toggle .st-opt .st-sub{font-size:9px;color:#9A7338;font-weight:400;margin-top:1px}
+.stage-toggle .st-opt.active .st-sub{color:#633806}
+.death-banner{padding:8px 12px;font-size:11px;line-height:1.4;display:flex;align-items:flex-start;gap:6px;border-bottom:0.5px solid}
+.death-banner.inheritance{background:#FFF8E1;border-color:#E0B43D;color:#754C00}
+.death-banner.full{background:#FCEBEB;border-color:#D4537E;color:#7A2236}
+.death-banner i{font-size:14px;margin-top:1px;flex-shrink:0}
+
+.topbar{background:var(--color-background-primary);padding:10px 16px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.topbar h1{font-size:17px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
+.topbar .baton-tag{font-size:10px;background:#FAEEDA;color:#854F0B;padding:2px 7px;border-radius:8px;font-weight:400;letter-spacing:0.5px}
+.topbar p{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+
+.back-bar{background:var(--color-background-primary);padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
+.back-btn{background:transparent;border:none;font-size:13px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;padding:0}
+
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 16px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px}
+.stat-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
+.stat-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.stat-sub{font-size:10px;color:var(--color-text-tertiary)}
+
+.tabs{display:flex;padding:0 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);overflow-x:auto}
+.tab{font-size:11px;padding:6px 8px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--color-text-primary);border-bottom:2px solid var(--color-text-primary);font-weight:500}
+
+.view-tabs{display:flex;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);gap:6px}
+.view-tab{flex:1;font-size:12px;padding:6px;color:var(--color-text-secondary);cursor:pointer;text-align:center;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid transparent}
+.view-tab.active{color:var(--color-text-primary);background:var(--color-background-primary);border-color:var(--color-border-secondary);font-weight:500}
+
+/* v17: 検索バー */
+.search-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.search-bar-inner{flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md)}
+.search-bar-inner:focus-within{border-color:var(--accent-warm)}
+.search-icon{color:var(--color-text-tertiary);font-size:14px;flex-shrink:0}
+.search-bar input{flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--color-text-primary);min-width:0}
+.search-bar input::placeholder{color:var(--color-text-tertiary)}
+.search-clear{border:none;background:transparent;color:var(--color-text-tertiary);cursor:pointer;padding:2px;display:flex;align-items:center;font-size:14px}
+.search-clear:hover{color:var(--color-text-primary)}
+.empty-state{text-align:center;padding:20px;color:var(--color-text-tertiary);font-size:12px;line-height:1.7}
+.empty-state .empty-icon{font-size:24px;color:var(--color-text-tertiary);display:block;margin-bottom:6px}
+.empty-state .empty-clear-btn{margin-top:10px;padding:6px 14px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-primary);cursor:pointer}
+
+.list{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.card.urgent{border-left:3px solid #E24B4A}
+.card.archived{opacity:0.7}
+.icon-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;position:relative}
+.owner-dot{position:absolute;bottom:-2px;right:-2px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1.5px solid var(--color-background-primary);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;color:white}
+.card-body{flex:1;min-width:0}
+.card-name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.card-meta{font-size:10px;color:var(--color-text-secondary);margin-top:2px}
+.card-right{text-align:right;flex-shrink:0}
+.card-amount{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.card-amount-sub{font-size:9px;color:var(--color-text-tertiary)}
+.card-day{font-size:10px;color:var(--color-text-secondary)}
+.lock-icon{font-size:11px;color:var(--color-text-tertiary)}
+.cycle-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:var(--color-background-secondary);color:var(--color-text-secondary);margin-left:4px;vertical-align:1px}
+.cycle-pill.yearly{background:#E6F1FB;color:#185FA5}
+.badge{display:inline-block;font-size:9px;padding:2px 5px;border-radius:4px;margin-top:2px}
+.badge-urgent{background:#FCEBEB;color:#A32D2D}
+.badge-soon{background:#FAEEDA;color:#854F0B}
+.badge-archived{background:#F1EFE8;color:#5F5E5A}
+
+.action-row{display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap}
+.action-row button{flex:1;min-width:140px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:9px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.share-bar{padding:8px 12px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px}
+.share-code{font-size:11px;background:var(--color-background-secondary);padding:5px 8px;border-radius:var(--border-radius-md);flex:1;color:var(--color-text-secondary);font-family:var(--font-mono)}
+
+.detail-hero{padding:18px 16px 14px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px}
+.detail-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.detail-name{font-size:17px;font-weight:500;color:var(--color-text-primary)}
+.detail-cat{font-size:11px;color:var(--color-text-secondary);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.owner-pill{display:inline-flex;align-items:center;gap:4px;background:var(--color-background-secondary);padding:2px 8px;border-radius:10px;font-size:10px;color:var(--color-text-secondary)}
+.owner-pill .av{width:15px;height:15px;border-radius:50%;font-size:8px;color:white;display:flex;align-items:center;justify-content:center;font-weight:500}
+.section{padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.section-title{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.section-title .seal{font-size:10px;color:#A32D2D;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:3px}
+.info-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.info-row:last-child{margin-bottom:0}
+.info-icon{font-size:15px;color:var(--color-text-tertiary);margin-top:1px;width:18px;flex-shrink:0}
+.info-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:2px}
+.info-val{font-size:13px;color:var(--color-text-primary)}
+.masked{font-family:var(--font-mono);background:var(--color-background-secondary);padding:2px 6px;border-radius:4px;font-size:12px}
+.sealed-note{background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:var(--border-radius-md);padding:8px 10px;font-size:11px;color:#633806;display:flex;gap:6px;margin-top:6px}
+.doc-tag{display:inline-block;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;font-size:11px;padding:3px 8px;margin:2px 3px 2px 0;color:var(--color-text-secondary)}
+.cancel-box{background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--border-radius-md);padding:10px 12px}
+.cancel-box p{font-size:12px;color:#501313;line-height:1.6}
+.archived-box{background:#F1EFE8;border:0.5px solid #B4B2A9;border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:8px}
+.archived-box p{font-size:12px;color:#444441;line-height:1.5}
+.url-btn{display:flex;align-items:center;gap:6px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--color-text-primary);cursor:pointer;width:100%;margin-top:4px}
+.url-btn span{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.url-btn .ext{font-size:12px;color:#185FA5}
+.detail-actions{padding:12px 16px;display:flex;gap:6px;flex-wrap:wrap}
+.detail-actions button{flex:1;min-width:90px;padding:9px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-danger{border-color:#F09595!important;color:#A32D2D!important}
+.btn-archive{border-color:#1D9E75!important;color:#0F6E56!important}
+
+.modal-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.4);align-items:flex-end;z-index:20;border-radius:20px}
+.modal-bg.open{display:flex}
+
+/* Step 6.5: トースト通知（招待受諾の即時通知ほか） */
+.toast{position:absolute;top:12px;left:12px;right:12px;background:#185FA5;color:#fff;padding:10px 12px;border-radius:var(--border-radius-md);font-size:12px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:30;opacity:0;transform:translateY(-10px);transition:opacity 0.25s ease,transform 0.25s ease;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#0F6E56}
+.toast.warn{background:#A32D2D}
+.modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto}
+.modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
+.form-row{margin-bottom:8px}
+.form-row label{font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px}
+.form-row input,.form-row select,.form-row textarea{width:100%;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit}
+.form-row textarea{resize:none;height:60px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form-section-title{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-text-secondary);margin-bottom:8px}
+.checkbox-row input{width:auto}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-row button{flex:1;padding:9px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary)}
+.btn-primary{background:var(--color-text-primary)!important;color:var(--color-background-primary)!important;border-color:var(--color-text-primary)!important}
+
+.cycle-toggle{display:flex;gap:6px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);margin-bottom:8px}
+.cycle-toggle div{flex:1;padding:6px;text-align:center;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px}
+.cycle-toggle div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.amount-helper{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;text-align:right}
+
+.pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:var(--color-background-secondary);padding:4px;border-radius:var(--border-radius-md);margin-bottom:4px}
+.pay-method-grid div{padding:7px 6px;text-align:center;font-size:11px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:4px}
+.pay-method-grid div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.pay-method-grid i{font-size:13px}
+
+.pay-icon{display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--color-text-tertiary);margin-left:3px;vertical-align:1px}
+
+.visibility-preset{display:flex;flex-direction:column;gap:5px;margin-bottom:5px}
+.visibility-preset .vp-opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:1px solid transparent;cursor:pointer}
+.visibility-preset .vp-opt.active{border-color:var(--color-text-primary);background:var(--color-background-primary)}
+.visibility-preset .vp-opt i.lead{font-size:15px;color:var(--color-text-secondary);margin-top:1px;flex-shrink:0;width:18px;text-align:center}
+.visibility-preset .vp-opt.active i.lead{color:var(--color-text-primary)}
+.visibility-preset .vp-opt .vp-text{flex:1;min-width:0}
+.visibility-preset .vp-opt .vp-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.visibility-preset .vp-opt .vp-sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px;line-height:1.4}
+.visibility-preset .vp-opt .vp-check{flex-shrink:0;color:var(--color-text-tertiary)}
+.visibility-preset .vp-opt.active .vp-check{color:var(--color-text-primary)}
+
+.viewer-checks{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:6px 8px;margin-top:4px}
+.viewer-checks .vc-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+.viewer-checks .vc-row:last-child{border-bottom:none}
+.viewer-checks .vc-row .av{width:22px;height:22px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.viewer-checks .vc-row .nm{flex:1;font-size:12px;color:var(--color-text-primary)}
+.viewer-checks .vc-row input{width:auto;margin:0}
+.viewer-checks .vc-empty{padding:8px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center}
+
+.visibility-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-secondary);margin-left:6px;font-weight:400}
+.visibility-badge.private{background:#FCEBEB;color:#A32D2D}
+.visibility-badge.selected{background:#FAEEDA;color:#854F0B}
+.visibility-badge.all{background:#E6F1FB;color:#185FA5}
+.visibility-badge.after-only{background:#EFE5F4;color:#5F2D7A}
+
+.hidden-icon{font-size:11px;color:#A32D2D;margin-left:3px}
+
+.member-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:5px}
+.member-row .av{width:28px;height:28px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.member-row .name{flex:1;font-size:13px;color:var(--color-text-primary)}
+.member-row .color-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-tertiary);cursor:pointer}
+.member-row button{background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:14px}
+.color-picker{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.color-picker div{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.color-picker div.selected{border-color:var(--color-text-primary)}
+.add-member-row{display:flex;gap:6px;margin-top:8px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)}
+.add-member-row input{flex:1;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)}
+
+.export-opt{padding:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:8px;cursor:pointer}
+.export-opt.selected{border:2px solid var(--accent-warm);background:var(--accent-warm-bg)}
+.export-opt h3{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
+.export-opt p{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+.preview-opt{padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.preview-opt .av{width:32px;height:32px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.preview-opt .info{flex:1}
+.preview-opt .nm{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.preview-opt .sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+
+.wf-intro{font-size:11px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:10px}
+.wf-status{background:#F1EFE8;border:0.5px solid #B4B2A9;border-radius:6px;padding:8px 10px;font-size:11px;color:#444441;margin-bottom:10px;display:flex;align-items:flex-start;gap:6px;line-height:1.5}
+.wf-status i{font-size:14px;margin-top:1px;flex-shrink:0}
+.wf-status.s1{background:#FFF8E1;border-color:#E0B43D;color:#754C00}
+.wf-status.s2{background:#FCEBEB;border-color:#D4537E;color:#7A2236}
+.wf-step{border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--color-background-secondary)}
+.wf-step.done{background:#E7F6EF;border-color:#1D9E75}
+.wf-step.locked{opacity:0.55}
+.wf-step-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.wf-step-title i{font-size:14px}
+.wf-conditions{list-style:none;padding:0;margin:0 0 8px 0;font-size:11px;color:var(--color-text-secondary);line-height:1.7}
+.wf-conditions li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.wf-conditions .ok{color:#0F6E56;font-weight:500}
+.wf-conditions .pending{color:#854F0B}
+.wf-conditions .no{color:var(--color-text-tertiary)}
+.wf-actions{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.wf-actions button{padding:7px 9px;font-size:11px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px}
+.wf-actions button:disabled{opacity:0.4;cursor:not-allowed}
+.wf-actions button i{font-size:13px;color:var(--color-text-secondary)}
+.wf-approver-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;margin-bottom:4px;font-size:11px}
+.wf-approver-row .av{width:22px;height:22px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.wf-approver-row .nm{flex:1;color:var(--color-text-primary)}
+.wf-approver-row button{padding:4px 9px;font-size:10px;border-radius:4px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer}
+.wf-approver-row.approved{background:#E7F6EF;border-color:#1D9E75}
+.wf-approver-row.approved .nm{color:#0F6E56;font-weight:500}
+.wf-bridge{display:flex;flex-direction:column;gap:6px;margin:12px 0 6px}
+.wf-bridge button{padding:10px;font-size:12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.wf-bridge button:disabled{opacity:0.35;cursor:not-allowed}
+.wf-warning{background:#FCEBEB;border:0.5px solid #F09595;border-radius:6px;padding:8px 10px;font-size:10px;color:#501313;line-height:1.5;margin-top:6px;display:flex;gap:6px}
+.wf-warning i{font-size:13px;margin-top:1px;flex-shrink:0}
+
+/* === v18: ダークモード時のパステル系バッジ／バナー上書き === */
+/* アクセント色（夫/妻/子のブランドカラー）は CSS 変数化せず維持。
+   背景パステル系のみ rgba 透過 + 文字色を明るくして可読性確保 */
+:root.dark .visibility-badge.all{background:rgba(24,95,165,0.22);color:#8FB9DD}
+:root.dark .visibility-badge.selected{background:rgba(239,159,39,0.22);color:#EFBA6A}
+:root.dark .visibility-badge.private{background:rgba(163,45,45,0.28);color:#E89999}
+:root.dark .visibility-badge.after-only{background:rgba(95,45,122,0.32);color:#C4A8D8}
+:root.dark .cycle-pill.yearly{background:rgba(24,95,165,0.22);color:#8FB9DD}
+:root.dark .badge-urgent{background:rgba(163,45,45,0.28);color:#E89999}
+:root.dark .badge-soon{background:rgba(239,159,39,0.22);color:#EFBA6A}
+:root.dark .badge-archived{background:rgba(140,138,128,0.22);color:#BFBDB3}
+:root.dark .baton-tag{background:rgba(239,159,39,0.22);color:#EFBA6A}
+:root.dark .masked{background:var(--color-background-secondary)}
+:root.dark .doc-tag{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+:root.dark .cancel-box{background:rgba(163,45,45,0.18);border-color:rgba(240,149,149,0.5)}
+:root.dark .cancel-box p{color:#F2C7C7}
+:root.dark .archived-box{background:rgba(140,138,128,0.18);border-color:rgba(180,178,169,0.4)}
+:root.dark .archived-box p{color:var(--color-text-secondary)}
+:root.dark .sealed-note{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
+:root.dark .export-opt.selected{background:var(--accent-warm-bg)}
+:root.dark .wf-status{background:rgba(140,138,128,0.18);border-color:rgba(180,178,169,0.4);color:var(--color-text-secondary)}
+:root.dark .wf-status.s1{background:rgba(224,180,61,0.18);border-color:rgba(224,180,61,0.5);color:#E8CC7E}
+:root.dark .wf-status.s2{background:rgba(212,83,126,0.22);border-color:rgba(212,83,126,0.5);color:#E8A8BD}
+:root.dark .wf-step.done{background:rgba(29,158,117,0.18);border-color:rgba(29,158,117,0.5)}
+:root.dark .wf-approver-row.approved{background:rgba(29,158,117,0.18);border-color:rgba(29,158,117,0.5)}
+:root.dark .wf-warning{background:rgba(163,45,45,0.22);border-color:rgba(240,149,149,0.5);color:#F2C7C7}
+:root.dark .preview-bar{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
+:root.dark .preview-bar button{color:#1A1A1A}
+:root.dark .stage-toggle .st-opt{color:#EFC788}
+:root.dark .stage-toggle .st-opt.active{background:var(--color-background-primary);color:var(--color-text-primary);box-shadow:0 1px 2px rgba(0,0,0,0.35)}
+:root.dark .stage-toggle .st-opt .st-sub{color:#C49856}
+:root.dark .stage-toggle .st-opt.active .st-sub{color:var(--color-text-secondary)}
+:root.dark .death-banner.inheritance{background:rgba(224,180,61,0.18);border-color:rgba(224,180,61,0.5);color:#E8CC7E}
+:root.dark .death-banner.full{background:rgba(212,83,126,0.22);border-color:rgba(212,83,126,0.5);color:#E8A8BD}
+:root.dark .phone{box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+:root.dark .switch-menu{box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+:root.dark .modal-bg{background:rgba(0,0,0,0.6)}
+:root.dark .family-message-box{background:rgba(212,83,126,0.18)!important;border-color:rgba(212,83,126,0.4)!important;color:#E8A8BD!important}
+:root.dark .family-msg-toggle .fm-hint{color:#E8A8BD!important}
+
+/* === v19: βバッジ / プライベートモード警告 / 並び替え === */
+.beta-badge{display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:var(--accent-warm-bg);color:var(--accent-warm);padding:2px 7px;border-radius:8px;font-weight:500;margin-left:6px;cursor:pointer;border:0.5px solid var(--accent-warm-border);letter-spacing:0.3px}
+.beta-badge:hover{background:var(--accent-warm-hover)}
+:root.dark .beta-badge{background:var(--accent-warm-bg);color:var(--accent-warm);border-color:var(--accent-warm-border)}
+:root.dark .beta-badge:hover{background:var(--accent-warm-hover)}
+
+.private-mode-warning{background:#FCEBEB;border-bottom:0.5px solid #F09595;padding:8px 12px;font-size:11px;color:#7A2236;display:none;align-items:flex-start;gap:6px;line-height:1.4;cursor:pointer}
+.private-mode-warning.show{display:flex}
+.private-mode-warning i{font-size:14px;margin-top:1px;flex-shrink:0}
+.private-mode-warning .pm-msg{flex:1}
+.private-mode-warning .pm-link{color:#A32D2D;text-decoration:underline;font-weight:500}
+:root.dark .private-mode-warning{background:rgba(163,45,45,0.22);border-color:rgba(240,149,149,0.5);color:#F2C7C7}
+:root.dark .private-mode-warning .pm-link{color:#E89999}
+
+.sort-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 9px;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;white-space:nowrap}
+.sort-btn:hover{background:var(--color-background-primary)}
+.sort-btn i{font-size:14px;color:var(--color-text-tertiary)}
+.sort-btn .sort-order-arrow{font-size:11px;color:var(--color-text-tertiary)}
+
+.sort-opt{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:1px solid transparent;cursor:pointer;margin-bottom:5px}
+.sort-opt.active{border-color:var(--color-text-primary);background:var(--color-background-primary)}
+.sort-opt i.lead{font-size:15px;color:var(--color-text-secondary);width:18px;text-align:center;flex-shrink:0}
+.sort-opt.active i.lead{color:var(--color-text-primary)}
+.sort-opt .so-title{flex:1;font-size:13px;color:var(--color-text-primary)}
+.sort-opt .so-check{color:var(--color-text-tertiary);font-size:14px}
+.sort-opt.active .so-check{color:var(--color-text-primary)}
+.sort-order-toggle{display:flex;gap:6px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);margin-top:10px}
+.sort-order-toggle div{flex:1;padding:7px;text-align:center;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:5px}
+.sort-order-toggle div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+
+.restore-warning-box{background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--border-radius-md);padding:10px 12px;margin:8px 0;font-size:12px;color:#501313;line-height:1.6;display:flex;gap:6px}
+.restore-warning-box i{font-size:14px;margin-top:1px;flex-shrink:0}
+:root.dark .restore-warning-box{background:rgba(163,45,45,0.22);border-color:rgba(240,149,149,0.5);color:#F2C7C7}
+
+.beta-info-box{background:#F5F4EE;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.beta-info-box.warn{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+:root.dark .beta-info-box{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+:root.dark .beta-info-box.warn{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
+.ob-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary)}
+.ob-dot.active{background:var(--accent-warm)}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <!-- Step 6.5: トースト要素（招待受諾の即時通知ほか） -->
+  <div class="toast" id="toast"></div>
+  <div class="screen" id="screen-list">
+    <div class="user-bar">
+      <div class="user-pill" onclick="toggleSwitch(event)">
+        <div class="av" id="pill-av">?</div>
+        <div class="info"><div class="label" id="pill-label">表示中</div><div class="name" id="pill-name">-</div></div>
+        <i class="ti ti-chevron-down arrow"></i>
+      </div>
+      <div class="member-mgmt-icon" onclick="openMemberModal()" title="家族管理">
+        <i class="ti ti-user-plus" style="font-size:16px"></i>
+      </div>
+    </div>
+    <div class="switch-menu" id="switch-menu"></div>
+    <div class="preview-bar" id="preview-bar">
+      <div class="pb-top">
+        <i class="ti ti-eye-search" style="font-size:14px"></i>
+        <div class="info" id="preview-info">プレビュー中</div>
+        <button onclick="exitPreview()">終了</button>
+      </div>
+      <div class="stage-toggle" id="stage-toggle">
+        <div class="st-opt active" id="st-live" onclick="setPreviewStage('live')"><div>生前</div><div class="st-sub">通常時</div></div>
+        <div class="st-opt" id="st-inheritance" onclick="setPreviewStage('inheritance')"><div>相続判断</div><div class="st-sub">Stage 1</div></div>
+        <div class="st-opt" id="st-full" onclick="setPreviewStage('full')"><div>完全開示</div><div class="st-sub">Stage 2</div></div>
+      </div>
+    </div>
+    <div class="death-banner" id="death-banner" style="display:none"></div>
+    <div class="private-mode-warning" id="private-mode-warning" onclick="openBetaInfoModal()">
+      <i class="ti ti-alert-triangle"></i>
+      <div class="pm-msg">プライベートブラウジング中：データは保存されません。<span class="pm-link">詳しく見る</span></div>
+    </div>
+
+    <div class="topbar">
+      <h1><i class="ti ti-heart-handshake" style="font-size:15px"></i>きずなbaton <span class="baton-tag">家族へつなぐ</span><span class="beta-badge" onclick="openBetaInfoModal()" title="ベータ版について">β</span></h1>
+      <p id="family-count">家族 0人で共有中 · コード FAMX-2847</p>
+    </div>
+    <div class="summary">
+      <div class="stat"><div class="stat-label">月額換算合計</div><div class="stat-val" id="total-amount">¥0</div><div class="stat-sub">年間: <span id="yearly">¥0</span></div></div>
+      <div class="stat"><div class="stat-label">登録件数</div><div class="stat-val" id="total-count">0</div><div class="stat-sub"><span id="urgent-count">0</span>件が30日以内</div></div>
+    </div>
+
+    <div class="view-tabs">
+      <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
+      <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
+    </div>
+    <div class="search-bar">
+      <div class="search-bar-inner">
+        <i class="ti ti-search search-icon"></i>
+        <input id="search-input" type="text" placeholder="契約名・カテゴリ・メモで検索" oninput="onSearchInput(this.value)" autocomplete="off">
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none" title="検索をクリア"><i class="ti ti-x"></i></button>
+      </div>
+      <button class="sort-btn" id="sort-btn" onclick="openSortModal()" title="並び替え"><i class="ti ti-arrows-sort"></i><span id="sort-btn-label">支払日</span><i class="ti ti-arrow-up sort-order-arrow" id="sort-order-arrow"></i></button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="list" id="contract-list"></div>
+
+    <div class="action-row">
+      <button onclick="openModal()"><i class="ti ti-plus"></i> 契約を追加</button>
+      <button onclick="openExportModal()"><i class="ti ti-download"></i> 出力する</button>
+    </div>
+
+    <div class="share-bar">
+      <i class="ti ti-users" style="font-size:16px;color:var(--color-text-secondary)"></i>
+      <div class="share-code">共有コード: FAMX-2847</div>
+      <i class="ti ti-settings" onclick="openCatModal()" style="font-size:16px;color:var(--color-text-secondary);cursor:pointer"></i>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-detail">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()"><i class="ti ti-chevron-left" style="font-size:15px"></i>戻る</button>
+      <span style="flex:1"></span>
+      <button class="back-btn" onclick="openEditModal()" style="color:var(--color-text-primary)" id="edit-btn-top"><i class="ti ti-edit" style="font-size:14px"></i> 編集</button>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+
+  <div class="modal-bg" id="add-modal">
+    <div class="modal">
+      <h2 id="modal-title"><i class="ti ti-plus"></i>契約を追加</h2>
+      <div class="form-row"><label>契約名</label><input type="text" id="f-name" placeholder="例: Netflix"></div>
+      <div class="form-grid">
+        <div class="form-row"><label>カテゴリ</label><select id="f-cat"></select></div>
+        <div class="form-row"><label>所有者</label><select id="f-owner"></select></div>
+      </div>
+
+      <div class="form-row">
+        <label>支払サイクル</label>
+        <div class="cycle-toggle">
+          <div id="cyc-monthly" class="active" onclick="setCycle('monthly')">月払い</div>
+          <div id="cyc-yearly" onclick="setCycle('yearly')">年払い</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>支払方法</label>
+        <div class="pay-method-grid" id="pay-method-grid">
+          <div id="pm-credit_card" class="active" onclick="setPayMethod('credit_card')"><i class="ti ti-credit-card"></i>クレジットカード</div>
+          <div id="pm-bank_debit" onclick="setPayMethod('bank_debit')"><i class="ti ti-building-bank"></i>銀行引き落とし</div>
+          <div id="pm-bank_transfer" onclick="setPayMethod('bank_transfer')"><i class="ti ti-arrows-exchange"></i>銀行振込</div>
+          <div id="pm-cash" onclick="setPayMethod('cash')"><i class="ti ti-cash"></i>現金払い</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label id="amount-label">金額 (円/月)</label>
+        <input type="number" id="f-amount" placeholder="1000">
+        <div class="amount-helper" id="amount-helper"></div>
+      </div>
+
+      <div id="monthly-date">
+        <div class="form-row"><label>支払日（毎月）</label><input type="number" id="f-day" placeholder="1〜31" min="1" max="31"></div>
+      </div>
+      <div id="yearly-date" style="display:none">
+        <div class="form-grid">
+          <div class="form-row"><label>支払月（毎年）</label><select id="f-month"></select></div>
+          <div class="form-row"><label>支払日</label><input type="number" id="f-day-yearly" placeholder="1〜31" min="1" max="31"></div>
+        </div>
+      </div>
+
+      <div class="form-row"><label>電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
+      <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."></div>
+      <div class="form-row"><label>解約方法</label><textarea id="f-cancel" placeholder="例: マイページ → 解約手続き"></textarea></div>
+      <div class="form-row"><label>必要書類（カンマ区切り）</label><input type="text" id="f-docs" placeholder="例: 保険証, 印鑑"></div>
+      <div class="form-row"><label>メモ</label><input type="text" id="f-memo" placeholder="例: 家族プラン"></div>
+
+      <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0;color:#A04B6E"><i class="ti ti-message-heart"></i> 家族への一言メッセージ（任意）</div>
+      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約に関する家族へのメモや想いを残せます。公開範囲（下記）に従って表示されます。</p>
+      <div class="form-row"><textarea id="f-family-message" placeholder="例: 楽しい時間をありがとう。解約手続きはよろしくね。" rows="2" style="resize:vertical;min-height:48px"></textarea></div>
+
+      <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 機密情報（本人以外には非表示）</div>
+      <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
+      <div id="secret-card-fields">
+        <div class="form-grid">
+          <div class="form-row"><label>カード会社</label><input type="text" id="f-card-brand" placeholder="例: 三井住友VISA"></div>
+          <div class="form-row"><label>カード下4桁</label><input type="text" id="f-card-last4" placeholder="例: 1234" maxlength="4"></div>
+        </div>
+      </div>
+      <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
+
+      <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
+      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。生前モードと「もしもの時」モードで個別に制御できます。</p>
+      <div class="visibility-preset" id="visibility-preset">
+        <div class="vp-opt active" id="vp-all" onclick="setVisibilityMode('all')">
+          <i class="ti ti-users lead"></i>
+          <div class="vp-text"><div class="vp-title">全員に見せる</div><div class="vp-sub">生前も死後も家族全員の画面に表示</div></div>
+          <i class="ti ti-check vp-check"></i>
+        </div>
+        <div class="vp-opt" id="vp-selected" onclick="setVisibilityMode('selected')">
+          <i class="ti ti-user-check lead"></i>
+          <div class="vp-text"><div class="vp-title">一部にだけ見せる</div><div class="vp-sub">生前用・もしもの時用で個別にメンバー指定</div></div>
+          <i class="ti ti-check vp-check"></i>
+        </div>
+        <div class="vp-opt" id="vp-after-only" onclick="setVisibilityMode('after_only')">
+          <i class="ti ti-clock-heart lead"></i>
+          <div class="vp-text"><div class="vp-title">もしもの時だけ家族へ</div><div class="vp-sub">生前は本人のみ、死後に家族全員へ開示（隠し財産・寄付等）</div></div>
+          <i class="ti ti-check vp-check"></i>
+        </div>
+        <div class="vp-opt" id="vp-private" onclick="setVisibilityMode('private')">
+          <i class="ti ti-eye-off lead"></i>
+          <div class="vp-text"><div class="vp-title">本人のみ（死後も非開示）</div><div class="vp-sub">家族には一切表示されません</div></div>
+          <i class="ti ti-check vp-check"></i>
+        </div>
+      </div>
+      <p id="vp-private-warning" style="display:none;font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-top:6px;line-height:1.4"><i class="ti ti-alert-triangle"></i> もしもの時も家族には表示されません。継続課金される可能性をご了承ください（通常は口座凍結で停止）。</p>
+      <div id="viewer-checks-wrap" style="display:none;margin-top:6px">
+        <label style="font-size:10px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:10px"></i> 生前に表示するメンバー</label>
+        <div class="viewer-checks" id="viewer-checks"></div>
+        <label style="font-size:10px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:10px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
+        <div class="viewer-checks" id="after-viewer-checks"></div>
+      </div>
+
+      <div class="btn-row">
+        <button onclick="closeModal()">キャンセル</button>
+        <button class="btn-primary" id="submit-btn" onclick="addContract()">追加する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="member-modal">
+    <div class="modal">
+      <h2><i class="ti ti-users"></i>家族メンバー管理</h2>
+      <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">名前と表示色を自由に設定できます。</p>
+      <div id="member-list"></div>
+      <!-- 招待で追加（Step 6: invitation-flow-design.md v3.2） -->
+      <button onclick="openInviteIssueModal()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--accent-warm);background:transparent;color:var(--accent-warm);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;margin-bottom:10px"><i class="ti ti-mail"></i>招待で追加（推奨）</button>
+      <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:4px">手動追加（プロトタイプ動作確認用）</div>
+      <div class="add-member-row">
+        <input type="text" id="new-member-name" placeholder="新しいメンバー名" maxlength="20">
+        <button onclick="addMember()" style="padding:7px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-text-primary);color:var(--color-background-primary);font-size:12px;cursor:pointer">追加</button>
+      </div>
+      <!-- Step 6.3: 未受諾の招待 -->
+      <div id="invitations-section" style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">未受諾の招待</div>
+        <div id="invitations-list"></div>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">プレビュー</div>
+        <button onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す</button>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
+        <button onclick="openAccountDeleteModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid #DC2626;background:transparent;color:#DC2626;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-trash"></i>アカウントを削除する</button>
+      </div>
+      <div class="btn-row"><button onclick="closeMemberModal()">閉じる</button></div>
+    </div>
+  </div>
+
+  <!-- v16: オンボーディング（本人側初回ガイド・4ステップ） -->
+  <div class="modal-bg" id="onboarding-modal">
+    <div class="modal">
+      <!-- Step 1: ようこそ -->
+      <div class="ob-step" data-step="1" style="display:block">
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-warm);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-heart-handshake"></i></div>
+        </div>
+        <h2 style="text-align:center"><i class="ti ti-sparkles" style="color:#E0B43D"></i> きずなbaton へようこそ</h2>
+        <div style="font-size:13px;line-height:1.8;color:var(--color-text-secondary);margin:12px 0 8px">
+          家族の絆をバトンのように次世代へ手渡すアプリです。
+        </div>
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:8px">
+          このアプリは <strong>契約情報そのものを保管するアプリではなく、契約の存在と解約手順をご家族に伝えるアプリ</strong> です（Apple Legacy Contact と同じ設計思想）。<br>
+          機密情報は金庫やパスワードマネージャーで別管理してください。
+        </div>
+      </div>
+      <!-- Step 2: 保存範囲 -->
+      <div class="ob-step" data-step="2" style="display:none">
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#0F6E56;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-shield-lock"></i></div>
+        </div>
+        <h2 style="text-align:center">保存するもの・しないもの</h2>
+        <div style="display:flex;gap:8px;margin:12px 0 6px">
+          <div style="flex:1;background:#E8F5E9;border-radius:var(--border-radius-md);padding:10px;font-size:11px;line-height:1.7">
+            <div style="font-weight:600;color:#0F6E56;margin-bottom:4px"><i class="ti ti-check"></i> 保存OK</div>
+            カード会社名・下4桁<br>連絡先・URL<br>解約手順<br>保管場所のメモ
+          </div>
+          <div style="flex:1;background:#FFEBEE;border-radius:var(--border-radius-md);padding:10px;font-size:11px;line-height:1.7">
+            <div style="font-weight:600;color:#C62828;margin-bottom:4px"><i class="ti ti-x"></i> 保存しない</div>
+            カード番号フル<br>口座番号<br>暗証番号・パスワード<br>マイナンバー
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">
+          ※ 機密メモ欄には番号類は書かず、「証券番号は金庫内」のような<strong>所在メモ</strong>として使ってください。
+        </div>
+      </div>
+      <!-- Step 3: 公開範囲 -->
+      <div class="ob-step" data-step="3" style="display:none">
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#D4537E;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-users"></i></div>
+        </div>
+        <h2 style="text-align:center">家族との共有</h2>
+        <div style="font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
+          契約ごとに <strong>「誰に見せるか」</strong> を選べます。
+        </div>
+        <div style="font-size:12px;line-height:1.9;color:var(--color-text-secondary);margin-bottom:8px">
+          ・<span style="background:#E8F5E9;color:#0F6E56;padding:1px 6px;border-radius:3px;font-size:10px">全員</span> 家族全員に表示<br>
+          ・<span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:3px;font-size:10px">一部</span> 指定した家族のみ表示<br>
+          ・<span style="background:#FFEBEE;color:#C62828;padding:1px 6px;border-radius:3px;font-size:10px">本人のみ</span> 家族には表示されない
+        </div>
+        <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:11px;color:#754C00;line-height:1.7;margin-top:8px">
+          「家族メンバー」は本アプリ上の表示区分です。<strong>法定相続人の指定や代理権の付与ではありません</strong>。
+        </div>
+      </div>
+      <!-- Step 4: 招待・もしもの時 -->
+      <div class="ob-step" data-step="4" style="display:none">
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-warm);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-mail"></i></div>
+        </div>
+        <h2 style="text-align:center">家族を招待</h2>
+        <div style="font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
+          家族メンバー管理画面の「<strong>招待で追加</strong>」から、招待リンク + OTP を発行できます。受諾者が利用規約・プライバシーポリシーに同意した上で参加します。
+        </div>
+        <div style="background:#FFEBEE;border-left:3px solid #C62828;padding:9px 11px;border-radius:3px;font-size:11px;color:#7B1F1F;line-height:1.7;margin-top:8px">
+          <strong>β版での重要なお知らせ:</strong><br>
+          本人の応答途絶を契機とする <strong>「もしもの時」の自動開示は提供されません</strong>。家族メンバーへの開示は、本人が公開範囲設定で手動共有した契約に限ります。
+        </div>
+      </div>
+
+      <!-- ページネーション -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 0 4px">
+        <span class="ob-dot active" data-dot="1"></span>
+        <span class="ob-dot" data-dot="2"></span>
+        <span class="ob-dot" data-dot="3"></span>
+        <span class="ob-dot" data-dot="4"></span>
+      </div>
+
+      <div class="btn-row" style="margin-top:10px">
+        <button onclick="skipOnboarding()" style="font-size:11px;color:var(--color-text-tertiary)">スキップ</button>
+        <button id="ob-next-btn" class="btn-primary" onclick="onboardingNext()"><i class="ti ti-arrow-right"></i> 次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v16: 受諾完了ウェルカム（家族側・invitation-flow-design.md §4.2.4） -->
+  <div class="modal-bg" id="welcome-after-accept-modal">
+    <div class="modal">
+      <div style="text-align:center;margin-bottom:12px">
+        <div style="width:64px;height:64px;border-radius:50%;background:#0F6E56;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-confetti"></i></div>
+      </div>
+      <h2 style="text-align:center">ようこそ、きずなbaton へ</h2>
+      <div style="font-size:13px;line-height:1.8;color:var(--color-text-secondary);margin:10px 0 8px">
+        <strong id="welcome-inviter-name">太郎</strong>さんが、あなたに公開した契約情報を閲覧できます。
+      </div>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:8px">
+        <strong id="welcome-inviter-name2">太郎</strong>さんが <strong>公開範囲設定で「あなた」に共有している契約のみ</strong> が表示されます。
+      </div>
+      <div style="background:#FFEBEE;border-left:3px solid #C62828;padding:9px 11px;border-radius:3px;font-size:11px;color:#7B1F1F;line-height:1.7;margin-bottom:10px">
+        β版では、<strong>本人の応答途絶を契機とする自動的な情報開示は行われません</strong>。情報の閲覧は本人による手動の公開範囲設定に基づきます。
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="closeWelcomeAfterAccept()" style="width:100%"><i class="ti ti-home"></i> ホームへ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 招待受諾・同意取得モーダル（PP 18条 Dark Pattern 回避 / invitation-flow-design.md §4.2.2） -->
+  <div class="modal-bg" id="consent-modal">
+    <div class="modal">
+      <h2><i class="ti ti-user-check"></i>家族メンバーとして参加</h2>
+
+      <!-- 招待元情報（モック） -->
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:12px">
+        <div style="color:var(--color-text-tertiary);font-size:10px;letter-spacing:0.5px;margin-bottom:4px">招待元</div>
+        <div><strong id="consent-inviter-name">太郎</strong> さんから「<span id="consent-invitee-label">配偶者</span>」として招待されています</div>
+      </div>
+
+      <!-- OTP説明（v3.2 ToS 6.5.3） -->
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
+        ※ OTP（メール認証コード）は招待先メールへの到達確認のみを目的としており、身元保証ではありません。
+      </div>
+
+      <!-- §4.2.2: 法的位置づけの明示（ボタン直前に表示） -->
+      <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:11px;color:#754C00;margin-bottom:12px;line-height:1.7">
+        <strong>ご確認ください:</strong><br>
+        「家族メンバー」は本サービス上の表示区分であり、法定相続人の指定や代理権の付与ではありません。相続・法的手続きはご自身の責任でお進めください。
+      </div>
+
+      <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.1）</a>に同意します</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.1）</a>に同意します</span>
+      </label>
+      <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="consent-residency" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span>日本に居住しています</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:10px">
+        <input type="checkbox" id="consent-age" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span>18歳以上です</span>
+      </label>
+
+      <div class="btn-row">
+        <button onclick="closeConsentModal()">キャンセル</button>
+        <button id="consent-accept-btn" class="btn-primary" onclick="acceptConsent()" disabled style="opacity:0.4;cursor:not-allowed"><i class="ti ti-check"></i> 同意して開始</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 本人向け初回起動同意モーダル（v22 / S3 / PP 18条 Dark Pattern 回避） -->
+  <div class="modal-bg" id="owner-consent-modal">
+    <div class="modal">
+      <h2><i class="ti ti-shield-check"></i>ご利用前のご確認</h2>
+
+      <!-- ウェルカム文言 -->
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
+        きずなbaton をご利用いただく前に、<strong>利用規約・プライバシーポリシー</strong>への同意をお願いします。<br>
+        <span style="font-size:11px;color:var(--color-text-tertiary)">本サービスは現在 <strong>β版（無料）</strong>です。ご家族の終活サポートにご活用ください。</span>
+      </div>
+
+      <!-- β版データ取扱いの簡潔説明 -->
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
+        ※ β版は<strong>本人の端末内（localStorage）</strong>にのみ情報を保存し、外部サーバーへは送信しません（Tabler Icons CDN を除く）。詳細はプライバシーポリシー第2条「β版における実取得情報」をご確認ください。
+      </div>
+
+      <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.1）</a>に同意します</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.1）</a>に同意します</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
+        <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span>日本に居住しています</span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:10px">
+        <input type="checkbox" id="owner-consent-age" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
+        <span>18歳以上です</span>
+      </label>
+
+      <div class="btn-row">
+        <button onclick="declineOwnerConsent()">同意せず終了</button>
+        <button id="owner-consent-accept-btn" class="btn-primary" onclick="acceptOwnerConsent()" disabled style="opacity:0.4;cursor:not-allowed"><i class="ti ti-check"></i> 同意して開始</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 招待発行モーダル（Step 6.2 / invitation-flow-design.md §4.1.2） -->
+  <div class="modal-bg" id="invite-issue-modal">
+    <div class="modal">
+      <h2><i class="ti ti-mail"></i>家族メンバーを招待</h2>
+
+      <!-- 発行フォーム -->
+      <div id="invite-issue-form">
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクと OTP（6桁）を発行します。LINE/メール等でリンクをご家族に送ってください。</div>
+        <div class="form-row">
+          <label>呼び名（受諾者が変更可）</label>
+          <input type="text" id="invite-suggested-name" placeholder="例: 美咲" maxlength="20">
+        </div>
+        <div class="form-row">
+          <label>関係性（β版は3区分）</label>
+          <div id="invite-relation-radios" style="display:flex;gap:6px;margin-top:4px">
+            <label style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:12px;text-align:center;cursor:pointer"><input type="radio" name="invite-relation" value="配偶者" style="margin-right:4px">配偶者</label>
+            <label style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:12px;text-align:center;cursor:pointer"><input type="radio" name="invite-relation" value="子" style="margin-right:4px">子</label>
+            <label style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:12px;text-align:center;cursor:pointer"><input type="radio" name="invite-relation" value="親" style="margin-right:4px">親</label>
+          </div>
+        </div>
+        <!-- §4.1.2 注記 -->
+        <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:11px;color:#754C00;margin-top:10px;line-height:1.7">
+          家族ラベル（配偶者・子・親）は本サービス上の表示区分です。<strong>法定相続人の指定や代理権の付与・本人の代わりに契約を解約する権限の付与を意味するものではありません</strong>。
+        </div>
+        <div id="invite-limit-msg" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
+        <div class="btn-row">
+          <button onclick="closeInviteIssueModal()">キャンセル</button>
+          <button id="invite-issue-btn" class="btn-primary" onclick="issueInvitation()"><i class="ti ti-send"></i> 発行する</button>
+        </div>
+      </div>
+
+      <!-- 発行結果（発行後に表示） -->
+      <div id="invite-issue-result" style="display:none">
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;margin-bottom:10px;text-align:center">
+          <i class="ti ti-qrcode" style="font-size:80px;color:var(--color-text-primary)"></i>
+          <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:4px">QRコード（プロト表示：実読み取り不可）</div>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">招待URL</div>
+        <div id="invite-result-url" style="font-family:var(--font-mono);font-size:10px;background:var(--color-background-secondary);padding:8px 10px;border-radius:var(--border-radius-md);word-break:break-all;margin-bottom:10px"></div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">OTP（6桁・有効7日）</div>
+        <div id="invite-result-otp" style="font-family:var(--font-mono);font-size:20px;letter-spacing:6px;text-align:center;background:var(--color-background-secondary);padding:12px;border-radius:var(--border-radius-md);margin-bottom:10px"></div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.6;margin-bottom:10px">OTP は招待先メールへの到達確認のみを目的としており、身元保証ではありません（ToS 6.5.3）。</div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="closeInviteIssueModal()">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 招待受諾モーダル（Step 6.4 / invitation-flow-design.md §4.2） -->
+  <div class="modal-bg" id="invite-accept-modal">
+    <div class="modal">
+      <h2><i class="ti ti-link"></i>招待を受諾</h2>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った OTP（6桁）を入力してください。</div>
+      <div class="form-row">
+        <label>OTP（6桁）</label>
+        <input type="text" id="invite-accept-otp" placeholder="000000" maxlength="6" inputmode="numeric" style="font-family:var(--font-mono);font-size:18px;letter-spacing:6px;text-align:center">
+      </div>
+      <div style="margin-top:8px">
+        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の OTP を入力（プロト用）</button>
+      </div>
+      <div id="invite-accept-error" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
+      <div class="btn-row">
+        <button onclick="closeInviteAcceptModal()">キャンセル</button>
+        <button class="btn-primary" onclick="verifyInviteOtp()"><i class="ti ti-check"></i> OTP を検証</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- アカウント削除モーダル（PP 13.1 / App Store 5.1.1(v)） -->
+  <div class="modal-bg" id="account-delete-modal">
+    <div class="modal">
+      <h2 style="color:#DC2626"><i class="ti ti-alert-triangle"></i>アカウントを削除</h2>
+      <div style="font-size:12px;color:var(--color-text-primary);line-height:1.6;margin-bottom:10px">
+        ご本人のアカウントを削除すると以下が起こります：
+      </div>
+      <ul style="font-size:11px;color:var(--color-text-secondary);line-height:1.7;padding-left:18px;margin-bottom:10px">
+        <li>ご家族からあなたの契約一覧が見えなくなります</li>
+        <li>生前共有（liveViewers）が無効化されます</li>
+        <li>削除前に JSON エクスポートでバックアップを取ることを推奨します</li>
+        <li>削除後 14 日間は復元可能です（規約 13 条準拠）。14 日経過後は完全に削除されます</li>
+      </ul>
+      <div style="font-size:11px;color:#DC2626;background:#FEF2F2;border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.6">
+        ご確認のため「<strong>アカウントを削除する</strong>」と一字一句正確に入力してください。
+      </div>
+      <input type="text" id="account-delete-confirm" placeholder="アカウントを削除する" oninput="onAccountDeleteConfirmInput()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;margin-bottom:10px">
+      <div class="btn-row">
+        <button onclick="closeAccountDeleteModal()">キャンセル</button>
+        <button id="account-delete-exec" onclick="deleteOwnAccount()" disabled style="background:#DC2626;color:#fff;border:0;padding:8px 14px;border-radius:var(--border-radius-md);font-size:12px;cursor:not-allowed;opacity:0.4"><i class="ti ti-trash"></i> 削除を確定する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="color-modal">
+    <div class="modal" style="max-height:50%">
+      <h2 id="color-modal-title">色を選ぶ</h2>
+      <div class="color-picker" id="color-picker"></div>
+      <div class="btn-row"><button onclick="closeColorModal()">閉じる</button></div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="archive-modal">
+    <div class="modal">
+      <h2><i class="ti ti-archive"></i>解約済みにする</h2>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">この契約をアーカイブし、記録として残します。</p>
+      <div class="form-row"><label>解約日</label><input type="date" id="a-date"></div>
+      <div class="form-row"><label>解約理由・備考</label><textarea id="a-note" placeholder="例: 電話で解約完了"></textarea></div>
+      <div class="btn-row">
+        <button onclick="closeArchiveModal()">キャンセル</button>
+        <button class="btn-primary" onclick="archiveContract()">解約済みにする</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="export-modal">
+    <div class="modal">
+      <h2><i class="ti ti-file-download"></i>データ出力</h2>
+
+      <!-- 形式選択（規約 ToS 15.7 / PP 14.5 で約束のデータポータビリティ） -->
+      <div style="font-size:11px;color:var(--color-text-secondary);margin:2px 0 6px;letter-spacing:0.5px">出力形式</div>
+      <div class="export-opt selected" id="fmt-pdf" onclick="selectExportFormat('pdf')">
+        <h3><i class="ti ti-printer"></i>PDF印刷用</h3>
+        <p>家族にバトンを手渡すための印刷用書面。金庫等に保管推奨。</p>
+      </div>
+      <div class="export-opt" id="fmt-json" onclick="selectExportFormat('json')">
+        <h3><i class="ti ti-file-code"></i>JSONダウンロード（本人のみ）</h3>
+        <p>ご自身の契約データを JSON 形式で書き出します。バックアップ・移行用。</p>
+      </div>
+
+      <!-- モード選択（emergencyMode 有効時のみ表示） -->
+      <div id="export-mode-section" style="display:none">
+        <div style="font-size:11px;color:var(--color-text-secondary);margin:10px 0 6px;letter-spacing:0.5px">開示モード</div>
+        <div class="export-opt selected" id="opt-self" onclick="selectExport('self')">
+          <h3><i class="ti ti-lock-open"></i>通常版（自分用）</h3>
+          <p>全情報を表示。本人の控え用。</p>
+        </div>
+        <div class="export-opt" id="opt-inheritance" onclick="selectExport('inheritance')">
+          <h3><i class="ti ti-alert-triangle"></i>相続判断モード（Stage 1）</h3>
+          <p>機密情報を伏せて出力。家族が相続放棄/承認を判断する材料用。</p>
+        </div>
+        <div class="export-opt" id="opt-family" onclick="selectExport('family')">
+          <h3><i class="ti ti-shield-lock"></i>完全開示モード（Stage 2）</h3>
+          <p>全情報を開示。解約手続き用（私的契約は除く）。</p>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button onclick="closeExportModal()">キャンセル</button>
+        <button class="btn-primary" onclick="doExport()" id="export-confirm-btn"><i class="ti ti-printer"></i> 出力する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="preview-modal">
+    <div class="modal">
+      <h2><i class="ti ti-eye-search"></i>家族からの見え方を確認</h2>
+      <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:12px">他の家族の視点で表示を確認できます。</p>
+      <div id="preview-member-list"></div>
+      <div class="btn-row"><button onclick="closePreviewModal()">キャンセル</button></div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="cat-modal">
+    <div class="modal">
+      <h2><i class="ti ti-tag"></i>カテゴリ管理</h2>
+      <div id="cat-list" style="display:flex;flex-direction:column;gap:5px;margin:8px 0"></div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <input type="text" id="new-cat-input" placeholder="新カテゴリ" style="flex:1;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)">
+        <button onclick="addCategory()" style="padding:7px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-text-primary);color:var(--color-background-primary);font-size:12px;cursor:pointer">追加</button>
+      </div>
+      <div class="btn-row"><button onclick="closeCatModal()">閉じる</button></div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="workflow-modal">
+    <div class="modal">
+      <h2><i class="ti ti-heart-handshake"></i>もしもの時の発動シミュレーション</h2>
+      <p class="wf-intro">ご家族にバトンが手渡されるまでの手順を、時間を早送りしながら確認できます。<br>これはプロトタイプ用のシミュレーション画面です。</p>
+
+      <div class="wf-status" id="wf-status"></div>
+
+      <div class="wf-step" id="wf-step1">
+        <div class="wf-step-title"><i class="ti ti-alert-triangle"></i>Step 1：相続判断モードの起動</div>
+        <ul class="wf-conditions" id="wf-step1-conditions"></ul>
+        <div class="wf-actions" id="wf-step1-actions"></div>
+      </div>
+
+      <div class="wf-step" id="wf-step2">
+        <div class="wf-step-title"><i class="ti ti-shield-lock"></i>Step 2：完全開示モードの起動</div>
+        <ul class="wf-conditions" id="wf-step2-conditions"></ul>
+        <div class="wf-actions" id="wf-step2-actions"></div>
+        <div id="wf-approver-list"></div>
+        <div class="wf-warning" id="wf-stage2-warning" style="display:none">
+          <i class="ti ti-alert-octagon"></i>
+          <div>完全開示モードに進むと、ご家族による解約操作が可能になります。<strong>解約は相続財産の処分とみなされ、相続放棄ができなくなる可能性があります。</strong>熟慮期間（民法915条の3ヶ月）にご注意ください。</div>
+        </div>
+      </div>
+
+      <div class="wf-bridge">
+        <button class="btn-primary" id="wf-go-stage1" onclick="bridgeToPreview('inheritance')" disabled><i class="ti ti-eye-search"></i>相続判断モードで家族視点を見る</button>
+        <button class="btn-primary" id="wf-go-stage2" onclick="bridgeToPreview('full')" disabled><i class="ti ti-eye-search"></i>完全開示モードで家族視点を見る</button>
+      </div>
+
+      <div class="btn-row">
+        <button onclick="resetWorkflow()">最初からやり直す</button>
+        <button onclick="closeWorkflowModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v19: βインフォモーダル -->
+  <div class="modal-bg" id="beta-info-modal">
+    <div class="modal">
+      <h2><i class="ti ti-info-circle"></i>ベータ版についてのご案内</h2>
+      <div class="beta-info-box warn">
+        <strong>これはベータ版です。</strong><br>
+        家族・知人数名での検証目的で公開しています。
+      </div>
+      <div class="beta-info-box">
+        <strong>データの保存場所：</strong><br>
+        この端末のブラウザ内のみに保存されます（サーバーには送信されません）。
+      </div>
+      <div class="beta-info-box warn">
+        <strong>データが消える可能性：</strong><br>
+        ・ブラウザの履歴・サイトデータをクリアした時<br>
+        ・プライベートブラウジングで開いた時<br>
+        ・OSやブラウザを再インストールした時<br>
+        ・別のブラウザや端末で開いた時<br>
+        定期的にバックアップ（エクスポート）をおすすめします。
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="gotoBackupFromBeta()"><i class="ti ti-download"></i>今すぐバックアップ</button>
+        <button onclick="closeBetaInfoModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v19: 並び替えモーダル -->
+  <div class="modal-bg" id="sort-modal">
+    <div class="modal">
+      <h2><i class="ti ti-arrows-sort"></i>並び替え</h2>
+      <div id="sort-options"></div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 4px">順序</div>
+      <div class="sort-order-toggle">
+        <div id="sort-asc" onclick="setSortOrder('asc')"><i class="ti ti-arrow-up"></i>昇順</div>
+        <div id="sort-desc" onclick="setSortOrder('desc')"><i class="ti ti-arrow-down"></i>降順</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="closeSortModal()" style="width:100%">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v19: 復元確認モーダル -->
+  <div class="modal-bg" id="restore-confirm-modal">
+    <div class="modal">
+      <h2><i class="ti ti-cloud-upload"></i>データを復元しますか？</h2>
+      <div class="restore-warning-box">
+        <i class="ti ti-alert-triangle"></i>
+        <div><strong>現在のデータはすべて上書きされます。</strong><br>復元後は元に戻せません。先に現状のバックアップを取ることをおすすめします。</div>
+      </div>
+      <div id="restore-confirm-summary" style="margin-bottom:8px"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="applyRestore()"><i class="ti ti-check"></i>復元する</button>
+        <button onclick="closeRestoreConfirmModal()">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v19: 復元エラーモーダル -->
+  <div class="modal-bg" id="restore-error-modal">
+    <div class="modal">
+      <h2 style="color:#A32D2D"><i class="ti ti-alert-circle"></i>復元できませんでした</h2>
+      <div class="restore-warning-box">
+        <i class="ti ti-alert-triangle"></i>
+        <div id="restore-error-msg"></div>
+      </div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);font-family:var(--font-mono);background:var(--color-background-secondary);padding:6px 8px;border-radius:4px;word-break:break-all;line-height:1.5" id="restore-error-detail"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="closeRestoreErrorModal()" style="width:100%">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v19: 復元用 hidden file input -->
+  <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
+</div>
+
+<script>
+// =========== Feature Flags ===========
+// 規約 v3.2 と実装の整合のためのフィーチャーフラグ。
+// β公開時は全て false（規約 ToS 7.1 で emergencyMode 不提供を宣言済み）。
+// 本番化時に true に切り替えることで対応機能が復活する。
+const FEATURES={
+  emergencyMode:false,            // ToS 7.1: βでは「もしもの時」発動ワークフローを提供しない
+  emergencyStage2:false,          // v2.0で完全削除済（参照用）
+  familyCancellationSupport:false,// ToS 10.12: アプリ内解約は禁止事項
+  extendedFamilyCategories:false, // 兄弟等の拡張区分は本番化時に検討
+  operatorHeartbeat:false,        // 運営側ハートビート（将来導入予定）
+  aiAssist:false,                 // ToS 3.5: AI補助はβ非提供
+  publicDocumentUpload:false      // 公的書類アップロードはβ非提供
+};
+
+// =========== Step 6: 招待フロー（invitation-flow-design.md v3.2） ===========
+// pending+accepted 合計 5件上限 / 1日3件発行上限 / 7日有効期限
+const INVITE_MAX_PENDING_ACCEPTED=5;
+const INVITE_MAX_PER_DAY=3;
+const INVITE_EXPIRY_MS=7*24*60*60*1000;
+const INVITE_REVOKE_WINDOW_MS=24*60*60*1000; // 受諾後24時間の本人取消ウィンドウ
+const FAMILY_LABELS_BETA=['配偶者','子','親']; // extendedFamilyCategories=false の間はこの3区分のみ
+
+let invitations=[
+  // pending サンプル: 妹を招待中
+  {
+    id:'inv_sample_pending',
+    token:'a8f3k2nx9p4q1ms7v2c5d8e6f1g4h7j0',
+    invitedBy:'m1',
+    suggestedName:'美咲',
+    suggestedRelation:'子', // β3区分の中で一番自然な「子」を使用
+    otp:'482917',
+    status:'pending',
+    createdAt:'2026-05-21T10:00:00Z',
+    expiresAt:'2026-05-28T10:00:00Z',
+    acceptedAt:null,
+    revokedAt:null,
+    acceptedAsMemberId:null,
+    consentLog:{termsAcceptedAt:null,privacyAcceptedAt:null,termsVersion:null,privacyVersion:null}
+  },
+  // accepted サンプル: 花子（m2）の招待履歴
+  {
+    id:'inv_sample_accepted',
+    token:'b7e2j1mw8o3p0lr6u1b4c7d5e0f3g6h9',
+    invitedBy:'m1',
+    suggestedName:'花子',
+    suggestedRelation:'配偶者',
+    otp:'193847',
+    status:'accepted',
+    createdAt:'2026-05-19T09:00:00Z',
+    expiresAt:'2026-05-26T09:00:00Z',
+    acceptedAt:'2026-05-20T11:23:00Z',
+    revokedAt:null,
+    acceptedAsMemberId:'m2',
+    consentLog:{termsAcceptedAt:'2026-05-20T11:23:00Z',privacyAcceptedAt:'2026-05-20T11:23:00Z',termsVersion:'v3.2',privacyVersion:'v3.2'}
+  }
+];
+
+const ICONS={'金融・決済':'ti-credit-card','ローン':'ti-home','通信・デジタル':'ti-wifi','保険':'ti-shield','公共・生活':'ti-bolt','会員・SNS':'ti-star','その他':'ti-dots'};
+const COLORS={'金融・決済':'#B5D4F4','ローン':'#9FE1CB','通信・デジタル':'#FAC775','保険':'#F4C0D1','公共・生活':'#C0DD97','会員・SNS':'#CECBF6','その他':'#D3D1C7'};
+const TCOLORS={'金融・決済':'#0C447C','ローン':'#085041','通信・デジタル':'#633806','保険':'#72243E','公共・生活':'#27500A','会員・SNS':'#3C3489','その他':'#444441'};
+const PALETTE=['#185FA5','#D4537E','#1D9E75','#B45309','#7C3AED','#0891B2','#DC2626','#65A30D','#9333EA','#0D9488','#C2410C','#4338CA'];
+
+let categories=['金融・決済','ローン','通信・デジタル','保険','公共・生活','会員・SNS','その他'];
+
+// members[] に Step 6 で追加: invitedVia/joinedAt/termsAcceptedVersion/privacyAcceptedVersion
+// 既存 m1(本人)/m2/m3 はバックフィル。null は手動追加（招待トークン非経由）を示す
+let members=[
+  {id:'m1',name:'太郎',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null},
+  {id:'m2',name:'花子',color:'#D4537E',invitedVia:'inv_sample_accepted',joinedAt:'2026-05-20T11:23:00Z',termsAcceptedVersion:'v3.2',privacyAcceptedVersion:'v3.2'},
+  {id:'m3',name:'健太',color:'#1D9E75',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null},
+];
+
+const MY_ID='m1';
+const TERMS_VERSION='v3.2.2';
+const PRIVACY_VERSION='v3.2.2';
+let previewAsId=null;
+let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
+let viewOwnerId='m1';
+let nextMemberId=4;
+
+// 「もしもの時」発動ワークフロー（プロトタイプ用シミュレーション状態）
+// 既存の previewStage（家族視点プレビューでのステージ）とは独立。リロードで初期化される揮発状態。
+let deathWorkflow={
+  stage:'normal',          // 'normal'|'stage1_pending'|'stage1_active'|'stage2_pending'|'stage2_active'
+  lastLoginDate:null,      // 本人の最終ログイン日（ISO文字列）
+  familyRequestDate:null,  // 家族による申請日
+  challengeDeadline:null,  // 本人チャレンジ48h期限
+  challengeResponded:false,
+  deathCertUploaded:false,
+  stage2Approvers:[],      // 承認した家族memberId
+  timelockUntil:null,      // 14日タイムロック期限
+  simulatedNow:null        // シミュレート用「現在時刻」（null=実時刻）
+};
+
+let contracts=[
+  {id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'https://www.netflix.com/cancelplan',cancel:'マイページ → アカウント → メンバーシップのキャンセル',docs:[],memo:'家族プラン',familyMessage:'週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:2,name:'生命保険（〇〇生命）',cat:'保険',ownerId:'m1',cycle:'monthly',amount:18000,month:null,day:27,paymentMethod:'bank_debit',tel:'0120-111-222',url:'',cancel:'電話または書面で手続き。解約返戻金あり。',docs:['保険証券','本人確認書類','印鑑','振込先口座番号'],memo:'',familyMessage:'花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。',cardBrand:'',cardLast4:'',secret:'証券番号は通帳ケース内 / 引落口座は通帳に記載',visibility:{mode:'selected',liveViewers:['m2'],afterViewers:[]},archived:false},
+  {id:3,name:'住宅ローン',cat:'ローン',ownerId:'m1',cycle:'monthly',amount:85000,month:null,day:27,paymentMethod:'bank_debit',tel:'03-xxxx-xxxx',url:'',cancel:'銀行窓口。',docs:['戸籍謄本','相続関係説明図','遺産分割協議書','印鑑証明'],memo:'〇〇銀行 / 2043年完済',familyMessage:'団信に加入しているので、もしもの時は残債が免除されます。銀行に連絡を。',cardBrand:'',cardLast4:'',secret:'引落口座は通帳に記載',visibility:{mode:'selected',liveViewers:['m2'],afterViewers:[]},archived:false},
+  {id:4,name:'電気（東京電力）',cat:'公共・生活',ownerId:'m1',cycle:'monthly',amount:8500,month:null,day:28,paymentMethod:'credit_card',tel:'0120-995-005',url:'https://www.tepco.co.jp/ep/private/contact/',cancel:'電話またはウェブから解約',docs:[],memo:'',familyMessage:'',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:5,name:'Amazon Prime',cat:'通信・デジタル',ownerId:'m2',cycle:'yearly',amount:5900,month:6,day:1,paymentMethod:'credit_card',tel:'',url:'https://www.amazon.co.jp/mc/pipelines/cancellation',cancel:'Amazonアカウント → Prime会員情報 → 会員資格を終了',docs:[],memo:'年払いに変更',familyMessage:'',cardBrand:'楽天カード',cardLast4:'8821',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:6,name:'自動車保険',cat:'保険',ownerId:'m1',cycle:'yearly',amount:48000,month:4,day:1,paymentMethod:'bank_transfer',tel:'0120-xxx-xxx',url:'',cancel:'代理店に連絡',docs:['保険証券','車検証'],memo:'年払い',familyMessage:'車を譲渡・売却するときは保険の名義変更か解約を忘れずに。代理店は山田さん（連絡先は別紙）。',cardBrand:'',cardLast4:'',secret:'振込先口座は保険証券に記載',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:7,name:'NHK受信料',cat:'公共・生活',ownerId:'m1',cycle:'yearly',amount:24185,month:5,day:10,paymentMethod:'bank_debit',tel:'0120-151-515',url:'',cancel:'解約には引越し等の理由が必要。書面提出。',docs:['本人確認書類'],memo:'12ヶ月前払い',familyMessage:'',cardBrand:'',cardLast4:'',secret:'引落口座は通帳に記載',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:8,name:'動画配信サービス（旧）',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:980,month:null,day:1,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'',familyMessage:'',cardBrand:'',cardLast4:'',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:true,archivedDate:'2025-08-15',archivedNote:'Netflixと統合のため解約'},
+  {id:9,name:'趣味のサブスク',cat:'会員・SNS',ownerId:'m1',cycle:'monthly',amount:1200,month:null,day:5,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'個人で利用',familyMessage:'これは私だけの楽しみだったので、見つけたらそっと解約してもらえると嬉しいです。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'private',liveViewers:[],afterViewers:[]},archived:false},
+  {id:10,name:'個人寄付（〇〇基金）',cat:'会員・SNS',ownerId:'m1',cycle:'monthly',amount:3000,month:null,day:10,paymentMethod:'credit_card',tel:'03-xxxx-xxxx',url:'https://example.org',cancel:'メールで停止依頼',docs:[],memo:'長年応援している基金',familyMessage:'毎月の寄付を続けてきました。続けるか停止するかは家族で決めてください。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'after_only',liveViewers:[],afterViewers:[]},archived:false},
+];
+
+let activeCat='すべて';
+let viewMode='active';
+let selectedId=null;
+let nextId=11;
+let exportMode='self';
+let exportFormat='pdf'; // 'pdf' | 'json'
+let colorTargetId=null;
+let formCycle='monthly';
+let formPayMethod='credit_card';
+let formVisibilityMode='all';
+let formLiveViewers=[]; // 'selected' のときに使うメンバーIDの配列（生前）
+let formAfterViewers=[]; // 'selected' のときに使うメンバーIDの配列（もしもの時。空なら家族全員）
+const PAY_METHODS={
+  credit_card:{label:'クレジットカード',short:'クレカ',icon:'ti-credit-card'},
+  bank_debit:{label:'銀行引き落とし',short:'引き落とし',icon:'ti-building-bank'},
+  bank_transfer:{label:'銀行振込',short:'振込',icon:'ti-arrows-exchange'},
+  cash:{label:'現金払い',short:'現金',icon:'ti-cash'}
+};
+function payMethodOf(c){return c.paymentMethod||'credit_card';}
+function payMethodInfo(c){return PAY_METHODS[payMethodOf(c)]||PAY_METHODS.credit_card;}
+const todayDate=new Date();
+const todayDay=todayDate.getDate();
+const todayMonth=todayDate.getMonth()+1;
+
+function getMember(id){return members.find(m=>m.id===id);}
+function getOwnerName(c){const m=getMember(c.ownerId);return m?m.name:'?';}
+function getOwnerColor(c){const m=getMember(c.ownerId);return m?m.color:'#888';}
+function currentViewerId(){return previewAsId||MY_ID;}
+function isOwner(c){return c.ownerId===currentViewerId();}
+
+// === 可視性ヘルパー ===
+// 後方互換: visibilityが未設定の契約は「全員に見せる」とみなす
+function getVisibility(c){
+  if(c.visibility&&typeof c.visibility==='object'){
+    return Object.assign({mode:'all',liveViewers:[],afterViewers:[]},c.visibility);
+  }
+  return {mode:'all',liveViewers:[],afterViewers:[]};
+}
+// 現在のステージ ('live' | 'inheritance' | 'full')。家族プレビュー中のみ意味を持つ
+function currentStage(){return isPreviewing()?previewStage:'live';}
+function isDeathMode(){return currentStage()!=='live';}
+function isInheritanceMode(){return currentStage()==='inheritance';}
+function isFullMode(){return currentStage()==='full';}
+
+// 指定の閲覧者IDがこの契約を一覧で見られるか
+// stage='live': 生前モード（既存挙動）
+// stage='inheritance'|'full': もしもの時モード（afterViewersに従う / privateは非表示 / after_onlyは開示）
+function canViewContract(c,viewerId,stage){
+  const s=stage||currentStage();
+  const v=getVisibility(c);
+  if(s==='live'){
+    if(c.ownerId===viewerId)return true;
+    if(v.mode==='all')return true;
+    if(v.mode==='private')return false;
+    if(v.mode==='after_only')return false; // 生前は本人にしか見えない
+    if(v.mode==='selected')return (v.liveViewers||[]).includes(viewerId);
+    return true;
+  }
+  // もしもの時モード（相続判断/完全開示共通）
+  if(c.ownerId===viewerId)return true; // 自分自身の契約は常に見える
+  if(v.mode==='private')return false; // privateは死後も非開示
+  if(v.mode==='all')return true;
+  if(v.mode==='after_only')return true; // 死後は家族全員に開示
+  if(v.mode==='selected'){
+    const after=v.afterViewers||[];
+    return after.length===0?true:after.includes(viewerId); // 空配列なら家族全員
+  }
+  return true;
+}
+// 公開範囲のラベル（本人視点用）
+function visibilityLabel(c){
+  const v=getVisibility(c);
+  if(v.mode==='private')return {key:'private',text:'本人のみ（死後も非開示）',icon:'ti-eye-off'};
+  if(v.mode==='after_only')return {key:'after-only',text:'もしもの時に家族全員へ',icon:'ti-clock-heart'};
+  if(v.mode==='selected'){
+    const names=(v.liveViewers||[]).map(id=>{const m=getMember(id);return m?m.name:'';}).filter(Boolean);
+    return {key:'selected',text:names.length?names.join('・')+'のみ':'未設定',icon:'ti-user-check'};
+  }
+  return {key:'all',text:'家族全員',icon:'ti-users'};
+}
+
+// 機密情報が見られるか
+// - 本人視点: 常に見られる
+// - 家族プレビュー（live）: 公開範囲で見られる人のみ
+// - 家族プレビュー（inheritance）: 機密は一切開示しない（相続判断モード = 法定単純承認リスク回避）
+// - 家族プレビュー（full）: 開示
+function canSeeSecret(c){
+  const viewer=currentViewerId();
+  if(c.ownerId===viewer&&!isDeathMode())return true;
+  if(isInheritanceMode())return false; // 相続判断モードは機密非開示
+  return canViewContract(c,viewer);
+}
+function isPreviewing(){return previewAsId!==null;}
+
+function daysUntilNext(c){
+  if(c.cycle==='monthly'){
+    let r=c.day-todayDay;
+    if(r<0)r+=31;
+    return r;
+  } else {
+    const now=new Date();
+    let next=new Date(now.getFullYear(),c.month-1,c.day);
+    if(next<now)next=new Date(now.getFullYear()+1,c.month-1,c.day);
+    const diffMs=next-now;
+    return Math.ceil(diffMs/(1000*60*60*24));
+  }
+}
+
+function monthlyEquivalent(c){return c.cycle==='yearly'?Math.round(c.amount/12):c.amount;}
+function yearlyAmount(c){return c.cycle==='yearly'?c.amount:c.amount*12;}
+function paymentDateText(c){return c.cycle==='monthly'?`毎月${c.day}日`:`毎年${c.month}月${c.day}日`;}
+function paymentDateTextShort(c){return c.cycle==='monthly'?`毎月${c.day}日`:`${c.month}/${c.day}`;}
+
+function renderUserPill(){
+  const av=document.getElementById('pill-av');
+  const label=document.getElementById('pill-label');
+  const name=document.getElementById('pill-name');
+  if(viewOwnerId==='all'){
+    av.textContent='👨‍👩‍👧';av.style.background='#888';av.style.fontSize='14px';
+    label.textContent='表示中';name.textContent='家族全員';
+  } else {
+    const m=getMember(viewOwnerId);
+    if(!m){viewOwnerId=MY_ID;return renderUserPill();}
+    av.style.fontSize='11px';
+    av.textContent=m.name.charAt(0);av.style.background=m.color;
+    label.textContent=m.id===MY_ID?'自分の契約':m.name+'さんの契約';
+    name.textContent=m.name;
+  }
+}
+
+function renderPreviewBar(){
+  const bar=document.getElementById('preview-bar');
+  const banner=document.getElementById('death-banner');
+  if(isPreviewing()){
+    const m=getMember(previewAsId);
+    document.getElementById('preview-info').innerHTML=`<strong>${m.name}</strong>さんの視点でプレビュー中`;
+    bar.classList.add('show');
+    // ステージトグルの active 反映
+    ['live','inheritance','full'].forEach(s=>{
+      const el=document.getElementById('st-'+s);
+      if(el)el.classList.toggle('active',s===previewStage);
+    });
+    // 死後モード時のバナー
+    if(previewStage==='inheritance'){
+      banner.className='death-banner inheritance';
+      banner.style.display='flex';
+      banner.innerHTML='<i class="ti ti-alert-triangle"></i><div><strong>相続判断モード（Stage 1）</strong><br>機密情報は非開示。解約操作はまだ行わないでください（法定単純承認のリスクがあります）。</div>';
+    } else if(previewStage==='full'){
+      banner.className='death-banner full';
+      banner.style.display='flex';
+      banner.innerHTML='<i class="ti ti-alert-octagon"></i><div><strong>完全開示モード（Stage 2）</strong><br>全情報を開示。解約操作は相続財産の処分とみなされる可能性があります。</div>';
+    } else {
+      banner.style.display='none';
+    }
+  } else {
+    bar.classList.remove('show');
+    banner.style.display='none';
+  }
+}
+
+function setPreviewStage(s){
+  previewStage=s;
+  renderAll();
+  if(selectedId!==null)showDetail(selectedId);
+}
+
+function toggleSwitch(e){
+  if(e)e.stopPropagation();
+  const m=document.getElementById('switch-menu');
+  if(m.classList.contains('open')){m.classList.remove('open');return;}
+  renderSwitchMenu();m.classList.add('open');
+}
+
+function renderSwitchMenu(){
+  const el=document.getElementById('switch-menu');
+  let html='';
+  const viewer=currentViewerId();
+  const allCount=contracts.filter(c=>!c.archived&&canViewContract(c,viewer)).length;
+  const me=getMember(MY_ID);
+  const myCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&canViewContract(c,viewer)).length;
+  html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
+    <div class="av" style="background:${me.color}">${me.name.charAt(0)}</div>
+    <div class="info"><div class="name">${me.name} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
+    ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
+  </div>`;
+  html+=`<div class="switch-item${viewOwnerId==='all'?' active':''}" onclick="selectView('all')">
+    <div class="av" style="background:#888;font-size:14px">👨‍👩‍👧</div>
+    <div class="info"><div class="name">家族全員</div><div class="sub">合計 ${allCount}件の契約</div></div>
+    ${viewOwnerId==='all'?'<i class="ti ti-check check"></i>':''}
+  </div>`;
+  members.forEach(m=>{
+    if(m.id===MY_ID)return;
+    const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
+    html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" onclick="selectView('${m.id}')">
+      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="info"><div class="name">${m.name}</div><div class="sub">${cnt}件の契約</div></div>
+      ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
+    </div>`;
+  });
+  // v16: オンボーディング再表示（常設・members 件数に依存しない）
+  html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">ヘルプ</div>`;
+  html+=`<div class="switch-item" onclick="reopenOnboarding()">
+    <div class="av" style="background:#555"><i class="ti ti-help-circle" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // v18: ダークモード切替
+  const dark=isDarkMode();
+  html+=`<div class="switch-item" onclick="toggleDarkMode()">
+    <div class="av" style="background:${dark?'#3F3D36':'#555'}"><i class="ti ti-${dark?'moon-stars':'sun'}" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
+    <div style="font-size:10px;padding:3px 8px;border-radius:10px;background:${dark?'rgba(24,95,165,0.28)':'var(--color-background-secondary)'};color:${dark?'#8FB9DD':'var(--color-text-tertiary)'};border:0.5px solid var(--color-border-secondary)">${dark?'ON':'OFF'}</div>
+  </div>`;
+  // v19: データバックアップ / 復元
+  html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">データ保管</div>`;
+  html+=`<div class="switch-item" onclick="doBackup()">
+    <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  html+=`<div class="switch-item" onclick="triggerRestore()">
+    <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  if(members.length>1){
+    html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">プライバシー確認</div>`;
+    html+=`<div class="switch-item" onclick="openPreviewModal()">
+      <div class="av" style="background:#EF9F27"><i class="ti ti-eye-search" style="font-size:14px"></i></div>
+      <div class="info"><div class="name" style="font-size:12px">家族から見え方をプレビュー</div><div class="sub">他の家族の視点でアプリを確認</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+    </div>`;
+    if(FEATURES.emergencyMode){
+      html+=`<div class="switch-item" onclick="openWorkflowModal()">
+        <div class="av" style="background:#D4537E"><i class="ti ti-heart-handshake" style="font-size:14px"></i></div>
+        <div class="info"><div class="name" style="font-size:12px">もしもの時の発動を試す</div><div class="sub">バトンが渡るまでの手順を確認</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+      </div>`;
+    }
+  }
+  el.innerHTML=html;
+}
+
+function selectView(id){viewOwnerId=id;document.getElementById('switch-menu').classList.remove('open');renderAll();}
+
+function openPreviewModal(){
+  document.getElementById('switch-menu').classList.remove('open');
+  const el=document.getElementById('preview-member-list');
+  el.innerHTML=members.filter(m=>m.id!==MY_ID).map(m=>
+    `<div class="preview-opt" onclick="startPreview('${m.id}')">
+      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="info"><div class="nm">${m.name}さんの視点</div><div class="sub">${m.name}さんがアプリを見たときの表示を確認</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+    </div>`
+  ).join('');
+  document.getElementById('preview-modal').classList.add('open');
+}
+function closePreviewModal(){document.getElementById('preview-modal').classList.remove('open');}
+function startPreview(id){previewAsId=id;previewStage='live';closePreviewModal();renderAll();if(selectedId!==null)showDetail(selectedId);}
+function exitPreview(){previewAsId=null;previewStage='live';renderAll();if(selectedId!==null)showDetail(selectedId);}
+
+document.addEventListener('click',(e)=>{
+  const m=document.getElementById('switch-menu');
+  const pill=document.querySelector('.user-pill');
+  if(!m||!pill)return;
+  if(!m.contains(e.target)&&!pill.contains(e.target)){m.classList.remove('open');}
+});
+
+function renderCatTabs(){
+  const t=document.getElementById('tabs');
+  const all=['すべて',...categories];
+  t.innerHTML=all.map(c=>`<div class="tab${c===activeCat?' active':''}" onclick="setCat('${c}')">${c}</div>`).join('');
+}
+function setCat(c){activeCat=c;renderCatTabs();renderList();}
+
+function setView(m){
+  viewMode=m;
+  document.getElementById('vt-active').classList.toggle('active',m==='active');
+  document.getElementById('vt-archived').classList.toggle('active',m==='archived');
+  renderList();updateSummary();
+}
+
+// v17: 検索クエリ（部分一致・大文字小文字無視）
+let searchQuery='';
+function onSearchInput(v){
+  searchQuery=(v||'').trim();
+  document.getElementById('search-clear').style.display=searchQuery?'flex':'none';
+  renderList();
+}
+function clearSearch(){
+  const inp=document.getElementById('search-input');
+  inp.value='';
+  searchQuery='';
+  document.getElementById('search-clear').style.display='none';
+  renderList();
+  inp.focus();
+}
+
+function filterContracts(){
+  const viewer=currentViewerId();
+  const q=searchQuery.toLowerCase();
+  return contracts.filter(c=>{
+    if(viewMode==='active'&&c.archived)return false;
+    if(viewMode==='archived'&&!c.archived)return false;
+    if(viewOwnerId!=='all'&&c.ownerId!==viewOwnerId)return false;
+    if(activeCat!=='すべて'&&c.cat!==activeCat)return false;
+    // 公開範囲チェック（プレビュー中＝家族視点のとき、見えないものは除外）
+    if(!canViewContract(c,viewer))return false;
+    // v17: テキスト検索（公開範囲チェックを通過した契約のみが対象）
+    if(q){
+      const hay=[c.name,c.cat,c.memo,c.cancelHow,c.contact,c.secret,c.familyMessage]
+        .filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    return true;
+  });
+}
+
+function renderList(){
+  const el=document.getElementById('contract-list');
+  const list=filterContracts();
+  const sorted=viewMode==='archived'
+    ?[...list].sort((a,b)=>(b.archivedDate||'').localeCompare(a.archivedDate||''))
+    :[...list].sort(compareContracts);
+  if(!sorted.length){
+    if(searchQuery){
+      // v17: 検索ヒット0件UI（XSS防止のため textContent で挿入）
+      el.innerHTML=`<div class="empty-state"><i class="ti ti-search-off empty-icon"></i>「<span id="empty-q"></span>」に一致する契約はありません<br><button class="empty-clear-btn" onclick="clearSearch()">検索をクリア</button></div>`;
+      document.getElementById('empty-q').textContent=searchQuery;
+    } else {
+      const who=viewOwnerId==='all'?'家族全員':getMember(viewOwnerId)?.name||'';
+      el.innerHTML=`<div class="empty-state">${who}の契約はありません</div>`;
+    }
+    return;
+  }
+  el.innerHTML=sorted.map(c=>{
+    const d=daysUntilNext(c);
+    const icon=ICONS[c.cat]||'ti-file';
+    const bg=COLORS[c.cat]||'#D3D1C7';
+    const tc=TCOLORS[c.cat]||'#444441';
+    let badge='';
+    if(c.archived){badge=`<span class="badge badge-archived">${c.archivedDate||'解約済'}</span>`;}
+    else if(d<=3)badge='<span class="badge badge-urgent">'+d+'日後</span>';
+    else if(d<=30)badge='<span class="badge badge-soon">'+d+'日後</span>';
+    const lockIcon=(!isOwner(c)&&(c.cardLast4||c.secret))?'<i class="ti ti-lock lock-icon"></i>':'';
+    const cyclePill=c.cycle==='yearly'?'<span class="cycle-pill yearly">年</span>':'';
+    const pmInfo=payMethodInfo(c);
+    const payIconHtml=`<span class="pay-icon" title="${pmInfo.label}"><i class="ti ${pmInfo.icon}"></i></span>`;
+    // 公開範囲アイコン（本人視点で自分の契約のみ表示）
+    let visIconHtml='';
+    if(!isPreviewing()&&c.ownerId===MY_ID){
+      const vl=visibilityLabel(c);
+      if(vl.key!=='all'){
+        const color=vl.key==='private'?'#A32D2D':'#854F0B';
+        visIconHtml=`<i class="ti ${vl.icon} hidden-icon" style="color:${color}" title="${vl.text}しか見られません"></i>`;
+      }
+    }
+    const ownerName=getOwnerName(c);
+    const ownerColor=getOwnerColor(c);
+    const ownerInitial=ownerName.charAt(0);
+    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColor}">${ownerInitial}</div>`:'';
+    const ownerMeta=viewOwnerId==='all'?` · ${ownerName}`:'';
+    let amountMain,amountSub;
+    if(c.cycle==='yearly'){
+      amountMain=`¥${c.amount.toLocaleString()}`;
+      amountSub=`月換算 ¥${monthlyEquivalent(c).toLocaleString()}`;
+    } else {
+      amountMain=`¥${c.amount.toLocaleString()}`;
+      amountSub='';
+    }
+    return `<div class="card${d<=3&&!c.archived?' urgent':''}${c.archived?' archived':''}" onclick="showDetail(${c.id})">
+      <div class="icon-circle" style="background:${bg}">
+        <i class="ti ${icon}" style="color:${tc}"></i>
+        ${ownerDot}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${c.name}${cyclePill}${visIconHtml}${lockIcon}</div>
+        <div class="card-meta">${c.cat}${ownerMeta}${c.memo?' · '+c.memo:''}${payIconHtml}</div>
+        ${badge}
+      </div>
+      <div class="card-right">
+        <div class="card-amount">${amountMain}</div>
+        ${amountSub?`<div class="card-amount-sub">${amountSub}</div>`:''}
+        <div class="card-day">${c.archived?'解約済':paymentDateTextShort(c)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateSummary(){
+  const viewer=currentViewerId();
+  const visible=contracts.filter(c=>!c.archived&&(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer));
+  const monthlyTotal=visible.reduce((s,c)=>s+monthlyEquivalent(c),0);
+  const yearlyTotal=visible.reduce((s,c)=>s+yearlyAmount(c),0);
+  document.getElementById('total-amount').textContent='¥'+monthlyTotal.toLocaleString();
+  document.getElementById('yearly').textContent='¥'+yearlyTotal.toLocaleString();
+  document.getElementById('total-count').textContent=visible.length;
+  document.getElementById('urgent-count').textContent=visible.filter(c=>daysUntilNext(c)<=30).length;
+  document.getElementById('family-count').innerHTML=`家族 ${members.length}人で共有中 · コード FAMX-2847`;
+}
+
+function showDetail(id){
+  selectedId=id;
+  const c=contracts.find(x=>x.id===id);
+  if(!c)return;
+  const owner=isOwner(c)&&!isDeathMode();
+  const seeSecret=canSeeSecret(c);
+  const bg=COLORS[c.cat]||'#D3D1C7';
+  const tc=TCOLORS[c.cat]||'#444441';
+  const icon=ICONS[c.cat]||'ti-file';
+  const d=daysUntilNext(c);
+  const ownerName=getOwnerName(c);
+  const ownerColor=getOwnerColor(c);
+  const ownerInitial=ownerName.charAt(0);
+
+  let urgentBadge='';
+  if(c.archived)urgentBadge=`<span class="badge badge-archived" style="margin-left:6px">${c.archivedDate||'解約済'}</span>`;
+  else if(d<=3)urgentBadge=`<span class="badge badge-urgent" style="margin-left:6px">${d}日後</span>`;
+  else if(d<=30)urgentBadge=`<span class="badge badge-soon" style="margin-left:6px">${d}日後</span>`;
+
+  let docsHtml=c.docs&&c.docs.length
+    ?c.docs.map(d=>`<span class="doc-tag"><i class="ti ti-file" style="font-size:10px;margin-right:3px"></i>${d}</span>`).join('')
+    :'<span style="font-size:12px;color:var(--color-text-tertiary)">なし</span>';
+
+  let amountSection='';
+  if(c.cycle==='yearly'){
+    amountSection=`<div class="info-row"><i class="ti ti-receipt info-icon"></i><div>
+      <div class="info-label">金額（年払い）</div>
+      <div class="info-val" style="font-size:16px;font-weight:500">¥${c.amount.toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--color-text-secondary)">/ 年</span></div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">月換算: ¥${monthlyEquivalent(c).toLocaleString()} / 月</div>
+    </div></div>`;
+  } else {
+    amountSection=`<div class="info-row"><i class="ti ti-receipt info-icon"></i><div>
+      <div class="info-label">金額（月払い）</div>
+      <div class="info-val" style="font-size:16px;font-weight:500">¥${c.amount.toLocaleString()} <span style="font-size:12px;font-weight:400;color:var(--color-text-secondary)">/ 月</span></div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">年換算: ¥${yearlyAmount(c).toLocaleString()} / 年</div>
+    </div></div>`;
+  }
+
+  let secretHtml='';
+  const pm=payMethodOf(c);
+  const isCardPayment=pm==='credit_card';
+  const hasSecret=(isCardPayment&&c.cardLast4)||c.secret;
+  // セクションタイトルとアイコンを支払方法ごとに決定
+  const secretTitleByMethod={
+    credit_card:{title:'機密情報（本人のみ）',icon:'ti-lock-open'},
+    bank_debit:{title:'引落口座の所在メモ（本人のみ）',icon:'ti-building-bank'},
+    bank_transfer:{title:'振込先口座の所在メモ（本人のみ）',icon:'ti-building-bank'},
+    cash:{title:'機密情報（本人のみ）',icon:'ti-lock-open'}
+  };
+  const stm=secretTitleByMethod[pm]||secretTitleByMethod.credit_card;
+  const vl=visibilityLabel(c);
+  if(hasSecret){
+    if(owner){
+      secretHtml=`
+        <div class="section">
+          <div class="section-title">
+            <span><i class="ti ${stm.icon}" style="font-size:10px;margin-right:3px"></i>${stm.title}</span>
+          </div>
+          ${isCardPayment&&c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${c.cardBrand}</div></div></div>`:''}
+          ${isCardPayment&&c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード下4桁</div><div class="info-val masked">**** ${c.cardLast4}</div></div></div>`:''}
+          ${c.secret?`<div class="info-row"><i class="ti ti-key info-icon"></i><div><div class="info-label">${pm==='bank_debit'?'引落口座の所在メモ':pm==='bank_transfer'?'振込先口座の所在メモ':'メモ（保管場所等）'}</div><div class="info-val">${c.secret}</div></div></div>`:''}
+        </div>`;
+    } else if(seeSecret){
+      // 家族閲覧（開示ON）
+      if(isCardPayment){
+        secretHtml=`
+          <div class="section">
+            <div class="section-title"><span><i class="ti ti-shield" style="font-size:10px;margin-right:3px"></i>支払い情報（開示済）</span></div>
+            ${c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${c.cardBrand}</div></div></div>`:''}
+            ${c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード番号</div><div class="info-val masked">**** **** **** ${c.cardLast4}</div></div></div>`:''}
+            <div class="sealed-note"><i class="ti ti-info-circle" style="font-size:12px"></i>カード番号フルはアプリに保管していません。カード会社にお問い合わせください。</div>
+          </div>`;
+      } else {
+        // 銀行系・現金で開示ONの場合は、口座情報・機密メモはマスクして種別のみ表示
+        secretHtml=`
+          <div class="section">
+            <div class="section-title"><span><i class="ti ti-shield" style="font-size:10px;margin-right:3px"></i>支払い情報（開示済）</span></div>
+            <div class="info-row"><i class="ti ${payMethodInfo(c).icon} info-icon"></i><div><div class="info-label">支払方法</div><div class="info-val">${payMethodInfo(c).label}</div></div></div>
+            <div class="sealed-note"><i class="ti ti-info-circle" style="font-size:12px"></i>口座番号はアプリに保管していません。通帳・キャッシュカードをご確認ください。</div>
+          </div>`;
+      }
+    } else if(isInheritanceMode()){
+      secretHtml=`
+        <div class="section">
+          <div class="section-title"><span><i class="ti ti-lock" style="font-size:10px;margin-right:3px"></i>機密情報</span></div>
+          <div class="sealed-note" style="background:#FFF8E1;color:#754C00"><i class="ti ti-alert-triangle" style="font-size:12px"></i>相続判断モードでは機密情報は開示されません。完全開示モード（Stage 2）に進むと閲覧できます。</div>
+        </div>`;
+    } else {
+      secretHtml=`
+        <div class="section">
+          <div class="section-title"><span><i class="ti ti-lock" style="font-size:10px;margin-right:3px"></i>機密情報</span></div>
+          <div class="sealed-note"><i class="ti ti-shield-lock" style="font-size:12px"></i>この情報は ${ownerName} 本人のみ閲覧可能です。</div>
+        </div>`;
+    }
+  }
+
+  let actionsHtml='';
+  if(owner&&!c.archived&&!isPreviewing()){
+    actionsHtml=`<div class="detail-actions"><button onclick="openEditModal()"><i class="ti ti-edit"></i>編集</button><button class="btn-archive" onclick="openArchiveModal()"><i class="ti ti-archive"></i>解約済みに</button><button class="btn-danger" onclick="deleteContract(${c.id})"><i class="ti ti-trash"></i>削除</button></div>`;
+  } else if(owner&&c.archived&&!isPreviewing()){
+    actionsHtml=`<div class="detail-actions"><button onclick="restoreContract(${c.id})"><i class="ti ti-arrow-back-up"></i>復元する</button><button class="btn-danger" onclick="deleteContract(${c.id})"><i class="ti ti-trash"></i>削除</button></div>`;
+  } else {
+    actionsHtml=`<div style="padding:12px 16px;font-size:11px;color:var(--color-text-tertiary);text-align:center"><i class="ti ti-eye"></i> 閲覧のみ（${ownerName}の契約）</div>`;
+  }
+  document.getElementById('edit-btn-top').style.display=owner&&!c.archived&&!isPreviewing()?'':'none';
+
+  const cycleLabel=c.cycle==='yearly'?'<span class="cycle-pill yearly" style="margin-left:6px">年払い</span>':'<span class="cycle-pill" style="margin-left:6px">月払い</span>';
+
+  // 本人視点でのみ公開範囲バッジを表示
+  const headerVisBadge=(!isPreviewing()&&c.ownerId===MY_ID)
+    ?`<span class="visibility-badge ${vl.key}"><i class="ti ${vl.icon}" style="font-size:10px"></i>${vl.text}に表示</span>`
+    :'';
+
+  document.getElementById('detail-content').innerHTML=`
+    <div class="detail-hero">
+      <div class="detail-icon" style="background:${bg}"><i class="ti ${icon}" style="color:${tc};font-size:20px"></i></div>
+      <div>
+        <div class="detail-name">${c.name}${cycleLabel}</div>
+        <div class="detail-cat">${c.cat} <span class="owner-pill"><span class="av" style="background:${ownerColor}">${ownerInitial}</span>${ownerName}</span>${headerVisBadge}</div>
+      </div>
+    </div>
+
+    ${c.archived?`<div class="section"><div class="section-title">解約記録</div><div class="archived-box"><p><strong style="font-weight:500">解約日:</strong> ${c.archivedDate||'-'}</p>${c.archivedNote?`<p style="margin-top:4px"><strong style="font-weight:500">備考:</strong> ${c.archivedNote}</p>`:''}</div></div>`:''}
+
+    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none;background:#FFF5F8;border:0.5px solid #F2D4DE;border-radius:6px;padding:10px 12px;font-size:13px;line-height:1.6;color:#5A2638;white-space:pre-wrap">${c.familyMessage}</div></div>`:''}
+
+    <div class="section">
+      <div class="section-title">支払い情報</div>
+      <div class="info-row"><i class="ti ti-calendar info-icon"></i><div><div class="info-label">支払日</div><div class="info-val">${paymentDateText(c)}${urgentBadge}</div></div></div>
+      ${amountSection}
+      <div class="info-row"><i class="ti ${payMethodInfo(c).icon} info-icon"></i><div><div class="info-label">支払方法</div><div class="info-val">${payMethodInfo(c).label}</div></div></div>
+      ${c.memo?`<div class="info-row"><i class="ti ti-notes info-icon"></i><div><div class="info-label">メモ</div><div class="info-val">${c.memo}</div></div></div>`:''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">連絡先</div>
+      ${c.tel?`<div class="info-row"><i class="ti ti-phone info-icon"></i><div><div class="info-label">電話番号</div><div class="info-val">${c.tel}</div></div></div>`:''}
+      ${c.url?`<div class="info-row"><i class="ti ti-world info-icon"></i><div style="flex:1"><div class="info-label">ウェブサイト</div><div class="url-btn" onclick="openLink('${c.url}')"><i class="ti ti-link"></i><span>${c.url}</span><i class="ti ti-external-link ext"></i></div></div></div>`:''}
+      ${!c.tel&&!c.url?'<span style="font-size:12px;color:var(--color-text-tertiary)">未登録</span>':''}
+    </div>
+
+    <div class="section">
+      <div class="section-title">解約方法</div>
+      <div class="cancel-box"><p>${c.cancel||'未登録'}</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">必要書類</div>
+      <div>${docsHtml}</div>
+    </div>
+
+    ${secretHtml}
+    ${actionsHtml}
+    <div style="height:14px"></div>
+  `;
+  document.getElementById('screen-list').classList.add('hidden');
+  document.getElementById('screen-detail').classList.remove('hidden');
+  document.getElementById('screen-detail').scrollTop=0;
+}
+
+function goBack(){
+  document.getElementById('screen-detail').classList.add('hidden');
+  document.getElementById('screen-list').classList.remove('hidden');
+}
+
+function deleteContract(id){
+  if(!confirm('この契約を完全に削除しますか？'))return;
+  const i=contracts.findIndex(c=>c.id===id);
+  if(i<0)return;
+  contracts.splice(i,1);
+  persistState();
+  goBack();renderList();updateSummary();
+}
+function restoreContract(id){
+  const c=contracts.find(x=>x.id===id);
+  if(!c)return;
+  c.archived=false;delete c.archivedDate;delete c.archivedNote;
+  persistState();
+  showDetail(id);renderList();updateSummary();
+}
+function openArchiveModal(){
+  document.getElementById('a-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('a-note').value='';
+  document.getElementById('archive-modal').classList.add('open');
+}
+function closeArchiveModal(){document.getElementById('archive-modal').classList.remove('open');}
+function archiveContract(){
+  const c=contracts.find(x=>x.id===selectedId);
+  if(!c)return;
+  c.archived=true;
+  c.archivedDate=document.getElementById('a-date').value;
+  c.archivedNote=document.getElementById('a-note').value;
+  persistState();
+  closeArchiveModal();
+  showDetail(selectedId);renderList();updateSummary();
+}
+
+function openLink(url){window.open(url,'_blank');}
+function setupOwnerSelect(sel,val){sel.innerHTML=members.map(m=>`<option value="${m.id}"${m.id===val?' selected':''}>${m.name}</option>`).join('');}
+function setupMonthSelect(sel,val){
+  let html='';
+  for(let i=1;i<=12;i++)html+=`<option value="${i}"${i===val?' selected':''}>${i}月</option>`;
+  sel.innerHTML=html;
+}
+
+function setCycle(c){
+  formCycle=c;
+  document.getElementById('cyc-monthly').classList.toggle('active',c==='monthly');
+  document.getElementById('cyc-yearly').classList.toggle('active',c==='yearly');
+  document.getElementById('monthly-date').style.display=c==='monthly'?'':'none';
+  document.getElementById('yearly-date').style.display=c==='yearly'?'':'none';
+  document.getElementById('amount-label').textContent=c==='monthly'?'金額 (円/月)':'金額 (円/年)';
+  updateAmountHelper();
+}
+
+function setPayMethod(m){
+  formPayMethod=m;
+  Object.keys(PAY_METHODS).forEach(k=>{
+    const el=document.getElementById('pm-'+k);
+    if(el)el.classList.toggle('active',k===m);
+  });
+  // クレカ以外を選んだ場合、カード関連の入力を非表示
+  const cardFields=document.getElementById('secret-card-fields');
+  const secretTitle=document.getElementById('secret-section-title');
+  const secretMemoLabel=document.getElementById('secret-memo-label');
+  if(m==='credit_card'){
+    cardFields.style.display='';
+    secretTitle.innerHTML='<i class="ti ti-lock"></i> 機密情報（本人以外には非表示）';
+    secretMemoLabel.textContent='その他のメモ（保管場所等）';
+  } else if(m==='cash'){
+    cardFields.style.display='none';
+    secretTitle.innerHTML='<i class="ti ti-lock"></i> 機密情報（本人以外には非表示）';
+    secretMemoLabel.textContent='メモ（保管場所等・任意）';
+  } else {
+    // 銀行振込 / 銀行引き落とし
+    cardFields.style.display='none';
+    secretTitle.innerHTML='<i class="ti ti-lock"></i> 機密情報（本人以外には非表示）';
+    secretMemoLabel.textContent=m==='bank_debit'?'引落口座の所在メモ（番号は書かない）':'振込先口座の所在メモ（番号は書かない）';
+  }
+}
+
+function setVisibilityMode(mode){
+  formVisibilityMode=mode;
+  ['all','selected','after-only','private'].forEach(k=>{
+    const el=document.getElementById('vp-'+k);
+    if(el)el.classList.toggle('active',(k==='after-only'?'after_only':k)===mode);
+  });
+  // 'selected' のときだけメンバーチェックリストを表示
+  document.getElementById('viewer-checks-wrap').style.display=mode==='selected'?'':'none';
+  document.getElementById('vp-private-warning').style.display=mode==='private'?'':'none';
+  if(mode==='selected'){renderViewerChecks();renderAfterViewerChecks();}
+}
+
+function renderViewerChecks(){
+  // 自分（所有者）以外のメンバーをチェックボックス一覧で
+  const ownerId=document.getElementById('f-owner').value||MY_ID;
+  const others=members.filter(m=>m.id!==ownerId);
+  const el=document.getElementById('viewer-checks');
+  if(!others.length){
+    el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';
+    return;
+  }
+  el.innerHTML=others.map(m=>{
+    const checked=formLiveViewers.includes(m.id)?'checked':'';
+    return `<label class="vc-row">
+      <input type="checkbox" ${checked} onchange="toggleLiveViewer('${m.id}',this.checked)">
+      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="nm">${m.name}</div>
+    </label>`;
+  }).join('');
+}
+
+function renderAfterViewerChecks(){
+  const ownerId=document.getElementById('f-owner').value||MY_ID;
+  const others=members.filter(m=>m.id!==ownerId);
+  const el=document.getElementById('after-viewer-checks');
+  if(!others.length){
+    el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';
+    return;
+  }
+  el.innerHTML=others.map(m=>{
+    const checked=formAfterViewers.includes(m.id)?'checked':'';
+    return `<label class="vc-row">
+      <input type="checkbox" ${checked} onchange="toggleAfterViewer('${m.id}',this.checked)">
+      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="nm">${m.name}</div>
+    </label>`;
+  }).join('');
+}
+
+function toggleAfterViewer(id,checked){
+  if(checked){if(!formAfterViewers.includes(id))formAfterViewers.push(id);}
+  else {formAfterViewers=formAfterViewers.filter(x=>x!==id);}
+}
+
+function toggleLiveViewer(id,checked){
+  if(checked){
+    if(!formLiveViewers.includes(id))formLiveViewers.push(id);
+  } else {
+    formLiveViewers=formLiveViewers.filter(x=>x!==id);
+  }
+}
+
+function updateAmountHelper(){
+  const amount=parseInt(document.getElementById('f-amount').value)||0;
+  if(!amount){document.getElementById('amount-helper').textContent='';return;}
+  if(formCycle==='monthly'){
+    document.getElementById('amount-helper').textContent=`年額換算: ¥${(amount*12).toLocaleString()}`;
+  } else {
+    document.getElementById('amount-helper').textContent=`月額換算: ¥${Math.round(amount/12).toLocaleString()}`;
+  }
+}
+
+function openModal(){
+  document.getElementById('f-cat').innerHTML=categories.map(c=>`<option>${c}</option>`).join('');
+  setupOwnerSelect(document.getElementById('f-owner'),MY_ID);
+  setupMonthSelect(document.getElementById('f-month'),todayMonth);
+  ['f-name','f-amount','f-day','f-day-yearly','f-tel','f-url','f-cancel','f-docs','f-memo','f-family-message','f-card-brand','f-card-last4','f-secret'].forEach(id=>document.getElementById(id).value='');
+  formLiveViewers=[];
+  formAfterViewers=[];
+  setCycle('monthly');
+  setPayMethod('credit_card');
+  setVisibilityMode('all');
+  // 所有者が変わったら見せる相手の一覧も更新
+  document.getElementById('f-owner').onchange=()=>{
+    const ow=document.getElementById('f-owner').value;
+    formLiveViewers=formLiveViewers.filter(id=>id!==ow);
+    formAfterViewers=formAfterViewers.filter(id=>id!==ow);
+    if(formVisibilityMode==='selected'){renderViewerChecks();renderAfterViewerChecks();}
+  };
+  document.getElementById('modal-title').innerHTML='<i class="ti ti-plus"></i>契約を追加';
+  document.getElementById('submit-btn').textContent='追加する';
+  document.getElementById('submit-btn').onclick=addContract;
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('f-amount').oninput=updateAmountHelper;
+}
+function closeModal(){document.getElementById('add-modal').classList.remove('open');}
+
+function readForm(){
+  const docsRaw=document.getElementById('f-docs').value;
+  const isCard=formPayMethod==='credit_card';
+  const data={
+    name:document.getElementById('f-name').value.trim(),
+    cat:document.getElementById('f-cat').value,
+    ownerId:document.getElementById('f-owner').value,
+    cycle:formCycle,
+    paymentMethod:formPayMethod,
+    amount:parseInt(document.getElementById('f-amount').value)||0,
+    tel:document.getElementById('f-tel').value,
+    url:document.getElementById('f-url').value,
+    cancel:document.getElementById('f-cancel').value,
+    docs:docsRaw?docsRaw.split(',').map(d=>d.trim()).filter(Boolean):[],
+    memo:document.getElementById('f-memo').value,
+    familyMessage:document.getElementById('f-family-message').value.trim(),
+    cardBrand:isCard?document.getElementById('f-card-brand').value:'',
+    cardLast4:isCard?document.getElementById('f-card-last4').value:'',
+    secret:document.getElementById('f-secret').value,
+    visibility:{
+      mode:formVisibilityMode,
+      // 'selected'以外はliveViewers/afterViewersを空にして余計なデータを残さない
+      liveViewers:formVisibilityMode==='selected'?[...formLiveViewers]:[],
+      afterViewers:formVisibilityMode==='selected'?[...formAfterViewers]:[]
+    }
+  };
+  if(formCycle==='monthly'){
+    data.month=null;
+    data.day=parseInt(document.getElementById('f-day').value)||1;
+  } else {
+    data.month=parseInt(document.getElementById('f-month').value)||1;
+    data.day=parseInt(document.getElementById('f-day-yearly').value)||1;
+  }
+  return data;
+}
+
+function addContract(){
+  const data=readForm();
+  if(!data.name)return;
+  contracts.push({id:nextId++,...data,archived:false});
+  persistState();
+  closeModal();renderList();updateSummary();
+}
+
+function openEditModal(){
+  if(selectedId===null)return;
+  const c=contracts.find(x=>x.id===selectedId);
+  if(!c||!isOwner(c)||isPreviewing())return;
+  document.getElementById('f-cat').innerHTML=categories.map(cat=>`<option${cat===c.cat?' selected':''}>${cat}</option>`).join('');
+  setupOwnerSelect(document.getElementById('f-owner'),c.ownerId);
+  setupMonthSelect(document.getElementById('f-month'),c.month||todayMonth);
+  document.getElementById('f-name').value=c.name;
+  document.getElementById('f-amount').value=c.amount;
+  if(c.cycle==='monthly'){
+    document.getElementById('f-day').value=c.day;
+    document.getElementById('f-day-yearly').value='';
+  } else {
+    document.getElementById('f-day-yearly').value=c.day;
+    document.getElementById('f-day').value='';
+  }
+  document.getElementById('f-tel').value=c.tel||'';
+  document.getElementById('f-url').value=c.url||'';
+  document.getElementById('f-cancel').value=c.cancel||'';
+  document.getElementById('f-docs').value=(c.docs||[]).join(', ');
+  document.getElementById('f-memo').value=c.memo||'';
+  document.getElementById('f-family-message').value=c.familyMessage||'';
+  document.getElementById('f-card-brand').value=c.cardBrand||'';
+  document.getElementById('f-card-last4').value=c.cardLast4||'';
+  document.getElementById('f-secret').value=c.secret||'';
+  // 公開範囲の状態をフォームに復元
+  const cv=getVisibility(c);
+  formLiveViewers=[...(cv.liveViewers||[])];
+  formAfterViewers=[...(cv.afterViewers||[])];
+  setCycle(c.cycle||'monthly');
+  setPayMethod(payMethodOf(c));
+  setVisibilityMode(cv.mode||'all');
+  // 所有者変更時に見せる相手の候補を更新
+  document.getElementById('f-owner').onchange=()=>{
+    const ow=document.getElementById('f-owner').value;
+    formLiveViewers=formLiveViewers.filter(id=>id!==ow);
+    formAfterViewers=formAfterViewers.filter(id=>id!==ow);
+    if(formVisibilityMode==='selected'){renderViewerChecks();renderAfterViewerChecks();}
+  };
+  document.getElementById('modal-title').innerHTML='<i class="ti ti-edit"></i>契約を編集';
+  document.getElementById('submit-btn').textContent='保存する';
+  document.getElementById('submit-btn').onclick=saveEdit;
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('f-amount').oninput=updateAmountHelper;
+}
+function saveEdit(){
+  const c=contracts.find(x=>x.id===selectedId);
+  if(!c)return;
+  Object.assign(c,readForm());
+  persistState();
+  closeModal();renderList();showDetail(selectedId);updateSummary();
+}
+
+function openMemberModal(){renderMemberList();renderInvitations();document.getElementById('member-modal').classList.add('open');}
+function closeMemberModal(){document.getElementById('member-modal').classList.remove('open');renderAll();}
+
+// === アカウント削除（PP 13.1 / App Store 5.1.1(v)） ===
+function openAccountDeleteModal(){
+  document.getElementById('member-modal').classList.remove('open');
+  const inp=document.getElementById('account-delete-confirm');
+  if(inp)inp.value='';
+  const btn=document.getElementById('account-delete-exec');
+  if(btn){btn.disabled=true;btn.style.cursor='not-allowed';btn.style.opacity='0.4';}
+  document.getElementById('account-delete-modal').classList.add('open');
+}
+function closeAccountDeleteModal(){
+  document.getElementById('account-delete-modal').classList.remove('open');
+}
+function onAccountDeleteConfirmInput(){
+  const v=document.getElementById('account-delete-confirm').value;
+  const btn=document.getElementById('account-delete-exec');
+  const ok=(v==='アカウントを削除する');
+  btn.disabled=!ok;
+  btn.style.cursor=ok?'pointer':'not-allowed';
+  btn.style.opacity=ok?'1':'0.4';
+}
+// === 招待受諾の同意取得（PP 18条 Dark Pattern 回避） ===
+// Step 6.4: 居住地・年齢確認チェックを追加し計4件すべて ON で活性化
+// pendingInviteId はフロー経由時のみセット。プレビューボタン直起動時は null
+let pendingInviteId=null;
+function openConsentModal(inviterName,inviteeLabel,inviteId){
+  if(inviterName)document.getElementById('consent-inviter-name').textContent=inviterName;
+  if(inviteeLabel)document.getElementById('consent-invitee-label').textContent=inviteeLabel;
+  pendingInviteId=inviteId||null;
+  // 事前チェック禁止: 開く度に毎回クリア
+  document.getElementById('consent-tos').checked=false;
+  document.getElementById('consent-pp').checked=false;
+  document.getElementById('consent-residency').checked=false;
+  document.getElementById('consent-age').checked=false;
+  onConsentChange();
+  document.getElementById('consent-modal').classList.add('open');
+}
+function closeConsentModal(){
+  document.getElementById('consent-modal').classList.remove('open');
+}
+function onConsentChange(){
+  const tos=document.getElementById('consent-tos').checked;
+  const pp=document.getElementById('consent-pp').checked;
+  const residency=document.getElementById('consent-residency').checked;
+  const age=document.getElementById('consent-age').checked;
+  const btn=document.getElementById('consent-accept-btn');
+  const ok=tos&&pp&&residency&&age;
+  btn.disabled=!ok;
+  btn.style.opacity=ok?'1':'0.4';
+  btn.style.cursor=ok?'pointer':'not-allowed';
+}
+function acceptConsent(){
+  // TODO(Phase3): Firestore に consent_record 保存（タイムスタンプ・規約バージョン・IP・UA）
+  closeConsentModal();
+  if(pendingInviteId){
+    // 招待フロー経由: invitations 更新 + members 追加 + トースト
+    const inv=invitations.find(i=>i.id===pendingInviteId);
+    if(inv && inv.status==='pending'){
+      const nowIso=new Date().toISOString();
+      const usedColors=new Set(members.map(m=>m.color));
+      const color=PALETTE.find(c=>!usedColors.has(c))||PALETTE[members.length%PALETTE.length];
+      const newId='m'+nextMemberId++;
+      members.push({
+        id:newId,
+        name:inv.suggestedName||'家族メンバー',
+        color,
+        invitedVia:inv.id,
+        joinedAt:nowIso,
+        termsAcceptedVersion:TERMS_VERSION,
+        privacyAcceptedVersion:PRIVACY_VERSION
+      });
+      inv.status='accepted';
+      inv.acceptedAt=nowIso;
+      inv.acceptedAsMemberId=newId;
+      inv.consentLog={
+        termsAcceptedAt:nowIso,
+        privacyAcceptedAt:nowIso,
+        termsVersion:TERMS_VERSION,
+        privacyVersion:PRIVACY_VERSION
+      };
+      pendingInviteId=null;
+      showToast(`${inv.suggestedName} さんが招待を受諾しました（24時間以内は取消可能）`,'success');
+      // v16: 受諾者向けウェルカム（§4.2.4）
+      showWelcomeAfterAccept(getMember(MY_ID).name);
+      renderAll();
+      // member-modal が開いていれば再描画
+      if(document.getElementById('member-modal').classList.contains('open')){
+        renderMemberList();renderInvitations();
+      }
+      return;
+    }
+  }
+  // プレビュー起動など、招待非経由のパス
+  showToast('同意を受け付けました（プロトタイプ動作）','success');
+}
+
+// === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
+const CONSENT_KEY='kizuna-baton:consent-shown:v22';
+const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
+function openOwnerConsentModal(){
+  // 事前チェック禁止: 開く度に毎回クリア
+  document.getElementById('owner-consent-tos').checked=false;
+  document.getElementById('owner-consent-pp').checked=false;
+  document.getElementById('owner-consent-residency').checked=false;
+  document.getElementById('owner-consent-age').checked=false;
+  onOwnerConsentChange();
+  document.getElementById('owner-consent-modal').classList.add('open');
+}
+function onOwnerConsentChange(){
+  const tos=document.getElementById('owner-consent-tos').checked;
+  const pp=document.getElementById('owner-consent-pp').checked;
+  const residency=document.getElementById('owner-consent-residency').checked;
+  const age=document.getElementById('owner-consent-age').checked;
+  const btn=document.getElementById('owner-consent-accept-btn');
+  const ok=tos&&pp&&residency&&age;
+  btn.disabled=!ok;
+  btn.style.opacity=ok?'1':'0.4';
+  btn.style.cursor=ok?'pointer':'not-allowed';
+}
+function acceptOwnerConsent(){
+  const nowIso=new Date().toISOString();
+  // PP 18条第6項対応: 同意取得時刻・バージョンを記録
+  let log=[];
+  try{const raw=lsGet(CONSENT_LOG_KEY);if(raw)log=JSON.parse(raw)||[];}catch(e){log=[];}
+  log.push({
+    ts:nowIso,
+    tosVersion:TERMS_VERSION,
+    ppVersion:PRIVACY_VERSION,
+    residency:true,
+    age:true,
+    actor:'owner'
+  });
+  try{lsSet(CONSENT_LOG_KEY,JSON.stringify(log));}catch(e){}
+  lsSet(CONSENT_KEY,'1');
+  document.getElementById('owner-consent-modal').classList.remove('open');
+  // 同意取得後にオンボーディングへチェーン
+  maybeShowOnboarding();
+}
+function declineOwnerConsent(){
+  showToast('ご同意いただけない場合、本サービスはご利用いただけません','error');
+  // 可能ならタブを閉じる（スクリプトで開かれたタブのみ閉じられる仕様）
+  setTimeout(()=>{try{window.close();}catch(e){}},1500);
+}
+function maybeShowOwnerConsent(){
+  if(!lsGet(CONSENT_KEY)){
+    openOwnerConsentModal();
+    return false; // 未同意: オンボーディングは acceptOwnerConsent() からチェーン
+  }
+  return true; // 同意済み: 通常フロー継続
+}
+
+// === v16: オンボーディング画面 ===
+const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
+let onboardingStep=1;
+let forceShowOnboarding=false;
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+// === v20: 契約・メンバーの localStorage 永続化 ===
+const DATA_KEY='kizuna-baton:data:v20';
+function persistState(){
+  if(isPrivateMode)return;
+  lsSet(DATA_KEY,JSON.stringify({
+    version:'v20',
+    savedAt:new Date().toISOString(),
+    contracts:contracts,
+    members:members,
+    nextId:nextId,
+    nextMemberId:nextMemberId
+  }));
+}
+function loadPersistentState(){
+  const saved=lsGet(DATA_KEY);
+  if(!saved)return; // 初回起動: 既存サンプルが活きる
+  try{
+    const data=JSON.parse(saved);
+    if(Array.isArray(data.contracts)&&Array.isArray(data.members)){
+      contracts=data.contracts;
+      members=data.members;
+      nextId=data.nextId||(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1);
+      nextMemberId=data.nextMemberId||(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0)+1);
+    }
+  }catch(e){
+    console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
+    // パース失敗時はサンプルデータのまま継続。破損データを上書きしないため persistState() は呼ばない
+  }
+}
+
+// === v18: ダークモード ===
+const DARK_MODE_KEY='kizuna-baton:dark-mode:v18';
+function isDarkMode(){return document.documentElement.classList.contains('dark');}
+function initDarkMode(){
+  if(lsGet(DARK_MODE_KEY)==='1'){document.documentElement.classList.add('dark');}
+}
+function toggleDarkMode(){
+  const on=!isDarkMode();
+  document.documentElement.classList.toggle('dark',on);
+  lsSet(DARK_MODE_KEY,on?'1':'0');
+  // switch-menu のアイコン・ラベル状態を再描画
+  renderSwitchMenu();
+}
+function maybeShowOnboarding(){
+  if(forceShowOnboarding||!lsGet(ONBOARDING_KEY)){openOnboarding();}
+}
+function openOnboarding(){
+  onboardingStep=1;
+  renderOnboardingStep();
+  document.getElementById('onboarding-modal').classList.add('open');
+}
+function reopenOnboarding(){
+  document.getElementById('switch-menu').classList.remove('open');
+  forceShowOnboarding=true;
+  openOnboarding();
+}
+function renderOnboardingStep(){
+  document.querySelectorAll('#onboarding-modal .ob-step').forEach(el=>{
+    el.style.display=(Number(el.dataset.step)===onboardingStep)?'block':'none';
+  });
+  document.querySelectorAll('#onboarding-modal .ob-dot').forEach(el=>{
+    el.classList.toggle('active', Number(el.dataset.dot)===onboardingStep);
+  });
+  const btn=document.getElementById('ob-next-btn');
+  if(onboardingStep>=4){
+    btn.innerHTML='<i class="ti ti-check"></i> はじめる';
+  } else {
+    btn.innerHTML='<i class="ti ti-arrow-right"></i> 次へ';
+  }
+}
+function onboardingNext(){
+  if(onboardingStep>=4){closeOnboarding();return;}
+  onboardingStep++;
+  renderOnboardingStep();
+}
+function skipOnboarding(){closeOnboarding();}
+function closeOnboarding(){
+  document.getElementById('onboarding-modal').classList.remove('open');
+  lsSet(ONBOARDING_KEY,'1');
+  forceShowOnboarding=false;
+}
+function showWelcomeAfterAccept(inviterName){
+  document.getElementById('welcome-inviter-name').textContent=inviterName;
+  document.getElementById('welcome-inviter-name2').textContent=inviterName;
+  document.getElementById('welcome-after-accept-modal').classList.add('open');
+}
+function closeWelcomeAfterAccept(){
+  document.getElementById('welcome-after-accept-modal').classList.remove('open');
+}
+
+// === Step 6: 招待フロー（invitation-flow-design.md v3.2） ===
+function genInviteToken(){
+  const bytes=new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+}
+function genOtp6(){
+  return String(Math.floor(100000+Math.random()*900000));
+}
+function nowMs(){return Date.now();}
+function refreshInvitationStatuses(){
+  // 期限切れの自動遷移
+  const t=nowMs();
+  invitations.forEach(inv=>{
+    if(inv.status==='pending' && new Date(inv.expiresAt).getTime() < t){
+      inv.status='expired';
+    }
+  });
+}
+function checkInvitationLimits(){
+  refreshInvitationStatuses();
+  const dayAgo=nowMs()-24*60*60*1000;
+  const issuedToday=invitations.filter(i=>i.invitedBy===MY_ID && new Date(i.createdAt).getTime() > dayAgo).length;
+  const activeCount=invitations.filter(i=>i.invitedBy===MY_ID && (i.status==='pending'||i.status==='accepted')).length;
+  if(issuedToday>=INVITE_MAX_PER_DAY)return `1日の発行上限（${INVITE_MAX_PER_DAY}件）に達しています。明日以降にお試しください。`;
+  if(activeCount>=INVITE_MAX_PENDING_ACCEPTED)return `招待の合計件数が上限（pending+accepted で ${INVITE_MAX_PENDING_ACCEPTED}件）に達しています。`;
+  return null;
+}
+
+function openInviteIssueModal(){
+  document.getElementById('invite-issue-form').style.display='';
+  document.getElementById('invite-issue-result').style.display='none';
+  document.getElementById('invite-suggested-name').value='';
+  document.querySelectorAll('input[name="invite-relation"]').forEach(r=>r.checked=false);
+  const msg=document.getElementById('invite-limit-msg');
+  const limitErr=checkInvitationLimits();
+  const issueBtn=document.getElementById('invite-issue-btn');
+  if(limitErr){
+    msg.textContent=limitErr;msg.style.display='';
+    issueBtn.disabled=true;issueBtn.style.opacity='0.4';issueBtn.style.cursor='not-allowed';
+  } else {
+    msg.style.display='none';
+    issueBtn.disabled=false;issueBtn.style.opacity='1';issueBtn.style.cursor='pointer';
+  }
+  document.getElementById('invite-issue-modal').classList.add('open');
+}
+function closeInviteIssueModal(){
+  document.getElementById('invite-issue-modal').classList.remove('open');
+  renderInvitations();
+}
+function issueInvitation(){
+  const limitErr=checkInvitationLimits();
+  if(limitErr){alert(limitErr);return;}
+  const name=document.getElementById('invite-suggested-name').value.trim();
+  const relationEl=document.querySelector('input[name="invite-relation"]:checked');
+  if(!name){alert('呼び名を入力してください');return;}
+  if(!relationEl){alert('関係性を選択してください');return;}
+  const relation=relationEl.value;
+  if(!FAMILY_LABELS_BETA.includes(relation)){alert('β版では配偶者・子・親のみ選択可能です');return;}
+  const token=genInviteToken();
+  const otp=genOtp6();
+  const now=new Date();
+  const inv={
+    id:'inv_'+token.slice(0,8),
+    token,
+    invitedBy:MY_ID,
+    suggestedName:name,
+    suggestedRelation:relation,
+    otp,
+    status:'pending',
+    createdAt:now.toISOString(),
+    expiresAt:new Date(now.getTime()+INVITE_EXPIRY_MS).toISOString(),
+    acceptedAt:null,
+    revokedAt:null,
+    acceptedAsMemberId:null,
+    consentLog:{termsAcceptedAt:null,privacyAcceptedAt:null,termsVersion:null,privacyVersion:null}
+  };
+  invitations.push(inv);
+  // 発行結果表示に切替
+  document.getElementById('invite-issue-form').style.display='none';
+  document.getElementById('invite-issue-result').style.display='';
+  document.getElementById('invite-result-url').textContent=`https://kizuna-baton.example/invite/${token}`;
+  document.getElementById('invite-result-otp').textContent=otp;
+}
+function revokeInvitation(id){
+  const inv=invitations.find(i=>i.id===id);
+  if(!inv)return;
+  if(inv.status!=='pending'){alert('pending状態の招待のみ取消できます');return;}
+  if(!confirm(`${inv.suggestedName} さんへの招待を取り消しますか？`))return;
+  inv.status='revoked';
+  inv.revokedAt=new Date().toISOString();
+  renderInvitations();
+}
+function renderInvitations(){
+  refreshInvitationStatuses();
+  const el=document.getElementById('invitations-list');
+  if(!el)return;
+  const pending=invitations.filter(i=>i.invitedBy===MY_ID && i.status==='pending');
+  if(pending.length===0){
+    el.innerHTML='<div style="font-size:11px;color:var(--color-text-tertiary);padding:6px 0">未受諾の招待はありません</div>';
+    return;
+  }
+  el.innerHTML=pending.map(inv=>{
+    const remainMs=new Date(inv.expiresAt).getTime()-nowMs();
+    const remainDays=Math.max(0,Math.ceil(remainMs/(24*60*60*1000)));
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--color-text-primary)">${inv.suggestedName} <span style="font-size:10px;color:var(--color-text-tertiary)">（${inv.suggestedRelation}）</span></div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px"><i class="ti ti-clock" style="font-size:10px"></i> 残り${remainDays}日 · OTP ${inv.otp}</div>
+      </div>
+      <button onclick="revokeInvitation('${inv.id}')" title="招待を取消" style="padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid #F09595;background:transparent;color:#A32D2D;font-size:11px;cursor:pointer"><i class="ti ti-x"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function openInviteAcceptModal(){
+  document.getElementById('invite-accept-otp').value='';
+  document.getElementById('invite-accept-error').style.display='none';
+  document.getElementById('invite-accept-modal').classList.add('open');
+}
+function closeInviteAcceptModal(){
+  document.getElementById('invite-accept-modal').classList.remove('open');
+}
+function fillSampleOtp(){
+  const sample=invitations.find(i=>i.id==='inv_sample_pending');
+  if(sample)document.getElementById('invite-accept-otp').value=sample.otp;
+}
+function verifyInviteOtp(){
+  refreshInvitationStatuses();
+  const otp=document.getElementById('invite-accept-otp').value.trim();
+  const errEl=document.getElementById('invite-accept-error');
+  errEl.style.display='none';
+  if(!/^\d{6}$/.test(otp)){errEl.textContent='6桁の数字を入力してください';errEl.style.display='';return;}
+  const inv=invitations.find(i=>i.otp===otp && i.status==='pending');
+  if(!inv){errEl.textContent='該当する有効な招待が見つかりません（期限切れまたは取消の可能性）';errEl.style.display='';return;}
+  // 既存 consent モーダルを呼ぶ（同意 4 件取得 → acceptConsent() で invitations/members 更新）
+  closeInviteAcceptModal();
+  const inviter=getMember(inv.invitedBy);
+  openConsentModal(inviter?inviter.name:'本人',inv.suggestedRelation,inv.id);
+}
+
+// Step 6.5: トースト
+let toastTimer=null;
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.className='toast '+(type||'')+' show';
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{el.className='toast '+(type||'');},4000);
+}
+
+// Step 6.6: 24h 取消ウィンドウ
+function canRevokeMember(m){
+  if(!m||!m.joinedAt)return false;
+  return (nowMs()-new Date(m.joinedAt).getTime()) < INVITE_REVOKE_WINDOW_MS;
+}
+function revokeAcceptedMember(id){
+  const m=getMember(id);
+  if(!m)return;
+  if(!canRevokeMember(m)){alert('24時間の取消期限を過ぎています。閲覧権限の停止のみ可能です。');return;}
+  if(!confirm(`${m.name} さんの受諾を取り消しますか？\n24時間以内のため、招待関係が解除されます。`))return;
+  // 紐づく invitation を revoked へ（誤承認の救済）
+  if(m.invitedVia){
+    const inv=invitations.find(i=>i.id===m.invitedVia);
+    if(inv){inv.status='revoked';inv.revokedAt=new Date().toISOString();}
+  }
+  // メンバー削除（既存の stopMemberViewing と同等の関係解除処理を実行）
+  members=members.filter(x=>x.id!==id);
+  if(viewOwnerId===id)viewOwnerId=MY_ID;
+  showToast(`${m.name} さんの受諾を取り消しました`,'warn');
+  renderMemberList();renderInvitations();renderAll();
+}
+
+function deleteOwnAccount(){
+  // TODO(Phase3): Firebase Auth deleteUser + Firestore cascade delete + 14日猶予ジョブのキック
+  // プロトタイプ実装: 本人所有契約を contracts から除外、本人 member を非表示扱い（プロト上は配列から外す）
+  contracts=contracts.filter(c=>c.ownerId!==MY_ID);
+  members=members.filter(m=>m.id!==MY_ID);
+  closeAccountDeleteModal();
+  alert('アカウントを削除しました（プロトタイプ動作）。\n本番では 14 日の猶予期間中は復元可能です。');
+  renderAll();
+}
+
+function renderMemberList(){
+  const el=document.getElementById('member-list');
+  el.innerHTML=members.map(m=>{
+    const contractCount=contracts.filter(c=>c.ownerId===m.id).length;
+    const isMyself=m.id===MY_ID;
+    const revokable=!isMyself && canRevokeMember(m);
+    // 24h 取消ウィンドウ内のメンバーは「取消（24h）」ボタンを追加表示
+    const revokeBtn=revokable
+      ?`<button onclick="revokeAcceptedMember('${m.id}')" title="24h以内の受諾取消" style="background:#A32D2D;color:#fff;border-color:#A32D2D"><i class="ti ti-clock-x"></i></button>`
+      :'';
+    return `<div class="member-row">
+      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="name">
+        <input type="text" value="${m.name}" onchange="renameMember('${m.id}',this.value)" style="font-size:13px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
+        <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:2px">契約 ${contractCount}件${isMyself?' · あなた':''}${revokable?' · 24h取消可':''}</div>
+      </div>
+      <div class="color-dot" style="background:${m.color}" onclick="openColorModal('${m.id}')" title="色を変える"></div>
+      ${revokeBtn}
+      <button onclick="stopMemberViewing('${m.id}')" title="閲覧権限を停止"${isMyself||contractCount>0?' disabled style="opacity:0.3;cursor:not-allowed"':''}><i class="ti ti-eye-off"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function renameMember(id,newName){
+  const m=getMember(id);
+  if(!m||!newName.trim())return;
+  m.name=newName.trim();
+  persistState();
+  renderAll();renderMemberList();
+}
+
+function addMember(){
+  const name=document.getElementById('new-member-name').value.trim();
+  if(!name)return;
+  if(members.some(m=>m.name===name)){alert('同じ名前のメンバーがいます');return;}
+  const usedColors=new Set(members.map(m=>m.color));
+  const avail=PALETTE.find(c=>!usedColors.has(c))||PALETTE[members.length%PALETTE.length];
+  members.push({id:'m'+nextMemberId++,name,color:avail});
+  persistState();
+  document.getElementById('new-member-name').value='';
+  renderMemberList();renderAll();
+}
+
+// 規約 ToS 6.5.4: 「閲覧権限停止」≠ 家族メンバーアカウント削除
+// 本サービス上の関係付けを解除するだけで、家族側のアカウント自体は本人が削除しない限り存続する
+function stopMemberViewing(id){
+  const m=getMember(id);
+  if(!m)return;
+  if(id===MY_ID){alert('自分は削除できません');return;}
+  const cnt=contracts.filter(c=>c.ownerId===id).length;
+  if(cnt>0){alert(`${m.name} に契約が ${cnt}件あります。先に所有者を変更してください。`);return;}
+  if(!confirm(`閲覧権限を停止しますか？\n${m.name} さんの家族メンバーアカウント自体は削除されません。`))return;
+  members=members.filter(x=>x.id!==id);
+  if(viewOwnerId===id)viewOwnerId=MY_ID;
+  persistState();
+  renderMemberList();renderAll();
+}
+// 互換 alias（外部参照や旧コードからの呼び出しを生かす）
+const removeMember=stopMemberViewing;
+
+function openColorModal(id){
+  colorTargetId=id;
+  const m=getMember(id);
+  document.getElementById('color-modal-title').innerHTML=`<i class="ti ti-palette"></i>${m.name} の色を選ぶ`;
+  const picker=document.getElementById('color-picker');
+  picker.innerHTML=PALETTE.map(c=>`<div style="background:${c}" class="${c===m.color?'selected':''}" onclick="pickColor('${c}')"></div>`).join('');
+  document.getElementById('color-modal').classList.add('open');
+}
+function closeColorModal(){document.getElementById('color-modal').classList.remove('open');}
+function pickColor(c){const m=getMember(colorTargetId);if(!m)return;m.color=c;persistState();closeColorModal();renderMemberList();renderAll();}
+
+function selectExport(m){
+  exportMode=m;
+  document.getElementById('opt-self').classList.toggle('selected',m==='self');
+  document.getElementById('opt-inheritance').classList.toggle('selected',m==='inheritance');
+  document.getElementById('opt-family').classList.toggle('selected',m==='family');
+}
+function selectExportFormat(f){
+  exportFormat=f;
+  document.getElementById('fmt-pdf').classList.toggle('selected',f==='pdf');
+  document.getElementById('fmt-json').classList.toggle('selected',f==='json');
+  // ボタンのアイコン・ラベルを切り替え
+  const btn=document.getElementById('export-confirm-btn');
+  if(btn){
+    btn.innerHTML=f==='json'
+      ?'<i class="ti ti-download"></i> JSONをダウンロード'
+      :'<i class="ti ti-printer"></i> 出力する';
+  }
+}
+function openExportModal(){
+  // emergencyMode が OFF のときはモード選択セクションを非表示にし、self に固定
+  const modeSec=document.getElementById('export-mode-section');
+  if(modeSec){
+    modeSec.style.display=FEATURES.emergencyMode?'block':'none';
+  }
+  if(!FEATURES.emergencyMode)exportMode='self';
+  document.getElementById('export-modal').classList.add('open');
+}
+function closeExportModal(){document.getElementById('export-modal').classList.remove('open');}
+
+// ToS 15.7 / PP 14.5: 本人のみが本人所有の契約データを JSON 形式で書き出せる
+function doExportJSON(){
+  if(currentViewerId()!==MY_ID){
+    alert('JSONエクスポートはご本人のみが実行できます。');
+    return;
+  }
+  closeExportModal();
+  const me=getMember(MY_ID);
+  const myContracts=contracts.filter(c=>c.ownerId===MY_ID);
+  const data={
+    schemaVersion:1,
+    exportedAt:new Date().toISOString(),
+    appVersion:'kizuna-baton-prototype-v14',
+    exporter:{id:me.id,name:me.name},
+    members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
+    categories:categories.slice(),
+    contracts:myContracts
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const d=new Date();
+  const yyyymmdd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`kizuna-baton-export-${yyyymmdd}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function doExport(){
+  // 規約 ToS 7.1: emergencyMode β不提供のため、inheritance/family モードを self へ強制ダウングレード
+  if(!FEATURES.emergencyMode&&(exportMode==='inheritance'||exportMode==='family')){
+    exportMode='self';
+  }
+  // 形式選択: JSON エクスポートは別関数へ委譲（Step 2 で実装）
+  if(typeof exportFormat!=='undefined'&&exportFormat==='json'){
+    return doExportJSON();
+  }
+  closeExportModal();
+  const meName=getMember(MY_ID).name;
+  let filtered=contracts.filter(c=>viewOwnerId==='all'||c.ownerId===viewOwnerId);
+  // 死後モード（相続判断・完全開示）では「本人のみ」契約を除外。生前モードでは after_only も除外（生前は本人にしか見えない）
+  if(exportMode==='inheritance'||exportMode==='family'){
+    filtered=filtered.filter(c=>getVisibility(c).mode!=='private');
+  } else if(exportMode==='self'){
+    // 自分用は全契約（自分が所有しているもの中心）
+  }
+  const active=filtered.filter(c=>!c.archived);
+  const archived=filtered.filter(c=>c.archived);
+  const monthlyTotal=active.reduce((s,c)=>s+monthlyEquivalent(c),0);
+  const yearlyTotal=active.reduce((s,c)=>s+yearlyAmount(c),0);
+  const dateStr=new Date().toLocaleDateString('ja-JP');
+  const modeLabel=exportMode==='self'?'通常版（自分用）':(exportMode==='inheritance'?'相続判断モード（Stage 1）':'完全開示モード（Stage 2）');
+  const ownerLabel=viewOwnerId==='all'?'家族全員':getMember(viewOwnerId).name;
+
+  // 死後モードで「一部にだけ見せる」契約に補足を付ける
+  function visibilityNote(c){
+    if(exportMode==='self')return '';
+    const v=getVisibility(c);
+    if(v.mode==='selected'){
+      const after=(v.afterViewers||[]);
+      if(after.length){
+        const names=after.map(id=>{const m=getMember(id);return m?m.name:'';}).filter(Boolean);
+        return `<div style="font-size:10px;color:#854F0B;margin-top:3px"><strong>※もしもの時の閲覧範囲:</strong> ${names.join('・')}のみ</div>`;
+      }
+    }
+    if(v.mode==='after_only'){
+      return `<div style="font-size:10px;color:#5F2D7A;margin-top:3px"><strong>※もしもの時のみ開示</strong>（生前は本人のみ閲覧）</div>`;
+    }
+    return '';
+  }
+
+  function secretRow(c){
+    const pmLabel=payMethodInfo(c).label;
+    if(exportMode==='self'){
+      if(c.ownerId!==MY_ID){
+        // 他メンバーの契約：支払方法のみ表示
+        return `<div style="font-size:11px;color:#888">支払方法: ${pmLabel}${c.cardBrand?' / '+c.cardBrand+(c.cardLast4?' **** '+c.cardLast4:''):''}</div>`;
+      }
+      // 自分の契約：すべて表示
+      let parts=[];
+      parts.push('支払方法: '+pmLabel);
+      if(payMethodOf(c)==='credit_card'){
+        if(c.cardBrand)parts.push('カード会社: '+c.cardBrand);
+        if(c.cardLast4)parts.push('下4桁: ****'+c.cardLast4);
+      }
+      if(c.secret)parts.push('機密: '+c.secret);
+      return `<div style="font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px">${parts.join(' / ')}</div>`;
+    } else if(exportMode==='inheritance'){
+      // 相続判断モード：機密情報は完全に伏せる。支払方法ラベルのみ
+      return `<div style="font-size:11px;color:#754C00;margin-top:4px;padding:4px 6px;background:#FFF8E1;border-radius:3px;border-left:3px solid #E0B43D">支払方法: ${pmLabel} <span style="color:#A98730">／機密情報は Stage 2 で開示</span></div>`;
+    } else {
+      // 完全開示モード（Stage 2）：機密情報は支払方法と種別のみ表示（口座詳細は除外）
+      let parts=['支払方法: '+pmLabel];
+      if(payMethodOf(c)==='credit_card'){
+        if(c.cardBrand)parts.push(c.cardBrand);
+        if(c.cardLast4)parts.push('**** '+c.cardLast4);
+      } else if(payMethodOf(c)==='bank_debit'||payMethodOf(c)==='bank_transfer'){
+        parts.push('口座詳細は本人確認後に開示');
+      }
+      return `<div style="font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#e8f5e9;border-radius:3px">${parts.join(' / ')}</div>`;
+    }
+  }
+
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>きずなbaton ${dateStr}</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;padding:30px;color:#222;line-height:1.6;max-width:780px;margin:0 auto}
+h1{font-size:22px;border-bottom:2px solid #222;padding-bottom:8px;margin-bottom:6px}
+.brand{font-size:11px;color:#888;letter-spacing:1px;margin-bottom:8px}
+.meta{font-size:12px;color:#666;margin-bottom:20px}
+.mode-tag{display:inline-block;background:${exportMode==='self'?'#e3f2fd':exportMode==='inheritance'?'#FFF8E1':'#fff3e0'};color:${exportMode==='self'?'#0d47a1':exportMode==='inheritance'?'#754C00':'#bf360c'};padding:3px 10px;border-radius:4px;font-size:11px;margin-left:8px}
+h2{font-size:15px;background:#f5f5f5;padding:8px 12px;border-left:4px solid #555;margin:24px 0 12px}
+.contract{border:1px solid #ddd;border-radius:6px;padding:12px 14px;margin-bottom:10px;page-break-inside:avoid}
+.c-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.c-name{font-size:15px;font-weight:600}
+.c-amount{font-size:14px;font-weight:600;color:#1565c0}
+.c-sub-amount{font-size:11px;color:#888;font-weight:400}
+.c-cat{font-size:11px;color:#888;background:#f5f5f5;padding:1px 6px;border-radius:3px;display:inline-block}
+.c-cycle{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;background:#fff3e0;color:#bf360c}
+.c-row{font-size:12px;color:#444;margin:3px 0}
+.c-row strong{font-weight:600;color:#222;display:inline-block;min-width:65px}
+.summary{background:#f9f9f9;border-radius:6px;padding:12px 16px;margin-bottom:20px;display:flex;gap:24px}
+.summary div{font-size:12px;color:#555}
+.summary strong{display:block;font-size:18px;color:#222;margin-top:2px}
+.archived .contract{background:#fafafa;border-color:#eee}
+.archived .c-name{color:#777}
+.footer{margin-top:30px;padding-top:14px;border-top:1px solid #ddd;font-size:11px;color:#999;text-align:center}
+@media print{body{padding:15px}}
+</style></head><body>
+<div class="brand">きずなbaton</div>
+<h1>契約管理 一覧<span class="mode-tag">${modeLabel}</span></h1>
+<div class="meta">出力日: ${dateStr} / 対象: ${ownerLabel} / 出力者: ${meName}</div>
+<div class="summary">
+  <div>利用中契約<strong>${active.length} 件</strong></div>
+  <div>月額換算合計<strong>¥${monthlyTotal.toLocaleString()}</strong></div>
+  <div>年間合計<strong>¥${yearlyTotal.toLocaleString()}</strong></div>
+  <div>解約済<strong>${archived.length} 件</strong></div>
+</div>
+
+<h2>■ 利用中の契約（${active.length}件）</h2>
+${active.map(c=>{
+  const cycleTag=c.cycle==='yearly'?'<span class="c-cycle">年払い</span>':'<span class="c-cycle" style="background:#f5f5f5;color:#555">月払い</span>';
+  const amount=c.cycle==='yearly'
+    ?`<div class="c-amount">¥${c.amount.toLocaleString()} / 年</div><div class="c-sub-amount">月換算 ¥${monthlyEquivalent(c).toLocaleString()}</div>`
+    :`<div class="c-amount">¥${c.amount.toLocaleString()} / 月</div>`;
+return `
+<div class="contract">
+  <div class="c-head">
+    <div><span class="c-name">${c.name}</span>${cycleTag} <span class="c-cat">${c.cat} / ${getOwnerName(c)}</span></div>
+    <div>${amount}</div>
+  </div>
+  <div class="c-row"><strong>支払日:</strong> ${paymentDateText(c)}</div>
+  <div class="c-row"><strong>支払方法:</strong> ${payMethodInfo(c).label}</div>
+  ${c.tel?`<div class="c-row"><strong>電話:</strong> ${c.tel}</div>`:''}
+  ${c.url?`<div class="c-row"><strong>URL:</strong> ${c.url}</div>`:''}
+  ${c.cancel?`<div class="c-row"><strong>解約方法:</strong> ${c.cancel}</div>`:''}
+  ${c.docs&&c.docs.length?`<div class="c-row"><strong>必要書類:</strong> ${c.docs.join(' / ')}</div>`:''}
+  ${c.memo?`<div class="c-row"><strong>メモ:</strong> ${c.memo}</div>`:''}
+  ${c.familyMessage?`<div style="margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap"><strong style="color:#A04B6E;font-weight:600">家族への一言:</strong> ${c.familyMessage}</div>`:''}
+  ${secretRow(c)}
+  ${visibilityNote(c)}
+</div>`;
+}).join('')}
+
+${archived.length?`<h2>■ 解約済みアーカイブ（${archived.length}件）</h2><div class="archived">${archived.map(c=>`
+<div class="contract">
+  <div class="c-head"><div><span class="c-name">${c.name}</span> <span class="c-cat">${c.cat} / ${getOwnerName(c)}</span></div><div class="c-amount" style="color:#888">解約済</div></div>
+  <div class="c-row"><strong>解約日:</strong> ${c.archivedDate||'-'}</div>
+  ${c.archivedNote?`<div class="c-row"><strong>備考:</strong> ${c.archivedNote}</div>`:''}
+</div>`).join('')}</div>`:''}
+
+<div class="footer">きずなbaton より出力 / ${dateStr}</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),500);<\/script>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+}
+
+function openCatModal(){renderCatList();document.getElementById('cat-modal').classList.add('open');}
+function closeCatModal(){document.getElementById('cat-modal').classList.remove('open');renderCatTabs();}
+function renderCatList(){
+  document.getElementById('cat-list').innerHTML=categories.map((c,i)=>
+    `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${c}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${c}を削除"><i class="ti ti-trash"></i></button></div>`
+  ).join('');
+}
+function deleteCat(i){categories.splice(i,1);renderCatList();}
+function addCategory(){
+  const v=document.getElementById('new-cat-input').value.trim();
+  if(!v||categories.includes(v))return;
+  categories.push(v);
+  if(!ICONS[v])ICONS[v]='ti-tag';
+  if(!COLORS[v])COLORS[v]='#D3D1C7';
+  if(!TCOLORS[v])TCOLORS[v]='#444441';
+  document.getElementById('new-cat-input').value='';
+  renderCatList();
+}
+
+// =========== 「もしもの時」発動ワークフロー（プロトタイプ用シミュレーション） ===========
+function workflowNow(){return deathWorkflow.simulatedNow?new Date(deathWorkflow.simulatedNow):new Date();}
+function workflowSetNow(d){deathWorkflow.simulatedNow=d.toISOString();}
+function daysBetween(a,b){return (new Date(b)-new Date(a))/(1000*60*60*24);}
+function hoursBetween(a,b){return (new Date(b)-new Date(a))/(1000*60*60);}
+
+function workflowAdvanceTime(days){
+  if(!FEATURES.emergencyMode){console.warn('[FEATURES.emergencyMode=false] workflowAdvanceTime is disabled');return;}
+  if(!deathWorkflow.lastLoginDate){
+    deathWorkflow.lastLoginDate=workflowNow().toISOString();
+  }
+  const now=workflowNow();
+  now.setDate(now.getDate()+days);
+  workflowSetNow(now);
+  if(deathWorkflow.stage==='stage1_pending')activateStage1IfReady();
+  if(deathWorkflow.stage==='stage1_active'||deathWorkflow.stage==='stage2_pending')activateStage2IfReady();
+  renderWorkflowModal();
+}
+
+function isStage1Eligible(){
+  const last=deathWorkflow.lastLoginDate;
+  if(!last)return false;
+  return daysBetween(last,workflowNow())>=30;
+}
+
+function startStage1Request(){
+  if(!FEATURES.emergencyMode){console.warn('[FEATURES.emergencyMode=false] startStage1Request is disabled');return;}
+  if(deathWorkflow.stage!=='normal')return;
+  if(!isStage1Eligible())return;
+  const now=workflowNow();
+  deathWorkflow.familyRequestDate=now.toISOString();
+  const deadline=new Date(now);
+  deadline.setHours(deadline.getHours()+48);
+  deathWorkflow.challengeDeadline=deadline.toISOString();
+  deathWorkflow.stage='stage1_pending';
+  renderWorkflowModal();
+}
+
+function respondToChallenge(){
+  if(deathWorkflow.stage!=='stage1_pending')return;
+  // 本人が「ご利用継続」と回答 → ワークフロー解除（30日カウンタもリセット）
+  deathWorkflow.stage='normal';
+  deathWorkflow.familyRequestDate=null;
+  deathWorkflow.challengeDeadline=null;
+  deathWorkflow.challengeResponded=false;
+  deathWorkflow.lastLoginDate=workflowNow().toISOString();
+  renderWorkflowModal();
+}
+
+function activateStage1IfReady(){
+  if(deathWorkflow.stage!=='stage1_pending')return;
+  if(deathWorkflow.challengeResponded)return;
+  if(!deathWorkflow.familyRequestDate)return;
+  if(hoursBetween(deathWorkflow.familyRequestDate,workflowNow())>=48){
+    deathWorkflow.stage='stage1_active';
+  }
+}
+
+function uploadDeathCertMock(){
+  if(!FEATURES.emergencyMode){console.warn('[FEATURES.emergencyMode=false] uploadDeathCertMock is disabled');return;}
+  if(deathWorkflow.stage!=='stage1_active'&&deathWorkflow.stage!=='stage2_pending')return;
+  deathWorkflow.deathCertUploaded=true;
+  activateStage2IfReady();
+  renderWorkflowModal();
+}
+
+function approveStage2(memberId){
+  if(!FEATURES.emergencyMode){console.warn('[FEATURES.emergencyMode=false] approveStage2 is disabled');return;}
+  if(deathWorkflow.stage!=='stage1_active'&&deathWorkflow.stage!=='stage2_pending')return;
+  if(memberId===MY_ID)return;
+  if(!deathWorkflow.stage2Approvers.includes(memberId)){
+    deathWorkflow.stage2Approvers.push(memberId);
+  }
+  activateStage2IfReady();
+  renderWorkflowModal();
+}
+
+function activateStage2IfReady(){
+  if(deathWorkflow.stage==='stage1_active'){
+    if(deathWorkflow.deathCertUploaded&&deathWorkflow.stage2Approvers.length>=2){
+      const deadline=workflowNow();
+      deadline.setDate(deadline.getDate()+14);
+      deathWorkflow.timelockUntil=deadline.toISOString();
+      deathWorkflow.stage='stage2_pending';
+    }
+  }
+  if(deathWorkflow.stage==='stage2_pending'){
+    if(deathWorkflow.timelockUntil&&workflowNow()>=new Date(deathWorkflow.timelockUntil)){
+      deathWorkflow.stage='stage2_active';
+    }
+  }
+}
+
+function bridgeToPreview(stage){
+  // 既存プレビュー機能に橋渡し
+  const wf=deathWorkflow.stage;
+  if(stage==='inheritance'&&wf!=='stage1_active'&&wf!=='stage2_pending'&&wf!=='stage2_active')return;
+  if(stage==='full'&&wf!=='stage2_active')return;
+  const otherMember=members.find(m=>m.id!==MY_ID);
+  if(!otherMember)return;
+  closeWorkflowModal();
+  previewAsId=otherMember.id;
+  previewStage=stage;
+  renderAll();
+}
+
+function resetWorkflow(){
+  deathWorkflow={
+    stage:'normal',
+    lastLoginDate:null,
+    familyRequestDate:null,
+    challengeDeadline:null,
+    challengeResponded:false,
+    deathCertUploaded:false,
+    stage2Approvers:[],
+    timelockUntil:null,
+    simulatedNow:null
+  };
+  renderWorkflowModal();
+}
+
+function openWorkflowModal(){
+  if(!FEATURES.emergencyMode){console.warn('[FEATURES.emergencyMode=false] βでは「もしもの時」ワークフローは提供されません（ToS 7.1）');return;}
+  document.getElementById('switch-menu').classList.remove('open');
+  renderWorkflowModal();
+  document.getElementById('workflow-modal').classList.add('open');
+}
+function closeWorkflowModal(){
+  document.getElementById('workflow-modal').classList.remove('open');
+}
+
+function renderWorkflowModal(){
+  const wf=deathWorkflow;
+  const stage=wf.stage;
+  const now=workflowNow();
+
+  // ステータスバー
+  const status=document.getElementById('wf-status');
+  let statusHtml='';
+  if(stage==='normal'){
+    status.className='wf-status';
+    statusHtml=`<i class="ti ti-shield-check"></i><div><strong>通常状態</strong>: 本人が日常的にご利用継続中。ご家族の閲覧は通常の公開範囲設定に従います。</div>`;
+  } else if(stage==='stage1_pending'){
+    status.className='wf-status s1';
+    const remHours=Math.max(0,Math.ceil(hoursBetween(now,wf.challengeDeadline)));
+    statusHtml=`<i class="ti ti-bell-ringing"></i><div><strong>ご家族から申請を受け付け中</strong>: 本人へのチャレンジ通知を送信しました。残り約${remHours}時間で発動します。</div>`;
+  } else if(stage==='stage1_active'){
+    status.className='wf-status s1';
+    statusHtml=`<i class="ti ti-alert-triangle"></i><div><strong>相続判断モード起動中</strong>: ご家族は契約の概要を閲覧できます。機密情報・解約操作はまだ非開示です。</div>`;
+  } else if(stage==='stage2_pending'){
+    status.className='wf-status s2';
+    let info='完全開示モードに進むための条件を確認しています。';
+    if(wf.timelockUntil){
+      const remDays=Math.max(0,Math.ceil(daysBetween(now,wf.timelockUntil)));
+      info=`14日タイムロック中：残り約${remDays}日。`;
+    }
+    statusHtml=`<i class="ti ti-lock"></i><div><strong>完全開示モード準備中</strong>: ${info}</div>`;
+  } else if(stage==='stage2_active'){
+    status.className='wf-status s2';
+    statusHtml=`<i class="ti ti-shield-lock"></i><div><strong>完全開示モード起動中</strong>: ご家族はすべての契約情報と解約手順を閲覧できます。</div>`;
+  }
+  status.innerHTML=statusHtml;
+
+  // Step 1
+  const s1eligible=isStage1Eligible();
+  const requested=!!wf.familyRequestDate;
+  const challengePassed=stage==='stage1_active'||stage==='stage2_pending'||stage==='stage2_active';
+  document.getElementById('wf-step1-conditions').innerHTML=`
+    <li><span>最終ログイン+30日経過</span><span class="${s1eligible?'ok':'pending'}">${s1eligible?'✓ 達成':'未達成'}</span></li>
+    <li><span>ご家族からの申請</span><span class="${requested?'ok':'no'}">${requested?'✓ 申請済み':'未申請'}</span></li>
+    <li><span>本人チャレンジ通知（48h）</span><span class="${challengePassed?'ok':(requested?'pending':'no')}">${challengePassed?'✓ 経過':(requested?'待機中':'-')}</span></li>
+  `;
+  document.getElementById('wf-step1').classList.toggle('done',challengePassed);
+  const s1actions=document.getElementById('wf-step1-actions');
+  const step1InProgress=stage==='normal'||stage==='stage1_pending';
+  if(step1InProgress){
+    let s1html='';
+    if(stage==='normal'){
+      s1html+=`<button onclick="workflowAdvanceTime(30)"${s1eligible?' disabled':''}><i class="ti ti-clock-play"></i>30日進める（最終ログイン+30日経過）</button>`;
+      s1html+=`<button onclick="startStage1Request()"${(!s1eligible||requested)?' disabled':''}><i class="ti ti-mail-forward"></i>ご家族から発動を申請する</button>`;
+    } else if(stage==='stage1_pending'){
+      s1html+=`<button onclick="respondToChallenge()"><i class="ti ti-thumb-up"></i>本人「ご利用継続中です」と回答</button>`;
+      s1html+=`<button onclick="workflowAdvanceTime(2)"><i class="ti ti-clock-play"></i>48時間進める（無反応）</button>`;
+    }
+    s1actions.innerHTML=s1html;
+  } else {
+    s1actions.innerHTML=`<div style="font-size:10px;color:#0F6E56;font-weight:500"><i class="ti ti-circle-check" style="font-size:11px"></i> Step 1 は完了しています</div>`;
+  }
+
+  // Step 2
+  const step2Box=document.getElementById('wf-step2');
+  const step2Unlocked=challengePassed;
+  step2Box.classList.toggle('locked',!step2Unlocked);
+  step2Box.classList.toggle('done',stage==='stage2_active');
+
+  const certOk=wf.deathCertUploaded;
+  const apprCount=wf.stage2Approvers.length;
+  const apprOk=apprCount>=2;
+  const tlOk=wf.timelockUntil&&workflowNow()>=new Date(wf.timelockUntil);
+  document.getElementById('wf-step2-conditions').innerHTML=`
+    <li><span>死亡証明書のアップロード</span><span class="${certOk?'ok':'no'}">${certOk?'✓ 完了':'未提出'}</span></li>
+    <li><span>ご家族2名以上の承認</span><span class="${apprOk?'ok':(apprCount>0?'pending':'no')}">${apprCount}/2名</span></li>
+    <li><span>14日タイムロック</span><span class="${tlOk?'ok':(wf.timelockUntil?'pending':'no')}">${tlOk?'✓ 解除':(wf.timelockUntil?`残り約${Math.max(0,Math.ceil(daysBetween(workflowNow(),wf.timelockUntil)))}日`:'未開始')}</span></li>
+  `;
+
+  const s2actions=document.getElementById('wf-step2-actions');
+  if(!step2Unlocked){
+    s2actions.innerHTML=`<div style="font-size:10px;color:var(--color-text-tertiary)">Step 1 の完了後に操作できます。</div>`;
+  } else if(stage==='stage2_active'){
+    s2actions.innerHTML=`<div style="font-size:10px;color:#0F6E56;font-weight:500"><i class="ti ti-circle-check" style="font-size:11px"></i> Step 2 は完了しています</div>`;
+  } else {
+    let s2html='';
+    s2html+=`<button onclick="uploadDeathCertMock()"${certOk?' disabled':''}><i class="ti ti-file-upload"></i>死亡証明書をアップロード（モック）</button>`;
+    if(wf.timelockUntil&&!tlOk){
+      s2html+=`<button onclick="workflowAdvanceTime(14)"><i class="ti ti-clock-play"></i>14日進める（タイムロック解除）</button>`;
+    }
+    s2actions.innerHTML=s2html;
+  }
+
+  // 承認者リスト
+  const apprList=document.getElementById('wf-approver-list');
+  if(step2Unlocked&&stage!=='stage2_active'){
+    let apprHtml='<div style="font-size:10px;color:var(--color-text-secondary);margin:8px 0 4px"><i class="ti ti-users-group" style="font-size:11px"></i> ご家族の承認</div>';
+    members.filter(m=>m.id!==MY_ID).forEach(m=>{
+      const approved=wf.stage2Approvers.includes(m.id);
+      apprHtml+=`<div class="wf-approver-row${approved?' approved':''}">
+        <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+        <div class="nm">${m.name}さん${approved?'（承認済み）':''}</div>
+        ${approved?'<i class="ti ti-check" style="color:#0F6E56;font-size:14px"></i>':`<button onclick="approveStage2('${m.id}')">承認</button>`}
+      </div>`;
+    });
+    apprList.innerHTML=apprHtml;
+  } else {
+    apprList.innerHTML='';
+  }
+
+  document.getElementById('wf-stage2-warning').style.display=step2Unlocked&&stage!=='stage2_active'?'flex':'none';
+
+  // 橋渡しボタン
+  document.getElementById('wf-go-stage1').disabled=!step2Unlocked;
+  document.getElementById('wf-go-stage2').disabled=stage!=='stage2_active';
+}
+
+function renderAll(){renderUserPill();renderPreviewBar();renderCatTabs();renderList();updateSummary();}
+
+// === v23: 家族への一言 折りたたみ ===
+function toggleFamilyMsg(titleEl){
+  const box=titleEl.nextElementSibling;
+  const hint=titleEl.querySelector('.fm-hint');
+  const isHidden=box.style.display==='none';
+  box.style.display=isHidden?'block':'none';
+  hint.innerHTML=isHidden
+    ?'非表示にする<i class="ti ti-chevron-up" style="font-size:12px;margin-left:2px"></i>'
+    :'タップで表示<i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px"></i>';
+}
+
+// === v19: S1 β前最小整備 ===
+
+// --- 並び替え ---
+const SORT_KEY='kizuna-baton:sort:v19';
+const SORT_OPTIONS={
+  paymentDate:{label:'支払日',icon:'ti-calendar-event'},
+  amount:{label:'月額換算',icon:'ti-coin'},
+  name:{label:'名前',icon:'ti-abc'},
+  cat:{label:'カテゴリ',icon:'ti-category'}
+};
+let sortKey='paymentDate';
+let sortOrder='asc'; // 'asc' | 'desc'
+function loadSortPrefs(){
+  try{
+    const raw=lsGet(SORT_KEY);
+    if(!raw)return;
+    const p=JSON.parse(raw);
+    if(p&&SORT_OPTIONS[p.key]){sortKey=p.key;}
+    if(p&&(p.order==='asc'||p.order==='desc')){sortOrder=p.order;}
+  }catch(e){}
+}
+function saveSortPrefs(){lsSet(SORT_KEY,JSON.stringify({key:sortKey,order:sortOrder}));}
+function compareContracts(a,b){
+  let v=0;
+  if(sortKey==='paymentDate'){v=daysUntilNext(a)-daysUntilNext(b);}
+  else if(sortKey==='amount'){v=monthlyEquivalent(a)-monthlyEquivalent(b);}
+  else if(sortKey==='name'){v=(a.name||'').localeCompare(b.name||'','ja');}
+  else if(sortKey==='cat'){
+    v=(a.cat||'').localeCompare(b.cat||'','ja');
+    if(v===0)v=(a.name||'').localeCompare(b.name||'','ja');
+  }
+  return sortOrder==='desc'?-v:v;
+}
+function updateSortBtnLabel(){
+  const lbl=document.getElementById('sort-btn-label');
+  const arr=document.getElementById('sort-order-arrow');
+  if(lbl)lbl.textContent=SORT_OPTIONS[sortKey].label;
+  if(arr)arr.className='ti '+(sortOrder==='asc'?'ti-arrow-up':'ti-arrow-down')+' sort-order-arrow';
+}
+function openSortModal(){
+  document.getElementById('switch-menu').classList.remove('open');
+  renderSortModal();
+  document.getElementById('sort-modal').classList.add('open');
+}
+function closeSortModal(){document.getElementById('sort-modal').classList.remove('open');}
+function renderSortModal(){
+  const el=document.getElementById('sort-options');
+  el.innerHTML=Object.keys(SORT_OPTIONS).map(k=>{
+    const o=SORT_OPTIONS[k];
+    const active=k===sortKey?' active':'';
+    return `<div class="sort-opt${active}" onclick="setSortKey('${k}')">
+      <i class="ti ${o.icon} lead"></i>
+      <div class="so-title">${o.label}順</div>
+      ${k===sortKey?'<i class="ti ti-check so-check"></i>':'<i class="ti ti-chevron-right so-check"></i>'}
+    </div>`;
+  }).join('');
+  document.getElementById('sort-asc').classList.toggle('active',sortOrder==='asc');
+  document.getElementById('sort-desc').classList.toggle('active',sortOrder==='desc');
+}
+function setSortKey(k){
+  if(!SORT_OPTIONS[k])return;
+  sortKey=k;
+  saveSortPrefs();
+  renderSortModal();
+  updateSortBtnLabel();
+  renderList();
+}
+function setSortOrder(o){
+  if(o!=='asc'&&o!=='desc')return;
+  sortOrder=o;
+  saveSortPrefs();
+  renderSortModal();
+  updateSortBtnLabel();
+  renderList();
+}
+
+// --- プライベートモード検知 ---
+let isPrivateMode=false;
+function detectPrivateMode(){
+  try{
+    const k='__kb_pm_test__';
+    localStorage.setItem(k,'1');
+    const ok=localStorage.getItem(k)==='1';
+    localStorage.removeItem(k);
+    isPrivateMode=!ok;
+  }catch(e){
+    isPrivateMode=true;
+  }
+  const w=document.getElementById('private-mode-warning');
+  if(w)w.classList.toggle('show',isPrivateMode);
+}
+
+// --- β情報モーダル ---
+function openBetaInfoModal(){
+  document.getElementById('switch-menu').classList.remove('open');
+  document.getElementById('beta-info-modal').classList.add('open');
+}
+function closeBetaInfoModal(){document.getElementById('beta-info-modal').classList.remove('open');}
+function gotoBackupFromBeta(){closeBetaInfoModal();doBackup();}
+
+// --- バックアップ（エクスポート）---
+function doBackup(){
+  document.getElementById('switch-menu').classList.remove('open');
+  const data={
+    app:'kizuna-baton',
+    version:'v19',
+    exportedAt:new Date().toISOString(),
+    data:{contracts:contracts,members:members}
+  };
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fname=`kizuna-baton-backup-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+  const a=document.createElement('a');
+  a.href=url;a.download=fname;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('バックアップを保存しました','success');
+}
+
+// --- リストア（インポート）---
+let pendingRestore=null; // 検証通過済みデータの一時保存
+function triggerRestore(){
+  document.getElementById('switch-menu').classList.remove('open');
+  const inp=document.getElementById('restore-file-input');
+  inp.value='';
+  inp.click();
+}
+function handleRestoreFile(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      if(!parsed||parsed.app!=='kizuna-baton'){
+        return openRestoreErrorModal('このファイルはきずなbatonのバックアップではありません。','app識別子が一致しません');
+      }
+      if(!parsed.data||!Array.isArray(parsed.data.contracts)||!Array.isArray(parsed.data.members)){
+        return openRestoreErrorModal('バックアップファイルの構造が壊れています。','contracts または members が配列ではありません');
+      }
+      if(!parsed.data.members.some(m=>m&&m.id==='m1')){
+        return openRestoreErrorModal('本人（m1）の情報がバックアップに含まれていません。','members に id=m1 が見つかりません');
+      }
+      pendingRestore=parsed.data;
+      openRestoreConfirmModal(parsed);
+    }catch(e){
+      openRestoreErrorModal('ファイルを読み込めませんでした。','JSONとして解析できません: '+(e&&e.message||e));
+    }
+  };
+  reader.onerror=function(){openRestoreErrorModal('ファイルの読み込み中にエラーが発生しました。','FileReader error');};
+  reader.readAsText(f);
+}
+function openRestoreConfirmModal(parsed){
+  const el=document.getElementById('restore-confirm-summary');
+  const cc=(parsed.data.contracts||[]).length;
+  const mc=(parsed.data.members||[]).length;
+  const at=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString('ja-JP'):'不明';
+  el.innerHTML=`<div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7">
+    <div>バックアップ日時：<strong>${at}</strong></div>
+    <div>契約：<strong>${cc}件</strong></div>
+    <div>家族メンバー：<strong>${mc}名</strong></div>
+  </div>`;
+  document.getElementById('restore-confirm-modal').classList.add('open');
+}
+function closeRestoreConfirmModal(){
+  document.getElementById('restore-confirm-modal').classList.remove('open');
+  pendingRestore=null;
+}
+function applyRestore(){
+  if(!pendingRestore){closeRestoreConfirmModal();return;}
+  contracts=pendingRestore.contracts.slice();
+  members=pendingRestore.members.slice();
+  // 整合性リセット
+  selectedId=null;
+  viewOwnerId=MY_ID;
+  activeCat='すべて';
+  searchQuery='';
+  const si=document.getElementById('search-input');if(si)si.value='';
+  const sc=document.getElementById('search-clear');if(sc)sc.style.display='none';
+  // 次ID更新（衝突回避）
+  nextId=(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0))+1;
+  nextMemberId=(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0))+1;
+  pendingRestore=null;
+  document.getElementById('restore-confirm-modal').classList.remove('open');
+  // 詳細画面を閉じてリストへ
+  document.getElementById('screen-detail').classList.add('hidden');
+  document.getElementById('screen-list').classList.remove('hidden');
+  persistState();
+  renderAll();
+  showToast('データを復元しました','success');
+}
+function openRestoreErrorModal(msg,detail){
+  document.getElementById('restore-error-msg').textContent=msg;
+  document.getElementById('restore-error-detail').textContent=detail||'';
+  document.getElementById('restore-error-modal').classList.add('open');
+}
+function closeRestoreErrorModal(){document.getElementById('restore-error-modal').classList.remove('open');}
+
+// === init wiring ===
+detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
+loadSortPrefs();
+loadPersistentState();    // v20: 契約・メンバーを localStorage から復元（renderAll 前）
+initDarkMode();
+updateSortBtnLabel();
+renderAll();
+// v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
+if(maybeShowOwnerConsent()){
+  maybeShowOnboarding();
+}
+
+// === PWA Service Worker registration (v21) ===
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      console.log('[SW] registered scope:', reg.scope);
+    }).catch(err=>{
+      console.warn('[SW] register failed:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>

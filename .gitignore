@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+.claude/
+CLAUDE.md
+HANDOVER.md
+handover-doc.md
+docs/invitation-flow-design.md
+docs/emergency-mode-future-spec.md
+docs/legal-review-checklist.md

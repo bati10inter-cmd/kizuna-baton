@@ -1,0 +1,16 @@
+{
+  "name": "きずなbaton",
+  "short_name": "きずなbaton",
+  "description": "終活向けサブスク・契約管理。家族の絆を次世代へ。",
+  "start_url": "./shukatsu-prototype.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "ja",
+  "theme_color": "#FFA875",
+  "background_color": "#FFFFFF",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
