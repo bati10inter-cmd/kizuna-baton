@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v25</title>
+<title>きずなbaton プロトタイプ v26</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1145,8 +1145,9 @@ let members=[
 const MY_ID='m1';
 const TERMS_VERSION='v3.2.2';
 const PRIVACY_VERSION='v3.2.2';
-// Logo.dev（Publishable Key は端末内に保存）
+// Logo.dev（Publishable Key は端末内に保存・未設定時はβ版デフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
+const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: β版公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
 let viewOwnerId='m1';
@@ -1392,11 +1393,14 @@ function renderSwitchMenu(){
     <div class="info"><div class="name" style="font-size:12px">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
     <div style="font-size:10px;padding:3px 8px;border-radius:10px;background:${dark?'rgba(24,95,165,0.28)':'var(--color-background-secondary)'};color:${dark?'#8FB9DD':'var(--color-text-tertiary)'};border:0.5px solid var(--color-border-secondary)">${dark?'ON':'OFF'}</div>
   </div>`;
-  // v24: Logo.dev トークン設定（端末内のみ）
-  const hasLogoToken=!!getLogoDevToken();
+  // v24: Logo.dev トークン設定（端末内のみ）/ v26: フォールバック対応（β版デフォルトpk_）
+  const hasLogoToken=hasUserLogoDevToken();
+  const logoSubLabel=hasLogoToken
+    ? '設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>'
+    : 'β版デフォルトキーで表示中（タップで自分のキーに変更）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>';
   html+=`<div class="switch-item" onclick="promptLogoDevToken()">
-    <div class="av" style="background:${hasLogoToken?'#0F6E56':'#555'}"><i class="ti ti-photo" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">サービスロゴ表示（Logo.dev）</div><div class="sub">${hasLogoToken?'設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>':'未設定（今はアイコン表示）'}</div></div>
+    <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // v19: データバックアップ / 復元
@@ -1505,7 +1509,12 @@ function filterContracts(){
 }
 
 function getLogoDevToken(){
-  return (lsGet(LOGO_DEV_TOKEN_KEY)||'').trim();
+  // v26: ユーザー上書きが無ければβ版デフォルトpk_を返す（β協力者が初回起動でロゴ表示）
+  return ((lsGet(LOGO_DEV_TOKEN_KEY)||'').trim()) || LOGO_DEV_FALLBACK_PK;
+}
+function hasUserLogoDevToken(){
+  // v26: ユーザーが自分のキーで上書きしているか（switch-menu ラベル分岐用）
+  return !!(lsGet(LOGO_DEV_TOKEN_KEY)||'').trim();
 }
 function setLogoDevToken(tok){
   const t=(tok||'').trim();
