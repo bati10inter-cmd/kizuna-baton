@@ -7,3 +7,5 @@ handover-doc.md
 docs/invitation-flow-design.md
 docs/emergency-mode-future-spec.md
 docs/legal-review-checklist.md
+# ローカル運用専用ファイル（協力者の個人情報など、公開リポジトリに含めない）
+*.local.md
