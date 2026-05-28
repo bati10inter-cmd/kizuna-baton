@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v23</title>
+<title>きずなbaton プロトタイプ v25</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -127,6 +127,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .card.urgent{border-left:3px solid #E24B4A}
 .card.archived{opacity:0.7}
 .icon-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;position:relative}
+.logo-img{width:34px;height:34px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);padding:4px}
 .owner-dot{position:absolute;bottom:-2px;right:-2px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1.5px solid var(--color-background-primary);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;color:white}
 .card-body{flex:1;min-width:0}
 .card-name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
@@ -1144,6 +1145,8 @@ let members=[
 const MY_ID='m1';
 const TERMS_VERSION='v3.2.2';
 const PRIVACY_VERSION='v3.2.2';
+// Logo.dev（Publishable Key は端末内に保存）
+const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
 let viewOwnerId='m1';
@@ -1164,16 +1167,16 @@ let deathWorkflow={
 };
 
 let contracts=[
-  {id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'https://www.netflix.com/cancelplan',cancel:'マイページ → アカウント → メンバーシップのキャンセル',docs:[],memo:'家族プラン',familyMessage:'週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'https://www.netflix.com/cancelplan',logoDomain:'netflix.com',cancel:'マイページ → アカウント → メンバーシップのキャンセル',docs:[],memo:'家族プラン',familyMessage:'週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
   {id:2,name:'生命保険（〇〇生命）',cat:'保険',ownerId:'m1',cycle:'monthly',amount:18000,month:null,day:27,paymentMethod:'bank_debit',tel:'0120-111-222',url:'',cancel:'電話または書面で手続き。解約返戻金あり。',docs:['保険証券','本人確認書類','印鑑','振込先口座番号'],memo:'',familyMessage:'花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。',cardBrand:'',cardLast4:'',secret:'証券番号は通帳ケース内 / 引落口座は通帳に記載',visibility:{mode:'selected',liveViewers:['m2'],afterViewers:[]},archived:false},
   {id:3,name:'住宅ローン',cat:'ローン',ownerId:'m1',cycle:'monthly',amount:85000,month:null,day:27,paymentMethod:'bank_debit',tel:'03-xxxx-xxxx',url:'',cancel:'銀行窓口。',docs:['戸籍謄本','相続関係説明図','遺産分割協議書','印鑑証明'],memo:'〇〇銀行 / 2043年完済',familyMessage:'団信に加入しているので、もしもの時は残債が免除されます。銀行に連絡を。',cardBrand:'',cardLast4:'',secret:'引落口座は通帳に記載',visibility:{mode:'selected',liveViewers:['m2'],afterViewers:[]},archived:false},
-  {id:4,name:'電気（東京電力）',cat:'公共・生活',ownerId:'m1',cycle:'monthly',amount:8500,month:null,day:28,paymentMethod:'credit_card',tel:'0120-995-005',url:'https://www.tepco.co.jp/ep/private/contact/',cancel:'電話またはウェブから解約',docs:[],memo:'',familyMessage:'',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
-  {id:5,name:'Amazon Prime',cat:'通信・デジタル',ownerId:'m2',cycle:'yearly',amount:5900,month:6,day:1,paymentMethod:'credit_card',tel:'',url:'https://www.amazon.co.jp/mc/pipelines/cancellation',cancel:'Amazonアカウント → Prime会員情報 → 会員資格を終了',docs:[],memo:'年払いに変更',familyMessage:'',cardBrand:'楽天カード',cardLast4:'8821',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:4,name:'電気（東京電力）',cat:'公共・生活',ownerId:'m1',cycle:'monthly',amount:8500,month:null,day:28,paymentMethod:'credit_card',tel:'0120-995-005',url:'https://www.tepco.co.jp/ep/private/contact/',logoDomain:'tepco.co.jp',cancel:'電話またはウェブから解約',docs:[],memo:'',familyMessage:'',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:5,name:'Amazon Prime',cat:'通信・デジタル',ownerId:'m2',cycle:'yearly',amount:5900,month:6,day:1,paymentMethod:'credit_card',tel:'',url:'https://www.amazon.co.jp/mc/pipelines/cancellation',logoDomain:'amazon.co.jp',cancel:'Amazonアカウント → Prime会員情報 → 会員資格を終了',docs:[],memo:'年払いに変更',familyMessage:'',cardBrand:'楽天カード',cardLast4:'8821',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
   {id:6,name:'自動車保険',cat:'保険',ownerId:'m1',cycle:'yearly',amount:48000,month:4,day:1,paymentMethod:'bank_transfer',tel:'0120-xxx-xxx',url:'',cancel:'代理店に連絡',docs:['保険証券','車検証'],memo:'年払い',familyMessage:'車を譲渡・売却するときは保険の名義変更か解約を忘れずに。代理店は山田さん（連絡先は別紙）。',cardBrand:'',cardLast4:'',secret:'振込先口座は保険証券に記載',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
-  {id:7,name:'NHK受信料',cat:'公共・生活',ownerId:'m1',cycle:'yearly',amount:24185,month:5,day:10,paymentMethod:'bank_debit',tel:'0120-151-515',url:'',cancel:'解約には引越し等の理由が必要。書面提出。',docs:['本人確認書類'],memo:'12ヶ月前払い',familyMessage:'',cardBrand:'',cardLast4:'',secret:'引落口座は通帳に記載',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
+  {id:7,name:'NHK受信料',cat:'公共・生活',ownerId:'m1',cycle:'yearly',amount:24185,month:5,day:10,paymentMethod:'bank_debit',tel:'0120-151-515',url:'',logoDomain:'nhk.or.jp',cancel:'解約には引越し等の理由が必要。書面提出。',docs:['本人確認書類'],memo:'12ヶ月前払い',familyMessage:'',cardBrand:'',cardLast4:'',secret:'引落口座は通帳に記載',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
   {id:8,name:'動画配信サービス（旧）',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:980,month:null,day:1,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'',familyMessage:'',cardBrand:'',cardLast4:'',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:true,archivedDate:'2025-08-15',archivedNote:'Netflixと統合のため解約'},
   {id:9,name:'趣味のサブスク',cat:'会員・SNS',ownerId:'m1',cycle:'monthly',amount:1200,month:null,day:5,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'個人で利用',familyMessage:'これは私だけの楽しみだったので、見つけたらそっと解約してもらえると嬉しいです。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'private',liveViewers:[],afterViewers:[]},archived:false},
-  {id:10,name:'個人寄付（〇〇基金）',cat:'会員・SNS',ownerId:'m1',cycle:'monthly',amount:3000,month:null,day:10,paymentMethod:'credit_card',tel:'03-xxxx-xxxx',url:'https://example.org',cancel:'メールで停止依頼',docs:[],memo:'長年応援している基金',familyMessage:'毎月の寄付を続けてきました。続けるか停止するかは家族で決めてください。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'after_only',liveViewers:[],afterViewers:[]},archived:false},
+  {id:10,name:'個人寄付（〇〇基金）',cat:'会員・SNS',ownerId:'m1',cycle:'monthly',amount:3000,month:null,day:10,paymentMethod:'credit_card',tel:'03-xxxx-xxxx',url:'https://example.org',logoDomain:'example.org',cancel:'メールで停止依頼',docs:[],memo:'長年応援している基金',familyMessage:'毎月の寄付を続けてきました。続けるか停止するかは家族で決めてください。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'after_only',liveViewers:[],afterViewers:[]},archived:false},
 ];
 
 let activeCat='すべて';
@@ -1389,6 +1392,13 @@ function renderSwitchMenu(){
     <div class="info"><div class="name" style="font-size:12px">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
     <div style="font-size:10px;padding:3px 8px;border-radius:10px;background:${dark?'rgba(24,95,165,0.28)':'var(--color-background-secondary)'};color:${dark?'#8FB9DD':'var(--color-text-tertiary)'};border:0.5px solid var(--color-border-secondary)">${dark?'ON':'OFF'}</div>
   </div>`;
+  // v24: Logo.dev トークン設定（端末内のみ）
+  const hasLogoToken=!!getLogoDevToken();
+  html+=`<div class="switch-item" onclick="promptLogoDevToken()">
+    <div class="av" style="background:${hasLogoToken?'#0F6E56':'#555'}"><i class="ti ti-photo" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="font-size:12px">サービスロゴ表示（Logo.dev）</div><div class="sub">${hasLogoToken?'設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>':'未設定（今はアイコン表示）'}</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
   // v19: データバックアップ / 復元
   html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">データ保管</div>`;
   html+=`<div class="switch-item" onclick="doBackup()">
@@ -1494,6 +1504,57 @@ function filterContracts(){
   });
 }
 
+function getLogoDevToken(){
+  return (lsGet(LOGO_DEV_TOKEN_KEY)||'').trim();
+}
+function setLogoDevToken(tok){
+  const t=(tok||'').trim();
+  if(!t){lsSet(LOGO_DEV_TOKEN_KEY,'');return;}
+  lsSet(LOGO_DEV_TOKEN_KEY,t);
+}
+function promptLogoDevToken(){
+  document.getElementById('switch-menu').classList.remove('open');
+  const cur=getLogoDevToken();
+  const v=prompt('Logo.dev の Publishable Key（pk_...）を入力してください。\n※この端末のlocalStorageにのみ保存されます。',cur||'');
+  if(v===null)return;
+  const t=(v||'').trim();
+  if(t && !t.startsWith('pk_')){
+    showToast('pk_ から始まるキーを入力してください','warn');
+    return;
+  }
+  setLogoDevToken(t);
+  showToast(t?'Logo.devキーを保存しました':'Logo.devキーを削除しました','success');
+  renderAll();
+  if(selectedId!==null)showDetail(selectedId);
+}
+function extractDomainFromUrl(u){
+  if(!u||typeof u!=='string')return '';
+  try{
+    const host=new URL(u).hostname||'';
+    return host.replace(/^www\./,'');
+  }catch(e){return '';}
+}
+function logoDevImageUrl(domain,size){
+  const token=getLogoDevToken();
+  if(!token||!domain)return '';
+  const s=Number(size)||64;
+  const d=domain.replace(/^www\./,'');
+  return `https://img.logo.dev/${encodeURIComponent(d)}?token=${encodeURIComponent(token)}&size=${s}&format=png&fallback=404&theme=auto`;
+}
+function inferLogoDomain(c){
+  if(!c)return '';
+  const fromData=(c.logoDomain||'').trim();
+  if(fromData)return fromData;
+  const fromUrl=extractDomainFromUrl(c.url);
+  if(fromUrl)return fromUrl;
+  const n=(c.name||'').toLowerCase();
+  if(n.includes('netflix'))return 'netflix.com';
+  if(n.includes('amazon'))return 'amazon.co.jp';
+  if(n.includes('nhk'))return 'nhk.or.jp';
+  if(n.includes('東京電力')||n.includes('tepco'))return 'tepco.co.jp';
+  return '';
+}
+
 function renderList(){
   const el=document.getElementById('contract-list');
   const list=filterContracts();
@@ -1538,6 +1599,11 @@ function renderList(){
     const ownerInitial=ownerName.charAt(0);
     const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColor}">${ownerInitial}</div>`:'';
     const ownerMeta=viewOwnerId==='all'?` · ${ownerName}`:'';
+    const logoDomain=inferLogoDomain(c);
+    const logoUrl=logoDomain?logoDevImageUrl(logoDomain,64):'';
+    const iconOrLogo=logoUrl
+      ?`<img class="logo-img" src="${logoUrl}" alt="${c.name} logo" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
+      :`<i class="ti ${icon}" style="color:${tc}"></i>`;
     let amountMain,amountSub;
     if(c.cycle==='yearly'){
       amountMain=`¥${c.amount.toLocaleString()}`;
@@ -1548,7 +1614,7 @@ function renderList(){
     }
     return `<div class="card${d<=3&&!c.archived?' urgent':''}${c.archived?' archived':''}" onclick="showDetail(${c.id})">
       <div class="icon-circle" style="background:${bg}">
-        <i class="ti ${icon}" style="color:${tc}"></i>
+        ${iconOrLogo}
         ${ownerDot}
       </div>
       <div class="card-body">

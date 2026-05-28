@@ -190,6 +190,21 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
 .footer-links a{text-decoration:none;color:inherit}
 .footer-links a:hover{color:var(--accent)}
 .copyright{font-size:12px;color:var(--text-mute);text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+
+/* ===== Family Message Showcase ===== */
+.family-msg-showcase{background:linear-gradient(180deg, var(--bg-warm) 0%, var(--bg) 100%);padding:88px 0}
+.fms-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:22px;margin-top:40px}
+.fms-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:transform .2s ease, box-shadow .2s ease}
+.fms-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.fms-card-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.fms-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.fms-name{font-weight:600;font-size:14px;color:var(--text)}
+.fms-sub{font-size:11px;color:var(--text-sub);margin-top:2px}
+.fms-label{font-size:11px;color:#A04B6E;font-weight:600;display:flex;align-items:center;gap:5px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px}
+.fms-message{background:#FFF5F8;border:1px solid #F2D4DE;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;color:#5A2638}
+.fms-foot{text-align:center;margin-top:36px;color:var(--text-sub);font-size:14px;line-height:1.8}
+.lead-bridge{display:inline-block;margin-top:8px;color:#A04B6E;font-style:italic;font-size:14px}
+@media(max-width:780px){.fms-grid{grid-template-columns:1fr;gap:16px}.family-msg-showcase{padding:64px 0}}
 </style>
 </head>
 <body>
@@ -214,11 +229,11 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
       <p class="lead">
         親の契約整理で苦労した経験がある人も。<br>
         自分の家族にいつか同じ思いをさせたくない人も。<br>
-        30〜50代の、その両方の立場に寄り添うアプリです。
+        30〜50代の、その両方の立場に寄り添うアプリです。<br>
+        <span class="lead-bridge">— たとえば、ひとことのメッセージから。</span>
       </p>
       <div class="hero-cta">
         <a href="#waitlist" class="btn btn-primary">ウェイトリストに登録 <i class="ti ti-arrow-right"></i></a>
-        <a href="#concept" class="btn btn-ghost">コンセプトを見る</a>
       </div>
       <div class="hero-meta">
         <i class="ti ti-shield-check"></i>
@@ -265,6 +280,51 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== Family Message Showcase ===== -->
+<section class="family-msg-showcase">
+  <div class="container">
+    <div class="section-eyebrow">この機能、伝わってほしい</div>
+    <h2 class="section-title">言葉も、いっしょに手渡せる。</h2>
+    <p class="section-lead">契約ごとに、家族へのひとことを添えられます。<br>解約手順だけでなく、感謝も、想いも。</p>
+    <div class="fms-grid">
+      <div class="fms-card">
+        <div class="fms-card-head">
+          <div class="fms-icon" style="background:#E50914"><i class="ti ti-device-tv"></i></div>
+          <div>
+            <div class="fms-name">Netflix</div>
+            <div class="fms-sub">家族プラン · 月額¥1,490</div>
+          </div>
+        </div>
+        <div class="fms-label"><i class="ti ti-message-heart"></i> 家族への一言</div>
+        <div class="fms-message">週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。</div>
+      </div>
+      <div class="fms-card">
+        <div class="fms-card-head">
+          <div class="fms-icon" style="background:#185FA5"><i class="ti ti-shield"></i></div>
+          <div>
+            <div class="fms-name">生命保険</div>
+            <div class="fms-sub">妻のみに公開 · 月額¥18,000</div>
+          </div>
+        </div>
+        <div class="fms-label"><i class="ti ti-message-heart"></i> 家族への一言</div>
+        <div class="fms-message">受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。</div>
+      </div>
+      <div class="fms-card">
+        <div class="fms-card-head">
+          <div class="fms-icon" style="background:#854F0B"><i class="ti ti-music"></i></div>
+          <div>
+            <div class="fms-name">趣味のサブスク</div>
+            <div class="fms-sub">本人のみ · 月額¥1,200</div>
+          </div>
+        </div>
+        <div class="fms-label"><i class="ti ti-message-heart"></i> 家族への一言</div>
+        <div class="fms-message">これは私だけの楽しみだったので、見つけたらそっと解約してもらえると嬉しいです。</div>
+      </div>
+    </div>
+    <p class="fms-foot">手続きの先にある、想いまで。<br>「どう感じていたか」が、家族に届きます。</p>
   </div>
 </section>
 
@@ -545,6 +605,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
         <a href="#features">機能</a>
         <a href="#waitlist">事前登録</a>
         <a href="docs/privacy-policy.md" target="_blank" rel="noopener">プライバシーポリシー</a>
+        <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a>
       </div>
     </div>
     <div class="copyright">
