@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v26</title>
+<title>きずなbaton プロトタイプ v27</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -398,7 +398,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <button onclick="exitPreview()">終了</button>
       </div>
       <div class="stage-toggle" id="stage-toggle">
-        <div class="st-opt active" id="st-live" onclick="setPreviewStage('live')"><div>生前</div><div class="st-sub">通常時</div></div>
+        <div class="st-opt active" id="st-live" onclick="setPreviewStage('live')"><div>ふだん</div><div class="st-sub">通常時</div></div>
         <div class="st-opt" id="st-inheritance" onclick="setPreviewStage('inheritance')"><div>相続判断</div><div class="st-sub">Stage 1</div></div>
         <div class="st-opt" id="st-full" onclick="setPreviewStage('full')"><div>完全開示</div><div class="st-sub">Stage 2</div></div>
       </div>
@@ -518,32 +518,32 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
-      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。生前モードと「もしもの時」モードで個別に制御できます。</p>
+      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
       <div class="visibility-preset" id="visibility-preset">
         <div class="vp-opt active" id="vp-all" onclick="setVisibilityMode('all')">
           <i class="ti ti-users lead"></i>
-          <div class="vp-text"><div class="vp-title">全員に見せる</div><div class="vp-sub">生前も死後も家族全員の画面に表示</div></div>
+          <div class="vp-text"><div class="vp-title">全員に見せる</div><div class="vp-sub">ふだんも・もしもの時も家族全員の画面に表示</div></div>
           <i class="ti ti-check vp-check"></i>
         </div>
         <div class="vp-opt" id="vp-selected" onclick="setVisibilityMode('selected')">
           <i class="ti ti-user-check lead"></i>
-          <div class="vp-text"><div class="vp-title">一部にだけ見せる</div><div class="vp-sub">生前用・もしもの時用で個別にメンバー指定</div></div>
+          <div class="vp-text"><div class="vp-title">一部にだけ見せる</div><div class="vp-sub">「ふだん」と「もしもの時」で個別にメンバー指定</div></div>
           <i class="ti ti-check vp-check"></i>
         </div>
         <div class="vp-opt" id="vp-after-only" onclick="setVisibilityMode('after_only')">
           <i class="ti ti-clock-heart lead"></i>
-          <div class="vp-text"><div class="vp-title">もしもの時だけ家族へ</div><div class="vp-sub">生前は本人のみ、死後に家族全員へ開示（隠し財産・寄付等）</div></div>
+          <div class="vp-text"><div class="vp-title">もしもの時だけ家族へ</div><div class="vp-sub">ふだんは本人のみ、もしもの時に家族全員へ開示（隠し財産・寄付等）</div></div>
           <i class="ti ti-check vp-check"></i>
         </div>
         <div class="vp-opt" id="vp-private" onclick="setVisibilityMode('private')">
           <i class="ti ti-eye-off lead"></i>
-          <div class="vp-text"><div class="vp-title">本人のみ（死後も非開示）</div><div class="vp-sub">家族には一切表示されません</div></div>
+          <div class="vp-text"><div class="vp-title">本人のみ（もしもの時も非開示）</div><div class="vp-sub">家族には一切表示されません</div></div>
           <i class="ti ti-check vp-check"></i>
         </div>
       </div>
       <p id="vp-private-warning" style="display:none;font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-top:6px;line-height:1.4"><i class="ti ti-alert-triangle"></i> もしもの時も家族には表示されません。継続課金される可能性をご了承ください（通常は口座凍結で停止）。</p>
       <div id="viewer-checks-wrap" style="display:none;margin-top:6px">
-        <label style="font-size:10px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:10px"></i> 生前に表示するメンバー</label>
+        <label style="font-size:10px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:10px"></i> ふだん表示するメンバー</label>
         <div class="viewer-checks" id="viewer-checks"></div>
         <label style="font-size:10px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:10px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
         <div class="viewer-checks" id="after-viewer-checks"></div>
@@ -748,7 +748,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- ウェルカム文言 -->
       <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
         きずなbaton をご利用いただく前に、<strong>利用規約・プライバシーポリシー</strong>への同意をお願いします。<br>
-        <span style="font-size:11px;color:var(--color-text-tertiary)">本サービスは現在 <strong>β版（無料）</strong>です。ご家族の終活サポートにご活用ください。</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary)">本サービスは現在 <strong>β版（無料）</strong>です。ご家族への引き継ぎにご活用ください。</span>
       </div>
 
       <!-- β版データ取扱いの簡潔説明 -->
@@ -859,7 +859,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
       <ul style="font-size:11px;color:var(--color-text-secondary);line-height:1.7;padding-left:18px;margin-bottom:10px">
         <li>ご家族からあなたの契約一覧が見えなくなります</li>
-        <li>生前共有（liveViewers）が無効化されます</li>
+        <li>ふだんの共有（liveViewers）が無効化されます</li>
         <li>削除前に JSON エクスポートでバックアップを取ることを推奨します</li>
         <li>削除後 14 日間は復元可能です（規約 13 条準拠）。14 日経過後は完全に削除されます</li>
       </ul>
@@ -1252,7 +1252,7 @@ function canViewContract(c,viewerId,stage){
 // 公開範囲のラベル（本人視点用）
 function visibilityLabel(c){
   const v=getVisibility(c);
-  if(v.mode==='private')return {key:'private',text:'本人のみ（死後も非開示）',icon:'ti-eye-off'};
+  if(v.mode==='private')return {key:'private',text:'本人のみ（もしもの時も非開示）',icon:'ti-eye-off'};
   if(v.mode==='after_only')return {key:'after-only',text:'もしもの時に家族全員へ',icon:'ti-clock-heart'};
   if(v.mode==='selected'){
     const names=(v.liveViewers||[]).map(id=>{const m=getMember(id);return m?m.name:'';}).filter(Boolean);
@@ -2691,7 +2691,7 @@ function doExport(){
       }
     }
     if(v.mode==='after_only'){
-      return `<div style="font-size:10px;color:#5F2D7A;margin-top:3px"><strong>※もしもの時のみ開示</strong>（生前は本人のみ閲覧）</div>`;
+      return `<div style="font-size:10px;color:#5F2D7A;margin-top:3px"><strong>※もしもの時のみ開示</strong>（ふだんは本人のみ閲覧）</div>`;
     }
     return '';
   }

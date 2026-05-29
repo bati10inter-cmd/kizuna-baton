@@ -3,7 +3,7 @@
 // キャッシュ対象: 同一オリジン + Tabler Icons CDN のみ
 // 将来 /api/* を追加する場合は明示的に除外すること（センシティブデータをキャッシュしない）
 
-const CACHE_NAME = 'kizuna-baton-v26';
+const CACHE_NAME = 'kizuna-baton-v27';
 
 const LOCAL_PRECACHE = [
   './shukatsu-prototype.html',
