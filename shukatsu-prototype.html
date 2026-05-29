@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v28</title>
+<title>きずなbaton プロトタイプ v29</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -164,6 +164,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .section{padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary)}
 .section-title{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 .section-title .seal{font-size:10px;color:#A32D2D;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:3px}
+.family-msg-toggle{text-transform:none;letter-spacing:0}
+.family-message-box{background:#FFF5F8;border:1px solid #F2D4DE;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.7;color:#5A2638;white-space:pre-wrap;transition:opacity .25s ease,transform .25s ease}
 .info-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
 .info-row:last-child{margin-bottom:0}
 .info-icon{font-size:15px;color:var(--color-text-tertiary);margin-top:1px;width:18px;flex-shrink:0}
@@ -1781,7 +1783,7 @@ function showDetail(id){
 
     ${c.archived?`<div class="section"><div class="section-title">解約記録</div><div class="archived-box"><p><strong style="font-weight:500">解約日:</strong> ${c.archivedDate||'-'}</p>${c.archivedNote?`<p style="margin-top:4px"><strong style="font-weight:500">備考:</strong> ${c.archivedNote}</p>`:''}</div></div>`:''}
 
-    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none;background:#FFF5F8;border:0.5px solid #F2D4DE;border-radius:6px;padding:10px 12px;font-size:13px;line-height:1.6;color:#5A2638;white-space:pre-wrap">${c.familyMessage}</div></div>`:''}
+    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none">${c.familyMessage}</div></div>`:''}
 
     <div class="section">
       <div class="section-title">支払い情報</div>
@@ -3077,10 +3079,21 @@ function toggleFamilyMsg(titleEl){
   const box=titleEl.nextElementSibling;
   const hint=titleEl.querySelector('.fm-hint');
   const isHidden=box.style.display==='none';
-  box.style.display=isHidden?'block':'none';
-  hint.innerHTML=isHidden
-    ?'非表示にする<i class="ti ti-chevron-up" style="font-size:12px;margin-left:2px"></i>'
-    :'タップで表示<i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px"></i>';
+  if(isHidden){
+    box.style.opacity='0';
+    box.style.transform='translateY(-4px)';
+    box.style.display='block';
+    void box.offsetHeight; // 開始状態を同期的にコミット（transition を確実に発火させる）
+    box.style.opacity='1';
+    box.style.transform='translateY(0)';
+    hint.innerHTML='非表示にする<i class="ti ti-chevron-up" style="font-size:12px;margin-left:2px"></i>';
+  }else{
+    box.style.opacity='0';
+    box.style.transform='translateY(-4px)';
+    const done=()=>{box.style.display='none';box.removeEventListener('transitionend',done);};
+    box.addEventListener('transitionend',done);
+    hint.innerHTML='タップで表示<i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px"></i>';
+  }
 }
 
 // === v19: S1 β前最小整備 ===
