@@ -216,7 +216,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
       <span class="baton-mark"><i class="ti ti-relation-one-to-many"></i></span>
       きずなbaton
     </div>
-    <a href="#waitlist" class="btn btn-primary btn-sm">事前登録する <i class="ti ti-arrow-right"></i></a>
+    <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener" class="btn btn-primary btn-sm">今すぐβ版を試す <i class="ti ti-arrow-right"></i></a>
   </div>
 </header>
 
@@ -224,9 +224,10 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
 <section class="hero">
   <div class="container hero-inner">
     <div>
-      <span class="eyebrow"><i class="ti ti-sparkles"></i> 家族の引き継ぎアプリ・事前登録受付中</span>
+      <span class="eyebrow"><i class="ti ti-sparkles"></i> 家族の引き継ぎアプリ・無料β公開中</span>
       <h1>残す側にも、<br>受け継ぐ側にも。<br><span class="accent">「契約」</span>を<br>家族でつないでいく。</h1>
       <p class="lead">
+        <strong style="color:var(--text)">サブスク・保険・ローンなど“家族の契約”をまとめて把握。もしもの時に、解約手順と想いを家族へ手渡せるアプリです。</strong><br><br>
         親の契約整理で苦労した経験がある人も。<br>
         自分の家族にいつか同じ思いをさせたくない人も。<br>
         親の世代を見守りながら、自分の家族のことも考え始める——<br>
@@ -234,7 +235,8 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
         <span class="lead-bridge">— たとえば、ひとことのメッセージから。</span>
       </p>
       <div class="hero-cta">
-        <a href="#waitlist" class="btn btn-primary">ウェイトリストに登録 <i class="ti ti-arrow-right"></i></a>
+        <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener" class="btn btn-primary">今すぐβ版を試す <i class="ti ti-arrow-right"></i></a>
+        <a href="#waitlist" class="btn btn-ghost">感想・続報を受け取る</a>
       </div>
       <div class="hero-meta">
         <i class="ti ti-shield-check"></i>
@@ -427,6 +429,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
           <li><i class="ti ti-check"></i> カテゴリ別／支払日順／金額順で並べ替え</li>
           <li><i class="ti ti-check"></i> 月額・年額換算の合計を自動計算</li>
           <li><i class="ti ti-check"></i> 解約済み契約はアーカイブで保管</li>
+          <li><i class="ti ti-check"></i> 実在ブランドのロゴを自動表示し、ひと目で見分けやすい</li>
         </ul>
       </div>
       <div class="feature">
@@ -503,9 +506,12 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
 <!-- ===== Waitlist ===== -->
 <section class="waitlist" id="waitlist">
   <div class="container">
-    <span class="waitlist-eyebrow">WAITLIST</span>
-    <h2 class="section-title">事前登録受付中</h2>
-    <p class="section-lead">残す側としても、受け継ぐ側としても。<br>β版の準備が整い次第、ご案内のメールをお送りします。</p>
+    <span class="waitlist-eyebrow">TRY THE BETA</span>
+    <h2 class="section-title">まずは、β版を試してみてください</h2>
+    <p class="section-lead">いま、無料でお試しいただけます。<br>使ってみた感想や、続報のご希望があれば、下のフォームからお聞かせください（任意）。</p>
+    <div style="display:flex;justify-content:center;margin-bottom:28px">
+      <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener" class="btn btn-primary">今すぐβ版を試す <i class="ti ti-arrow-right"></i></a>
+    </div>
     <form class="form" action="https://formspree.io/f/xredoben" method="POST">
       <div class="form-row">
         <label class="form-label" for="email">メールアドレス<span class="req">*</span></label>
@@ -533,10 +539,10 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
       <div class="form-row">
         <label class="form-check">
           <input type="checkbox" name="agree" required>
-          <span>β版リリースや関連情報のメール配信に同意します。<br>個人情報は本サービスのご案内目的にのみ利用し、第三者には提供しません。</span>
+          <span>続報や関連情報のメール配信に同意します。<br>個人情報は本サービスのご案内目的にのみ利用し、第三者には提供しません。</span>
         </label>
       </div>
-      <button type="submit">事前登録する <i class="ti ti-send"></i></button>
+      <button type="submit">感想・続報を送る <i class="ti ti-send"></i></button>
       <div class="legal">登録は無料です。いつでも配信停止できます。</div>
     </form>
   </div>
@@ -579,7 +585,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
           <span class="q-text">料金はかかりますか？</span>
           <i class="ti ti-chevron-down q-toggle"></i>
         </summary>
-        <div class="faq-a">β版は無料でご提供予定です。将来的に家族共有などの一部機能を月額200円程度の有料プランとして提供する可能性がありますが、基本機能は無料での利用を継続予定です。</div>
+        <div class="faq-a">現在、β版は無料でご利用いただけます。将来的な有償化は検討中で、内容・時期は未定です。決まり次第、事前にご案内します。</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">
@@ -587,7 +593,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
           <span class="q-text">いつ使えるようになりますか？</span>
           <i class="ti ti-chevron-down q-toggle"></i>
         </summary>
-        <div class="faq-a">現在β版として限定公開中です。事前登録いただいた方には順次ご案内いたします。</div>
+        <div class="faq-a">現在、無料β版として公開中です。ページ上部の「今すぐβ版を試す」から、すぐにお試しいただけます。</div>
       </details>
     </div>
   </div>
