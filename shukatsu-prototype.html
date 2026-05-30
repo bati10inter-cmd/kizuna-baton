@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v30</title>
+<title>きずなbaton プロトタイプ v31</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -64,17 +64,24 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .user-pill .arrow{font-size:14px;color:var(--color-text-tertiary)}
 .member-mgmt-icon{padding:6px;border-radius:50%;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center}
 
-.switch-menu{position:absolute;top:54px;left:12px;right:12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:30;display:none;overflow:hidden}
+.switch-menu{position:absolute;top:54px;left:12px;right:12px;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:30;display:none;overflow:hidden}
 .switch-menu.open{display:block}
-.switch-item{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary)}
+.switch-item{padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--color-border-tertiary)}
 .switch-item:last-child{border-bottom:none}
 .switch-item:hover{background:var(--color-background-secondary)}
 .switch-item.active{background:var(--color-background-secondary)}
 .switch-item .av{width:30px;height:30px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
 .switch-item .info{flex:1}
 .switch-item .name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-.switch-item .sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.switch-item .sub{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
 .switch-item .check{color:var(--color-text-primary);font-size:16px}
+.switch-section-header{padding:8px 16px;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
+.setting-toggle{position:relative;width:40px;height:24px;flex-shrink:0;cursor:pointer;display:inline-block}
+.setting-toggle input{opacity:0;width:0;height:0;position:absolute}
+.setting-toggle-thumb{position:absolute;inset:0;background:var(--color-background-tertiary);border:1px solid var(--color-border-secondary);border-radius:12px;transition:background .15s ease,border-color .15s ease}
+.setting-toggle-thumb::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);top:2px;left:2px;transition:transform .15s ease}
+.setting-toggle input:checked+.setting-toggle-thumb{background:var(--accent-warm);border-color:var(--accent-warm)}
+.setting-toggle input:checked+.setting-toggle-thumb::before{transform:translateX(16px)}
 
 .preview-bar{background:#FAEEDA;border-bottom:0.5px solid #EF9F27;padding:8px 12px;display:none;flex-direction:column;gap:6px;font-size:11px;color:#633806}
 .preview-bar.show{display:flex}
@@ -1389,18 +1396,18 @@ function renderSwitchMenu(){
     </div>`;
   });
   // v16: オンボーディング再表示（常設・members 件数に依存しない）
-  html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">ヘルプ</div>`;
+  html+=`<div class="switch-section-header">ヘルプ</div>`;
   html+=`<div class="switch-item" onclick="reopenOnboarding()">
     <div class="av" style="background:#555"><i class="ti ti-help-circle" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
+    <div class="info"><div class="name">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // v18: ダークモード切替
   const dark=isDarkMode();
   html+=`<div class="switch-item" onclick="toggleDarkMode()">
     <div class="av" style="background:${dark?'#3F3D36':'#555'}"><i class="ti ti-${dark?'moon-stars':'sun'}" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
-    <div style="font-size:10px;padding:3px 8px;border-radius:10px;background:${dark?'rgba(24,95,165,0.28)':'var(--color-background-secondary)'};color:${dark?'#8FB9DD':'var(--color-text-tertiary)'};border:0.5px solid var(--color-border-secondary)">${dark?'ON':'OFF'}</div>
+    <div class="info"><div class="name">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
+    <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${dark?'checked':''} onchange="toggleDarkMode()"><span class="setting-toggle-thumb"></span></label>
   </div>`;
   // v24: Logo.dev トークン設定（端末内のみ）/ v26: フォールバック対応（β版デフォルトpk_）
   const hasLogoToken=hasUserLogoDevToken();
@@ -1409,32 +1416,32 @@ function renderSwitchMenu(){
     : 'β版デフォルトキーで表示中（タップで自分のキーに変更）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>';
   html+=`<div class="switch-item" onclick="promptLogoDevToken()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
+    <div class="info"><div class="name">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // v19: データバックアップ / 復元
-  html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">データ保管</div>`;
+  html+=`<div class="switch-section-header">データ保管</div>`;
   html+=`<div class="switch-item" onclick="doBackup()">
     <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
+    <div class="info"><div class="name">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   html+=`<div class="switch-item" onclick="triggerRestore()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="font-size:12px">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
+    <div class="info"><div class="name">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   if(members.length>1){
-    html+=`<div style="padding:8px 14px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;border-top:0.5px solid var(--color-border-tertiary);margin-top:2px">プライバシー確認</div>`;
+    html+=`<div class="switch-section-header">プライバシー確認</div>`;
     html+=`<div class="switch-item" onclick="openPreviewModal()">
       <div class="av" style="background:#EF9F27"><i class="ti ti-eye-search" style="font-size:14px"></i></div>
-      <div class="info"><div class="name" style="font-size:12px">家族から見え方をプレビュー</div><div class="sub">他の家族の視点でアプリを確認</div></div>
+      <div class="info"><div class="name">家族から見え方をプレビュー</div><div class="sub">他の家族の視点でアプリを確認</div></div>
       <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
     </div>`;
     if(FEATURES.emergencyMode){
       html+=`<div class="switch-item" onclick="openWorkflowModal()">
         <div class="av" style="background:#D4537E"><i class="ti ti-heart-handshake" style="font-size:14px"></i></div>
-        <div class="info"><div class="name" style="font-size:12px">もしもの時の発動を試す</div><div class="sub">バトンが渡るまでの手順を確認</div></div>
+        <div class="info"><div class="name">もしもの時の発動を試す</div><div class="sub">バトンが渡るまでの手順を確認</div></div>
         <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
       </div>`;
     }
