@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v31</title>
+<title>きずなbaton プロトタイプ v32</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -388,6 +388,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 :root.dark .beta-info-box.warn{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
 .ob-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary)}
 .ob-dot.active{background:var(--accent-warm)}
+.ob-sample-note{background:var(--color-background-secondary);border-left:3px solid var(--accent-warm);padding:8px 12px;border-radius:6px;font-size:11px;color:var(--color-text-secondary);margin-top:12px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -617,6 +618,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           このアプリは <strong>契約情報そのものを保管するアプリではなく、契約の存在と解約手順をご家族に伝えるアプリ</strong> です（Apple Legacy Contact と同じ設計思想）。<br>
           機密情報は金庫やパスワードマネージャーで別管理してください。
         </div>
+        <p class="ob-sample-note" id="ob-sample-note">※ 最初はサンプルデータが入っています。自由に触って試してください。</p>
       </div>
       <!-- Step 2: 保存範囲 -->
       <div class="ob-step" data-step="2" style="display:none">
@@ -733,11 +735,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.1）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.1）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.2）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -775,11 +777,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.1）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.1）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -2293,6 +2295,16 @@ function loadPersistentState(){
   }
 }
 
+// === v32: ?blank=1 ブランクモード ===
+function applyBlankMode(){
+  const p=new URLSearchParams(location.search);
+  if(p.get('blank')!=='1')return;
+  contracts=[];
+  members=[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
+  nextId=1;
+  nextMemberId=2;
+}
+
 // === v18: ダークモード ===
 const DARK_MODE_KEY='kizuna-baton:dark-mode:v18';
 function isDarkMode(){return document.documentElement.classList.contains('dark');}
@@ -2312,6 +2324,9 @@ function maybeShowOnboarding(){
 function openOnboarding(){
   onboardingStep=1;
   renderOnboardingStep();
+  // v32: blankモード(?blank=1)ではサンプル説明バナーを非表示
+  const sn=document.getElementById('ob-sample-note');
+  if(sn) sn.style.display=new URLSearchParams(location.search).get('blank')==='1'?'none':'block';
   document.getElementById('onboarding-modal').classList.add('open');
 }
 function reopenOnboarding(){
@@ -3310,6 +3325,7 @@ function closeRestoreErrorModal(){document.getElementById('restore-error-modal')
 detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
 loadSortPrefs();
 loadPersistentState();    // v20: 契約・メンバーを localStorage から復元（renderAll 前）
+applyBlankMode();         // v32: ?blank=1 の場合は contracts を空起動に上書き
 initDarkMode();
 updateSortBtnLabel();
 renderAll();
