@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v38</title>
+<title>きずなbaton プロトタイプ v39</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -227,10 +227,6 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .cycle-toggle div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
 .amount-helper{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;text-align:right}
 
-.pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:var(--color-background-secondary);padding:4px;border-radius:var(--border-radius-md);margin-bottom:4px}
-.pay-method-grid div{padding:7px 6px;text-align:center;font-size:11px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:4px}
-.pay-method-grid div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
-.pay-method-grid i{font-size:13px}
 
 .pay-icon{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--color-text-tertiary);margin-left:3px;vertical-align:1px}
 
@@ -493,12 +489,12 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
       <div class="form-row">
         <label>支払方法</label>
-        <div class="pay-method-grid" id="pay-method-grid">
-          <div id="pm-credit_card" class="active" onclick="setPayMethod('credit_card')"><i class="ti ti-credit-card"></i>クレジットカード</div>
-          <div id="pm-bank_debit" onclick="setPayMethod('bank_debit')"><i class="ti ti-building-bank"></i>銀行引き落とし</div>
-          <div id="pm-bank_transfer" onclick="setPayMethod('bank_transfer')"><i class="ti ti-arrows-exchange"></i>銀行振込</div>
-          <div id="pm-cash" onclick="setPayMethod('cash')"><i class="ti ti-cash"></i>現金払い</div>
-        </div>
+        <select id="pay-method-select" onchange="setPayMethod(this.value)">
+          <option value="credit_card">クレジットカード</option>
+          <option value="bank_debit">銀行引き落とし</option>
+          <option value="bank_transfer">銀行振込</option>
+          <option value="cash">現金払い</option>
+        </select>
       </div>
 
       <div class="form-row">
@@ -1899,10 +1895,8 @@ function setCycle(c){
 
 function setPayMethod(m){
   formPayMethod=m;
-  Object.keys(PAY_METHODS).forEach(k=>{
-    const el=document.getElementById('pm-'+k);
-    if(el)el.classList.toggle('active',k===m);
-  });
+  const sel=document.getElementById('pay-method-select');
+  if(sel)sel.value=m;
   // クレカ以外を選んだ場合、カード関連の入力を非表示
   const cardFields=document.getElementById('secret-card-fields');
   const secretTitle=document.getElementById('secret-section-title');
