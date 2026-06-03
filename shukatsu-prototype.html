@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v37</title>
+<title>きずなbaton プロトタイプ v38</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -2286,6 +2286,7 @@ function persistState(){
     savedAt:new Date().toISOString(),
     contracts:contracts,
     members:members,
+    categories:categories.slice(),
     nextId:nextId,
     nextMemberId:nextMemberId
   }));
@@ -2300,6 +2301,15 @@ function loadPersistentState(){
       members=data.members;
       nextId=data.nextId||(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1);
       nextMemberId=data.nextMemberId||(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0)+1);
+    }
+    if(Array.isArray(data.categories)&&data.categories.length){
+      categories=data.categories.slice();
+      // ユーザー追加カテゴリの ICONS/COLORS/TCOLORS を既定値でバックフィル（addCategory と同じ）
+      categories.forEach(c=>{
+        if(!ICONS[c])ICONS[c]='ti-tag';
+        if(!COLORS[c])COLORS[c]='#D3D1C7';
+        if(!TCOLORS[c])TCOLORS[c]='#444441';
+      });
     }
   }catch(e){
     console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
@@ -2853,15 +2863,28 @@ function renderCatList(){
     `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${c}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${c}を削除"><i class="ti ti-trash"></i></button></div>`
   ).join('');
 }
-function deleteCat(i){categories.splice(i,1);renderCatList();}
+function deleteCat(i){
+  const cat=categories[i];
+  const inUse=contracts.filter(c=>c.cat===cat).length;
+  if(inUse>0){
+    alert('このカテゴリは'+inUse+'件の契約で使用中のため削除できません。先に契約のカテゴリを変更してください。');
+    return;
+  }
+  categories.splice(i,1);
+  persistState();
+  renderCatList();
+}
 function addCategory(){
   const v=document.getElementById('new-cat-input').value.trim();
   if(!v||categories.includes(v))return;
+  if(v.length>20){alert('カテゴリ名は20文字以内で入力してください。');return;}
+  if(/[<>"'&]/.test(v)){alert('カテゴリ名に使用できない文字（< > " \' &）が含まれています。');return;}
   categories.push(v);
   if(!ICONS[v])ICONS[v]='ti-tag';
   if(!COLORS[v])COLORS[v]='#D3D1C7';
   if(!TCOLORS[v])TCOLORS[v]='#444441';
   document.getElementById('new-cat-input').value='';
+  persistState();
   renderCatList();
 }
 
