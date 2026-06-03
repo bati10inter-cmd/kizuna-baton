@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v32</title>
+<title>きずなbaton プロトタイプ v33</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -431,7 +431,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <p id="family-count">家族 0人で共有中 · コード FAMX-2847</p>
     </div>
     <div class="summary">
-      <div class="stat"><div class="stat-label">月額換算合計</div><div class="stat-val" id="total-amount">¥0</div><div class="stat-sub">年間: <span id="yearly">¥0</span></div></div>
+      <div class="stat"><div class="stat-label">ひと月あたり</div><div class="stat-val" id="total-amount">¥0</div><div class="stat-sub">年間: <span id="yearly">¥0</span></div></div>
       <div class="stat"><div class="stat-label">登録件数</div><div class="stat-val" id="total-count">0</div><div class="stat-sub"><span id="urgent-count">0</span>件が30日以内</div></div>
     </div>
 
@@ -477,7 +477,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="form-row"><label>契約名</label><input type="text" id="f-name" placeholder="例: Netflix"></div>
       <div class="form-grid">
         <div class="form-row"><label>カテゴリ</label><select id="f-cat"></select></div>
-        <div class="form-row"><label>所有者</label><select id="f-owner"></select></div>
+        <div class="form-row"><label>契約者</label><select id="f-owner"></select></div>
       </div>
 
       <div class="form-row">
@@ -514,7 +514,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         </div>
       </div>
 
-      <div class="form-row"><label>電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
+      <div class="form-row"><label>契約先の電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
       <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."></div>
       <div class="form-row"><label>解約方法</label><textarea id="f-cancel" placeholder="例: マイページ → 解約手続き"></textarea></div>
       <div class="form-row"><label>必要書類（カンマ区切り）</label><input type="text" id="f-docs" placeholder="例: 保険証, 印鑑"></div>
@@ -1806,7 +1806,7 @@ function showDetail(id){
 
     <div class="section">
       <div class="section-title">連絡先</div>
-      ${c.tel?`<div class="info-row"><i class="ti ti-phone info-icon"></i><div><div class="info-label">電話番号</div><div class="info-val">${c.tel}</div></div></div>`:''}
+      ${c.tel?`<div class="info-row"><i class="ti ti-phone info-icon"></i><div><div class="info-label">契約先の電話番号</div><div class="info-val">${c.tel}</div></div></div>`:''}
       ${c.url?`<div class="info-row"><i class="ti ti-world info-icon"></i><div style="flex:1"><div class="info-label">ウェブサイト</div><div class="url-btn" onclick="openLink('${c.url}')"><i class="ti ti-link"></i><span>${c.url}</span><i class="ti ti-external-link ext"></i></div></div></div>`:''}
       ${!c.tel&&!c.url?'<span style="font-size:12px;color:var(--color-text-tertiary)">未登録</span>':''}
     </div>
@@ -2602,7 +2602,7 @@ function stopMemberViewing(id){
   if(!m)return;
   if(id===MY_ID){alert('自分は削除できません');return;}
   const cnt=contracts.filter(c=>c.ownerId===id).length;
-  if(cnt>0){alert(`${m.name} に契約が ${cnt}件あります。先に所有者を変更してください。`);return;}
+  if(cnt>0){alert(`${m.name} に契約が ${cnt}件あります。先に契約者を変更してください。`);return;}
   if(!confirm(`閲覧権限を停止しますか？\n${m.name} さんの家族メンバーアカウント自体は削除されません。`))return;
   members=members.filter(x=>x.id!==id);
   if(viewOwnerId===id)viewOwnerId=MY_ID;
