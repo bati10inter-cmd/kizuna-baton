@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v36</title>
+<title>きずなbaton プロトタイプ v37</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -3138,7 +3138,8 @@ function toggleFamilyMsg(titleEl){
 const SORT_KEY='kizuna-baton:sort:v19';
 const SORT_OPTIONS={
   paymentDate:{label:'支払日',icon:'ti-calendar-event'},
-  amount:{label:'月額換算',icon:'ti-coin'}
+  amount:{label:'月額換算',icon:'ti-coin'},
+  paymentMethod:{label:'支払い方法',icon:'ti-wallet'}
 };
 let sortKey='paymentDate';
 let sortOrder='asc'; // 'asc' | 'desc'
@@ -3156,6 +3157,11 @@ function compareContracts(a,b){
   let v=0;
   if(sortKey==='paymentDate'){v=daysUntilNext(a)-daysUntilNext(b);}
   else if(sortKey==='amount'){v=monthlyEquivalent(a)-monthlyEquivalent(b);}
+  else if(sortKey==='paymentMethod'){
+    const keys=Object.keys(PAY_METHODS);
+    v=keys.indexOf(payMethodOf(a))-keys.indexOf(payMethodOf(b));
+    if(v===0){v=daysUntilNext(a)-daysUntilNext(b);}
+  }
   return sortOrder==='desc'?-v:v;
 }
 function updateSortBtnLabel(){
