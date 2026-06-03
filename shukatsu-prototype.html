@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v39</title>
+<title>きずなbaton プロトタイプ v40</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -2854,8 +2854,25 @@ function openCatModal(){renderCatList();document.getElementById('cat-modal').cla
 function closeCatModal(){document.getElementById('cat-modal').classList.remove('open');renderCatTabs();}
 function renderCatList(){
   document.getElementById('cat-list').innerHTML=categories.map((c,i)=>
-    `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${c}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${c}を削除"><i class="ti ti-trash"></i></button></div>`
+    `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${c}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="renameCat(${i})" aria-label="${c}をリネーム"><i class="ti ti-pencil"></i></button><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${c}を削除"><i class="ti ti-trash"></i></button></div>`
   ).join('');
+}
+function renameCat(i){
+  const old=categories[i];
+  const val=prompt('カテゴリ名を変更（現在：'+old+'）',old);
+  if(val===null)return;
+  const v=val.trim();
+  if(!v||v===old)return;
+  if(categories.includes(v)){alert('同じ名前のカテゴリがすでに存在します。');return;}
+  if(v.length>20){alert('カテゴリ名は20文字以内で入力してください。');return;}
+  if(/[<>"'&]/.test(v)){alert('カテゴリ名に使用できない文字（< > " \' &）が含まれています。');return;}
+  categories[i]=v;
+  if(ICONS[old]){ICONS[v]=ICONS[old];delete ICONS[old];}
+  if(COLORS[old]){COLORS[v]=COLORS[old];delete COLORS[old];}
+  if(TCOLORS[old]){TCOLORS[v]=TCOLORS[old];delete TCOLORS[old];}
+  contracts.forEach(c=>{if(c.cat===old)c.cat=v;});
+  persistState();
+  renderCatList();
 }
 function deleteCat(i){
   const cat=categories[i];
