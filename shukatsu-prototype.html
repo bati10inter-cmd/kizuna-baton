@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v34</title>
+<title>きずなbaton プロトタイプ v35</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -157,10 +157,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .badge-soon{background:#FAEEDA;color:#854F0B}
 .badge-archived{background:#F1EFE8;color:#5F5E5A}
 
-.action-row{display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap}
-.action-row button{flex:1;min-width:140px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:9px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;background:transparent;display:flex;align-items:center;justify-content:center;gap:6px}
+/* v35: 契約追加の拡張FAB（右下固定・常時表示） */
+.fab{position:absolute;right:16px;bottom:16px;z-index:15;display:inline-flex;align-items:center;gap:7px;padding:12px 18px;border-radius:24px;border:none;cursor:pointer;background:var(--color-text-primary);color:var(--color-background-primary);font-size:13px;font-weight:500;font-family:var(--font-sans);box-shadow:var(--card-shadow-hover);transition:transform .15s ease}
+.fab i{font-size:16px}
+.fab:hover{transform:translateY(-1px)}
+.fab:active{transform:translateY(0)}
+#screen-detail:not(.hidden) ~ .fab{display:none}
 
-.share-bar{padding:8px 12px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px}
+.share-bar{padding:8px 12px 72px;background:var(--color-background-primary);border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px}
 .share-code{font-size:11px;background:var(--color-background-secondary);padding:5px 8px;border-radius:var(--border-radius-md);flex:1;color:var(--color-text-secondary);font-family:var(--font-mono)}
 
 .detail-hero{padding:18px 16px 14px;background:var(--color-background-primary);border-bottom:1px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px}
@@ -451,11 +455,6 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="tabs" id="tabs"></div>
     <div class="list" id="contract-list"></div>
 
-    <div class="action-row">
-      <button onclick="openModal()"><i class="ti ti-plus"></i> 契約を追加</button>
-      <button onclick="openExportModal()"><i class="ti ti-download"></i> 出力する</button>
-    </div>
-
     <div class="share-bar">
       <i class="ti ti-users" style="font-size:16px;color:var(--color-text-secondary)"></i>
       <div class="share-code">共有コード: FAMX-2847</div>
@@ -471,6 +470,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
     <div id="detail-content"></div>
   </div>
+
+  <!-- v35: 契約追加の拡張FAB（screen-list 表示時のみ・詳細画面では ~ セレクタで非表示） -->
+  <button class="fab" id="add-fab" onclick="openModal()"><i class="ti ti-plus"></i>契約を追加</button>
 
   <div class="modal-bg" id="add-modal">
     <div class="modal">
@@ -1427,6 +1429,12 @@ function renderSwitchMenu(){
   </div>`;
   // v19: データバックアップ / 復元
   html+=`<div class="switch-section-header">データ保管</div>`;
+  // v35: ホーム画面の「出力する」をここへ移設（家族へ渡す印刷書面 / JSON）
+  html+=`<div class="switch-item" onclick="openExportModal()">
+    <div class="av" style="background:#555"><i class="ti ti-printer" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">印刷・書き出し</div><div class="sub">家族に渡す印刷書面やJSONで出力</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
   html+=`<div class="switch-item" onclick="doBackup()">
     <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
     <div class="info"><div class="name">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
