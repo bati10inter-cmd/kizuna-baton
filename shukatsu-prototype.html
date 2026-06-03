@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v33</title>
+<title>きずなbaton プロトタイプ v34</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -76,6 +76,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item .sub{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
 .switch-item .check{color:var(--color-text-primary);font-size:16px}
 .switch-section-header{padding:8px 16px;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
+.switch-section-header:first-child{border-top:none;margin-top:0}
 .setting-toggle{position:relative;width:40px;height:24px;flex-shrink:0;cursor:pointer;display:inline-block}
 .setting-toggle input{opacity:0;width:0;height:0;position:absolute}
 .setting-toggle-thumb{position:absolute;inset:0;background:var(--color-background-tertiary);border:1px solid var(--color-border-secondary);border-radius:12px;transition:background .15s ease,border-color .15s ease}
@@ -1378,6 +1379,7 @@ function renderSwitchMenu(){
   const allCount=contracts.filter(c=>!c.archived&&canViewContract(c,viewer)).length;
   const me=getMember(MY_ID);
   const myCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&canViewContract(c,viewer)).length;
+  html+=`<div class="switch-section-header">契約の表示</div>`;
   html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
     <div class="av" style="background:${me.color}">${me.name.charAt(0)}</div>
     <div class="info"><div class="name">${me.name} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
@@ -1404,6 +1406,8 @@ function renderSwitchMenu(){
     <div class="info"><div class="name">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
+  // v34: 表示設定（ダークモード / Logo.dev）をヘルプから分離
+  html+=`<div class="switch-section-header">表示設定</div>`;
   // v18: ダークモード切替
   const dark=isDarkMode();
   html+=`<div class="switch-item" onclick="toggleDarkMode()">
@@ -3126,9 +3130,7 @@ function toggleFamilyMsg(titleEl){
 const SORT_KEY='kizuna-baton:sort:v19';
 const SORT_OPTIONS={
   paymentDate:{label:'支払日',icon:'ti-calendar-event'},
-  amount:{label:'月額換算',icon:'ti-coin'},
-  name:{label:'名前',icon:'ti-abc'},
-  cat:{label:'カテゴリ',icon:'ti-category'}
+  amount:{label:'月額換算',icon:'ti-coin'}
 };
 let sortKey='paymentDate';
 let sortOrder='asc'; // 'asc' | 'desc'
@@ -3146,11 +3148,6 @@ function compareContracts(a,b){
   let v=0;
   if(sortKey==='paymentDate'){v=daysUntilNext(a)-daysUntilNext(b);}
   else if(sortKey==='amount'){v=monthlyEquivalent(a)-monthlyEquivalent(b);}
-  else if(sortKey==='name'){v=(a.name||'').localeCompare(b.name||'','ja');}
-  else if(sortKey==='cat'){
-    v=(a.cat||'').localeCompare(b.cat||'','ja');
-    if(v===0)v=(a.name||'').localeCompare(b.name||'','ja');
-  }
   return sortOrder==='desc'?-v:v;
 }
 function updateSortBtnLabel(){
