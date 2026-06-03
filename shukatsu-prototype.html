@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v40</title>
+<title>きずなbaton プロトタイプ v41</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -454,7 +454,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="share-bar">
       <i class="ti ti-users" style="font-size:16px;color:var(--color-text-secondary)"></i>
       <div class="share-code">共有コード: FAMX-2847</div>
-      <i class="ti ti-settings" onclick="openCatModal()" style="font-size:16px;color:var(--color-text-secondary);cursor:pointer"></i>
+      <i class="ti ti-settings" onclick="openSettingsModal()" style="font-size:16px;color:var(--color-text-secondary);cursor:pointer"></i>
     </div>
   </div>
 
@@ -960,6 +960,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <div class="modal-bg" id="settings-modal">
+    <div class="modal">
+      <h2><i class="ti ti-settings"></i>設定</h2>
+      <div id="settings-list" style="margin:8px 0"></div>
+      <div class="btn-row"><button onclick="closeSettingsModal()">閉じる</button></div>
+    </div>
+  </div>
+
   <div class="modal-bg" id="cat-modal">
     <div class="modal">
       <h2><i class="ti ti-tag"></i>カテゴリ管理</h2>
@@ -1397,50 +1405,8 @@ function renderSwitchMenu(){
       ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
     </div>`;
   });
-  // v16: オンボーディング再表示（常設・members 件数に依存しない）
-  html+=`<div class="switch-section-header">ヘルプ</div>`;
-  html+=`<div class="switch-item" onclick="reopenOnboarding()">
-    <div class="av" style="background:#555"><i class="ti ti-help-circle" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
-  // v34: 表示設定（ダークモード / Logo.dev）をヘルプから分離
-  html+=`<div class="switch-section-header">表示設定</div>`;
-  // v18: ダークモード切替
-  const dark=isDarkMode();
-  html+=`<div class="switch-item" onclick="toggleDarkMode()">
-    <div class="av" style="background:${dark?'#3F3D36':'#555'}"><i class="ti ti-${dark?'moon-stars':'sun'}" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
-    <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${dark?'checked':''} onchange="toggleDarkMode()"><span class="setting-toggle-thumb"></span></label>
-  </div>`;
-  // v24: Logo.dev トークン設定（端末内のみ）/ v26: フォールバック対応（β版デフォルトpk_）
-  const hasLogoToken=hasUserLogoDevToken();
-  const logoSubLabel=hasLogoToken
-    ? '設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>'
-    : 'β版デフォルトキーで表示中（タップで自分のキーに変更）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>';
-  html+=`<div class="switch-item" onclick="promptLogoDevToken()">
-    <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
-  // v19: データバックアップ / 復元
-  html+=`<div class="switch-section-header">データ保管</div>`;
-  // v35: ホーム画面の「出力する」をここへ移設（家族へ渡す印刷書面 / JSON）
-  html+=`<div class="switch-item" onclick="openExportModal()">
-    <div class="av" style="background:#555"><i class="ti ti-printer" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">印刷・書き出し</div><div class="sub">家族に渡す印刷書面やJSONで出力</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
-  html+=`<div class="switch-item" onclick="doBackup()">
-    <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
-  html+=`<div class="switch-item" onclick="triggerRestore()">
-    <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
+  // v41: ヘルプ / 表示設定 / データ保管 は設定モーダル（歯車⚙→openSettingsModal）へ移設。
+  // 名前タップのメニューは「契約の表示（人物選択）」＋「プライバシー確認」に絞る。
   if(members.length>1){
     html+=`<div class="switch-section-header">プライバシー確認</div>`;
     html+=`<div class="switch-item" onclick="openPreviewModal()">
@@ -1460,6 +1426,63 @@ function renderSwitchMenu(){
 }
 
 function selectView(id){viewOwnerId=id;document.getElementById('switch-menu').classList.remove('open');renderAll();}
+
+// v41: 設定モーダル（歯車⚙）— ヘルプ / 表示設定 / データ保管 / カテゴリ管理 を集約
+function renderSettingsModal(){
+  const el=document.getElementById('settings-list');
+  let html='';
+  // ヘルプ
+  html+=`<div class="switch-section-header">ヘルプ</div>`;
+  html+=`<div class="switch-item" onclick="reopenOnboarding()">
+    <div class="av" style="background:#555"><i class="ti ti-help-circle" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">使い方を見る</div><div class="sub">このアプリで何ができるかを確認</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // 表示設定（ダークモード / Logo.dev）
+  html+=`<div class="switch-section-header">表示設定</div>`;
+  const dark=isDarkMode();
+  html+=`<div class="switch-item" onclick="toggleDarkMode()">
+    <div class="av" style="background:${dark?'#3F3D36':'#555'}"><i class="ti ti-${dark?'moon-stars':'sun'}" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
+    <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${dark?'checked':''} onchange="toggleDarkMode()"><span class="setting-toggle-thumb"></span></label>
+  </div>`;
+  const hasLogoToken=hasUserLogoDevToken();
+  const logoSubLabel=hasLogoToken
+    ? '設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>'
+    : 'β版デフォルトキーで表示中（タップで自分のキーに変更）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>';
+  html+=`<div class="switch-item" onclick="promptLogoDevToken()">
+    <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // データ保管（印刷・書き出し / バックアップ / 復元）
+  html+=`<div class="switch-section-header">データ保管</div>`;
+  html+=`<div class="switch-item" onclick="openExportModal()">
+    <div class="av" style="background:#555"><i class="ti ti-printer" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">印刷・書き出し</div><div class="sub">家族に渡す印刷書面やJSONで出力</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  html+=`<div class="switch-item" onclick="doBackup()">
+    <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  html+=`<div class="switch-item" onclick="triggerRestore()">
+    <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // カテゴリ管理（既存 cat-modal を開く）
+  html+=`<div class="switch-section-header">カテゴリ</div>`;
+  html+=`<div class="switch-item" onclick="openCatModal()">
+    <div class="av" style="background:#7A5C2E"><i class="ti ti-tag" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">カテゴリを管理</div><div class="sub">カテゴリの追加・名前変更・削除</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  el.innerHTML=html;
+}
+function openSettingsModal(){renderSettingsModal();document.getElementById('settings-modal').classList.add('open');}
+function closeSettingsModal(){document.getElementById('settings-modal').classList.remove('open');}
 
 function openPreviewModal(){
   document.getElementById('switch-menu').classList.remove('open');
