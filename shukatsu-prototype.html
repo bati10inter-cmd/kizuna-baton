@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v42</title>
+<title>きずなbaton プロトタイプ v43</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -49,6 +49,24 @@
   --card-shadow:0 1px 2px rgba(0,0,0,0.35);
   --card-shadow-hover:0 4px 12px rgba(0,0,0,0.45);
 }
+/* 老眼モード(U1): 主要テキストのみ +2px 拡大。アイコン・バッジ・極小ラベル・印刷出力は据え置き */
+:root.large .card-name{font-size:16px}
+:root.large .card-meta{font-size:13px}
+:root.large .card-amount{font-size:17px}
+:root.large .card-amount-sub{font-size:12px}
+:root.large .topbar h1{font-size:19px}
+:root.large .topbar p{font-size:13px}
+:root.large .stat-val{font-size:20px}
+:root.large .stat-label{font-size:12px}
+:root.large .stat-sub{font-size:12px}
+:root.large .empty-state{font-size:14px}
+:root.large .detail-name{font-size:19px}
+:root.large .detail-cat{font-size:13px}
+:root.large .info-label{font-size:13px}
+:root.large .info-val{font-size:16px}
+:root.large .family-message-box{font-size:16px}
+:root.large .form-row label{font-size:12px}
+:root.large .form-row input,:root.large .form-row select,:root.large .form-row textarea{font-size:14px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -414,6 +432,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="member-mgmt-icon" onclick="openMemberModal()" title="家族管理">
         <i class="ti ti-user-plus" style="font-size:16px"></i>
       </div>
+      <div class="member-mgmt-icon" onclick="openSettingsModal()" title="設定">
+        <i class="ti ti-settings" style="font-size:16px"></i>
+      </div>
     </div>
     <div class="switch-menu" id="switch-menu"></div>
     <div class="preview-bar" id="preview-bar">
@@ -461,7 +482,6 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="share-bar">
       <i class="ti ti-users" style="font-size:16px;color:var(--color-text-secondary)"></i>
       <div class="share-code">共有コード: FAMX-2847</div>
-      <i class="ti ti-settings" onclick="openSettingsModal()" style="font-size:16px;color:var(--color-text-secondary);cursor:pointer"></i>
     </div>
   </div>
 
@@ -1466,6 +1486,12 @@ function renderSettingsModal(){
     <div class="info"><div class="name">ダークモード</div><div class="sub">${dark?'オン（夜間でも読みやすい）':'オフ（明るい背景）'}</div></div>
     <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${dark?'checked':''} onchange="toggleDarkMode()"><span class="setting-toggle-thumb"></span></label>
   </div>`;
+  const large=isLargeMode();
+  html+=`<div class="switch-item" onclick="toggleLargeMode()">
+    <div class="av" style="background:#555"><i class="ti ti-text-size" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">文字を大きく</div><div class="sub">${large?'オン（読みやすい大きさ）':'オフ（標準の大きさ）'}</div></div>
+    <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${large?'checked':''} onchange="toggleLargeMode()"><span class="setting-toggle-thumb"></span></label>
+  </div>`;
   const hasLogoToken=hasUserLogoDevToken();
   const logoSubLabel=hasLogoToken
     ? '設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>'
@@ -2388,6 +2414,20 @@ function toggleDarkMode(){
   lsSet(DARK_MODE_KEY,on?'1':'0');
   // switch-menu のアイコン・ラベル状態を再描画
   renderSwitchMenu();
+}
+
+// === v43: 老眼モード(U1) 文字拡大 ===
+const LARGE_MODE_KEY='kizuna-baton:large-mode:v42';
+function isLargeMode(){return document.documentElement.classList.contains('large');}
+function initLargeMode(){
+  if(lsGet(LARGE_MODE_KEY)==='1'){document.documentElement.classList.add('large');}
+}
+function toggleLargeMode(){
+  const on=!isLargeMode();
+  document.documentElement.classList.toggle('large',on);
+  lsSet(LARGE_MODE_KEY,on?'1':'0');
+  // 設定モーダルのトグル状態・サブラベルを再描画
+  renderSettingsModal();
 }
 function maybeShowOnboarding(){
   if(forceShowOnboarding||!lsGet(ONBOARDING_KEY)){openOnboarding();}
@@ -3427,6 +3467,7 @@ loadSortPrefs();
 loadPersistentState();    // v20: 契約・メンバーを localStorage から復元（renderAll 前）
 applyBlankMode();         // v32: ?blank=1 の場合は contracts を空起動に上書き
 initDarkMode();
+initLargeMode();
 updateSortBtnLabel();
 renderAll();
 // v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
