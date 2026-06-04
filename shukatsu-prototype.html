@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v41</title>
+<title>きずなbaton プロトタイプ v42</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -221,6 +221,13 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .btn-row{display:flex;gap:8px;margin-top:12px}
 .btn-row button{flex:1;padding:9px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary)}
 .btn-primary{background:var(--color-text-primary)!important;color:var(--color-background-primary)!important;border-color:var(--color-text-primary)!important}
+
+/* β版: 中央表示の通知モーダル */
+.modal-bg.center{align-items:center;justify-content:center}
+.modal.notice{border-radius:16px;width:auto;max-width:280px;margin:0 22px;padding:24px 22px;text-align:center}
+.notice-icon{width:48px;height:48px;border-radius:50%;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--color-text-secondary)}
+.notice h3{font-size:15px;font-weight:600;color:var(--color-text-primary);margin-bottom:8px}
+.notice p{font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:16px}
 
 .cycle-toggle{display:flex;gap:6px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);margin-bottom:8px}
 .cycle-toggle div{flex:1;padding:6px;text-align:center;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px}
@@ -469,6 +476,16 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
   <!-- v35: 契約追加の拡張FAB（screen-list 表示時のみ・詳細画面では ~ セレクタで非表示） -->
   <button class="fab" id="add-fab" onclick="openModal()"><i class="ti ti-plus"></i>契約を追加</button>
+
+  <!-- v42: ベータ版 契約件数上限の中央通知モーダル -->
+  <div class="modal-bg center" id="beta-limit-modal">
+    <div class="modal notice">
+      <div class="notice-icon"><i class="ti ti-seeding"></i></div>
+      <h3>ベータ版の上限に達しました</h3>
+      <p>ベータ版でご登録いただけるのは契約5件までです。<br>続きは、これからの製品版で。<br>お試しいただきありがとうございます。</p>
+      <div class="btn-row"><button class="btn-primary" onclick="closeBetaLimitModal()">わかりました</button></div>
+    </div>
+  </div>
 
   <div class="modal-bg" id="add-modal">
     <div class="modal">
@@ -1108,6 +1125,9 @@ const FEATURES={
   aiAssist:false,                 // ToS 3.5: AI補助はβ非提供
   publicDocumentUpload:false      // 公的書類アップロードはβ非提供
 };
+
+// =========== β版: 契約件数上限 ===========
+const CONTRACT_BETA_MAX=5; // ベータ版：アクティブ契約は5件まで
 
 // =========== Step 6: 招待フロー（invitation-flow-design.md v3.2） ===========
 // pending+accepted 合計 5件上限 / 1日3件発行上限 / 7日有効期限
@@ -2012,7 +2032,15 @@ function updateAmountHelper(){
   }
 }
 
+function showBetaLimitModal(){document.getElementById('beta-limit-modal').classList.add('open');}
+function closeBetaLimitModal(){document.getElementById('beta-limit-modal').classList.remove('open');}
+
 function openModal(){
+  const activeCount=contracts.filter(c=>!c.archived).length;
+  if(activeCount>=CONTRACT_BETA_MAX){
+    showBetaLimitModal();
+    return;
+  }
   document.getElementById('f-cat').innerHTML=categories.map(c=>`<option>${c}</option>`).join('');
   setupOwnerSelect(document.getElementById('f-owner'),MY_ID);
   setupMonthSelect(document.getElementById('f-month'),todayMonth);
@@ -2076,6 +2104,10 @@ function readForm(){
 function addContract(){
   const data=readForm();
   if(!data.name)return;
+  if(contracts.filter(c=>!c.archived).length>=CONTRACT_BETA_MAX){
+    showBetaLimitModal();
+    return;
+  }
   contracts.push({id:nextId++,...data,archived:false});
   persistState();
   closeModal();renderList();updateSummary();
