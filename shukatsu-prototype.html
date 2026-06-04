@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v43</title>
+<title>きずなbaton プロトタイプ v44</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -2275,6 +2275,7 @@ function acceptConsent(){
         privacyVersion:PRIVACY_VERSION
       };
       pendingInviteId=null;
+      persistState();
       showToast(`${inv.suggestedName} さんが招待を受諾しました（24時間以内は取消可能）`,'success');
       // v16: 受諾者向けウェルカム（§4.2.4）
       showWelcomeAfterAccept(getMember(MY_ID).name);
@@ -2361,6 +2362,7 @@ function persistState(){
     savedAt:new Date().toISOString(),
     contracts:contracts,
     members:members,
+    invitations:invitations,
     categories:categories.slice(),
     nextId:nextId,
     nextMemberId:nextMemberId
@@ -2376,6 +2378,10 @@ function loadPersistentState(){
       members=data.members;
       nextId=data.nextId||(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1);
       nextMemberId=data.nextMemberId||(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0)+1);
+    }
+    // 旧データ（invitations フィールド無し）はサンプル招待を維持＝後方互換
+    if(Array.isArray(data.invitations)){
+      invitations=data.invitations;
     }
     if(Array.isArray(data.categories)&&data.categories.length){
       categories=data.categories.slice();
@@ -2492,11 +2498,14 @@ function nowMs(){return Date.now();}
 function refreshInvitationStatuses(){
   // 期限切れの自動遷移
   const t=nowMs();
+  let changed=false;
   invitations.forEach(inv=>{
     if(inv.status==='pending' && new Date(inv.expiresAt).getTime() < t){
       inv.status='expired';
+      changed=true;
     }
   });
+  if(changed)persistState(); // 遷移が起きた時だけ保存（毎描画での無駄書込を防ぐ）
 }
 function checkInvitationLimits(){
   refreshInvitationStatuses();
@@ -2557,6 +2566,7 @@ function issueInvitation(){
     consentLog:{termsAcceptedAt:null,privacyAcceptedAt:null,termsVersion:null,privacyVersion:null}
   };
   invitations.push(inv);
+  persistState();
   // 発行結果表示に切替
   document.getElementById('invite-issue-form').style.display='none';
   document.getElementById('invite-issue-result').style.display='';
@@ -2570,6 +2580,7 @@ function revokeInvitation(id){
   if(!confirm(`${inv.suggestedName} さんへの招待を取り消しますか？`))return;
   inv.status='revoked';
   inv.revokedAt=new Date().toISOString();
+  persistState();
   renderInvitations();
 }
 function renderInvitations(){
@@ -2650,6 +2661,7 @@ function revokeAcceptedMember(id){
   members=members.filter(x=>x.id!==id);
   if(viewOwnerId===id)viewOwnerId=MY_ID;
   showToast(`${m.name} さんの受諾を取り消しました`,'warn');
+  persistState();
   renderMemberList();renderInvitations();renderAll();
 }
 
