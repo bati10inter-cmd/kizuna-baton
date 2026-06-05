@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v45</title>
+<title>きずなbaton プロトタイプ v46</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -412,6 +412,28 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .beta-info-box.warn{background:#FAEEDA;border-color:#EF9F27;color:#633806}
 :root.dark .beta-info-box{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 :root.dark .beta-info-box.warn{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
+/* v46: プラン選択UIモック */
+.plan-cycle-toggle{display:flex;gap:4px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:3px;margin:4px 0 12px}
+.plan-cycle-toggle>div{flex:1;text-align:center;font-size:12px;padding:6px 4px;border-radius:6px;cursor:pointer;color:var(--color-text-secondary);transition:background 0.15s}
+.plan-cycle-toggle>div.active{background:var(--color-text-primary);color:var(--color-background-primary);font-weight:600}
+.plan-cycle-toggle .save-tag{font-size:9px;margin-left:3px;color:var(--accent-warm)}
+.plan-cycle-toggle>div.active .save-tag{color:var(--color-background-primary)}
+.plan-card{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:12px 13px;margin-bottom:10px;background:var(--color-background-primary)}
+.plan-card.recommend{border:1.5px solid var(--accent-warm);box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.plan-card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
+.plan-card-name{font-size:15px;font-weight:700;color:var(--color-text-primary)}
+.plan-card-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600}
+.plan-card-badge.current{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary)}
+.plan-card-badge.reco{background:var(--accent-warm);color:#fff}
+.plan-card-price{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px}
+.plan-card-price strong{font-size:20px;color:var(--color-text-primary);font-weight:700}
+.plan-card-price .yearly-note{display:block;font-size:11px;color:var(--accent-warm);margin-top:1px}
+.plan-feat{list-style:none;padding:0;margin:0 0 10px}
+.plan-feat li{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--color-text-secondary);line-height:1.5;padding:2px 0}
+.plan-feat li i{color:var(--accent-warm);font-size:14px;flex-shrink:0;margin-top:1px}
+.plan-cta{width:100%;padding:9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;font-weight:600;cursor:pointer}
+.plan-cta.primary{background:var(--accent-warm);border-color:var(--accent-warm);color:#fff}
+.plan-cta:disabled{opacity:0.6;cursor:default}
 .ob-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary)}
 .ob-dot.active{background:var(--accent-warm)}
 .ob-sample-note{background:var(--color-background-secondary);border-left:3px solid var(--accent-warm);padding:8px 12px;border-radius:6px;font-size:11px;color:var(--color-text-secondary);margin-top:12px;line-height:1.6}
@@ -1088,6 +1110,23 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- v46: プラン選択UIモック（非機能・表示見本） -->
+  <div class="modal-bg" id="plan-modal">
+    <div class="modal">
+      <h2><i class="ti ti-cards"></i>プラン</h2>
+      <div class="beta-info-box warn">
+        <strong>これは表示見本です。</strong><br>
+        ベータ版はすべての機能を無料でお使いいただけます。お支払いの開始は正式版（Phase4）で予定しています。
+      </div>
+      <div class="plan-cycle-toggle">
+        <div id="plan-cycle-monthly" onclick="setPlanCycle('monthly')">月額</div>
+        <div id="plan-cycle-yearly" onclick="setPlanCycle('yearly')">年額<span class="save-tag">約17%おトク</span></div>
+      </div>
+      <div id="plan-cards"></div>
+      <div class="btn-row"><button onclick="closePlanModal()">閉じる</button></div>
+    </div>
+  </div>
+
   <!-- v19: 並び替えモーダル -->
   <div class="modal-bg" id="sort-modal">
     <div class="modal">
@@ -1524,6 +1563,13 @@ function renderSettingsModal(){
   html+=`<div class="switch-item" onclick="triggerRestore()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
     <div class="info"><div class="name">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // プラン（v46: 非機能の表示見本）
+  html+=`<div class="switch-section-header">プラン</div>`;
+  html+=`<div class="switch-item" onclick="openPlanModal()">
+    <div class="av" style="background:var(--accent-warm)"><i class="ti ti-cards" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">プランを見る</div><div class="sub">無料／有料プランの内容（正式版で提供予定）</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // カテゴリ管理（既存 cat-modal を開く）
@@ -3396,6 +3442,52 @@ function openBetaInfoModal(){
 }
 function closeBetaInfoModal(){document.getElementById('beta-info-modal').classList.remove('open');}
 function gotoBackupFromBeta(){closeBetaInfoModal();doBackup();}
+
+// --- v46: プラン選択UIモック（非機能・表示のみ。実課金は Phase4）---
+let planCycle='monthly'; // 表示のみ（永続化しない）
+function openPlanModal(){closeSettingsModal();planCycle='monthly';renderPlanModal();document.getElementById('plan-modal').classList.add('open');}
+function closePlanModal(){document.getElementById('plan-modal').classList.remove('open');}
+function setPlanCycle(c){planCycle=c;renderPlanModal();}
+function planCtaNotice(){showToast('お支払いは正式版（Phase4）で提供予定です','info');}
+function renderPlanModal(){
+  document.getElementById('plan-cycle-monthly').className=planCycle==='monthly'?'active':'';
+  document.getElementById('plan-cycle-yearly').className=planCycle==='yearly'?'active':'';
+  const takePrice=planCycle==='yearly'
+    ? `<strong>¥5,000</strong> /年<span class="yearly-note">月あたり約¥417（月額より約17%おトク）</span>`
+    : `<strong>¥500</strong> /月`;
+  const el=document.getElementById('plan-cards');
+  el.innerHTML=`
+    <div class="plan-card">
+      <div class="plan-card-head">
+        <span class="plan-card-name">無料プラン</span>
+        <span class="plan-card-badge current">現在ご利用中</span>
+      </div>
+      <div class="plan-card-price"><strong>¥0</strong><span class="yearly-note" style="color:var(--color-text-tertiary)">ずっとお使いいただけます</span></div>
+      <ul class="plan-feat">
+        <li><i class="ti ti-check"></i>契約の登録 10件まで</li>
+        <li><i class="ti ti-check"></i>ご家族との共有 1名（お試し）</li>
+        <li><i class="ti ti-check"></i>印刷・JSON書き出し</li>
+      </ul>
+      <button class="plan-cta" disabled>ご利用中のプラン</button>
+    </div>
+    <div class="plan-card recommend">
+      <div class="plan-card-head">
+        <span class="plan-card-name">家族プラン</span>
+        <span class="plan-card-badge reco">おすすめ</span>
+      </div>
+      <div class="plan-card-price">${takePrice}</div>
+      <ul class="plan-feat">
+        <li><i class="ti ti-check"></i>契約の登録 無制限</li>
+        <li><i class="ti ti-check"></i>ご家族との共有 無制限</li>
+        <li><i class="ti ti-check"></i>ご家族への一言 無制限</li>
+        <li><i class="ti ti-check"></i>お支払い日のリマインダー</li>
+      </ul>
+      <button class="plan-cta primary" onclick="planCtaNotice()">このプランを選ぶ</button>
+    </div>
+    <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.6;margin-top:2px">
+      ※ 価格はストア手数料・消費税込みの予定額です。実際のお支払いは正式版で開始します。
+    </div>`;
+}
 
 // --- バックアップ（エクスポート）---
 function doBackup(){
