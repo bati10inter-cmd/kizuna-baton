@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v51</title>
+<title>きずなbaton プロトタイプ v52</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -3664,6 +3664,12 @@ renderAll();
 if(maybeShowOwnerConsent()){
   maybeShowOnboarding();
 }
+
+// === v52(APP-S83-3): persistState 呼び忘れ安全網 ===
+// 個別 mutation の persistState() 呼び忘れがあっても、離脱・バックグラウンド遷移時に保存を補完する。
+// pagehide は iOS Safari でも発火（beforeunload はモバイルで不確実）。persistState 内で isPrivateMode と try/catch を担保済み。
+window.addEventListener('pagehide', persistState);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') persistState(); });
 
 // === PWA Service Worker registration (v21) ===
 if('serviceWorker' in navigator){
