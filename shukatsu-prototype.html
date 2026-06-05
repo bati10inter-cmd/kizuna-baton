@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v53</title>
+<title>きずなbaton プロトタイプ v54</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -2461,6 +2461,7 @@ function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 const DATA_KEY='kizuna-baton:data:v20';
 function persistState(){
   if(isPrivateMode)return;
+  if(isBlankMode)return; // v54(APP-DATA-BLANK): ?blank=1 のデモ空状態を実データへ上書き保存しない
   lsSet(DATA_KEY,JSON.stringify({
     version:'v20',
     savedAt:new Date().toISOString(),
@@ -2503,9 +2504,11 @@ function loadPersistentState(){
 }
 
 // === v32: ?blank=1 ブランクモード ===
+let isBlankMode=false; // v54(APP-DATA-BLANK): blankモード中は persistState を抑止し実データ消失を防ぐ
 function applyBlankMode(){
   const p=new URLSearchParams(location.search);
   if(p.get('blank')!=='1')return;
+  isBlankMode=true;
   contracts=[];
   members=[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
   nextId=1;
