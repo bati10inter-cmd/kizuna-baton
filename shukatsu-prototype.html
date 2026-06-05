@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v52</title>
+<title>きずなbaton プロトタイプ v53</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1461,6 +1461,10 @@ function renderPreviewBar(){
     const m=getMember(previewAsId);
     document.getElementById('preview-info').innerHTML=`<strong>${m.name}</strong>さんの視点でプレビュー中`;
     bar.classList.add('show');
+    // v53(APP-EMG-PREVIEW): emergencyMode=false 時は旧2段階(相続判断/完全開示)トグルを隠す。
+    // 永久廃止UI(ToS7.1)の露出抑止であり、新規emergency実装ではない。フラグ復活時にそのまま再表示される。
+    const stageToggle=document.getElementById('stage-toggle');
+    if(stageToggle)stageToggle.style.display=FEATURES.emergencyMode?'':'none';
     // ステージトグルの active 反映
     ['live','inheritance','full'].forEach(s=>{
       const el=document.getElementById('st-'+s);
@@ -1485,6 +1489,8 @@ function renderPreviewBar(){
 }
 
 function setPreviewStage(s){
+  // v53(APP-EMG-PREVIEW): emergencyMode=false 時は旧2段階モード('inheritance'/'full')へ遷移させない（露出抑止・多層防御）
+  if(!FEATURES.emergencyMode&&s!=='live')return;
   previewStage=s;
   renderAll();
   if(selectedId!==null)showDetail(selectedId);
