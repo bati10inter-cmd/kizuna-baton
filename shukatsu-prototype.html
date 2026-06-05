@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v47</title>
+<title>きずなbaton プロトタイプ v48</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1127,6 +1127,27 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- v48: 商標・ライセンスについて（独立ページ・Logo.dev帰属の正式化） -->
+  <div class="modal-bg" id="legal-modal">
+    <div class="modal">
+      <h2><i class="ti ti-license"></i>商標・ライセンスについて</h2>
+      <div class="beta-info-box">
+        <strong>サービスロゴ（Logo.dev）</strong><br>
+        契約一覧などで表示されるサービスのロゴ画像は <a href="https://logo.dev" target="_blank" rel="noopener" style="color:#185FA5;text-decoration:underline">Logo.dev</a> から提供を受けています。各ロゴの商標権・著作権は、それぞれの権利者に帰属します。<br>
+        <span style="color:var(--color-text-tertiary)">Logos provided by <a href="https://logo.dev" target="_blank" rel="noopener" style="color:#185FA5;text-decoration:underline">Logo.dev</a></span>
+      </div>
+      <div class="beta-info-box">
+        <strong>アイコン（Tabler Icons）</strong><br>
+        本アプリのアイコンは <a href="https://tabler.io/icons" target="_blank" rel="noopener" style="color:#185FA5;text-decoration:underline">Tabler Icons</a>（MIT ライセンス）を使用しています。
+      </div>
+      <div class="beta-info-box warn">
+        <strong>各社の商標について</strong><br>
+        本アプリ内に表示される各サービス名・ブランド名・ロゴは、各社の商標または登録商標です。きずなbaton は、これらの各社と提携・協賛・後援等の関係にあるものではありません。商標は各サービスの識別を目的として表示しています。
+      </div>
+      <div class="btn-row"><button onclick="closeLegalModal()">閉じる</button></div>
+    </div>
+  </div>
+
   <!-- v19: 並び替えモーダル -->
   <div class="modal-bg" id="sort-modal">
     <div class="modal">
@@ -1577,6 +1598,13 @@ function renderSettingsModal(){
   html+=`<div class="switch-item" onclick="openCatModal()">
     <div class="av" style="background:#7A5C2E"><i class="ti ti-tag" style="font-size:14px"></i></div>
     <div class="info"><div class="name">カテゴリを管理</div><div class="sub">カテゴリの追加・名前変更・削除</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // アプリ情報（v48: 商標・ライセンスについて）
+  html+=`<div class="switch-section-header">アプリ情報</div>`;
+  html+=`<div class="switch-item" onclick="openLegalModal()">
+    <div class="av" style="background:#555"><i class="ti ti-license" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">商標・ライセンスについて</div><div class="sub">Logo.dev・Tabler Icons・各社商標の表記</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   el.innerHTML=html;
@@ -3447,6 +3475,10 @@ function gotoBackupFromBeta(){closeBetaInfoModal();doBackup();}
 let planCycle='monthly'; // 表示のみ（永続化しない）
 function openPlanModal(){closeSettingsModal();planCycle='monthly';renderPlanModal();document.getElementById('plan-modal').classList.add('open');}
 function closePlanModal(){document.getElementById('plan-modal').classList.remove('open');}
+
+// --- v48: 商標・ライセンスについて（独立ページ・Logo.dev帰属の正式化）---
+function openLegalModal(){closeSettingsModal();document.getElementById('legal-modal').classList.add('open');}
+function closeLegalModal(){document.getElementById('legal-modal').classList.remove('open');}
 function setPlanCycle(c){planCycle=c;renderPlanModal();}
 function planCtaNotice(){showToast('お支払いは正式版（Phase4）で提供予定です','info');}
 function renderPlanModal(){
