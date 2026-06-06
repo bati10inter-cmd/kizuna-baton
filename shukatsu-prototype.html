@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v58</title>
+<title>きずなbaton プロトタイプ v59</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -2246,9 +2246,20 @@ function readForm(){
   return data;
 }
 
+// APP-DATA-SCOPE: 機密メモの番号類ソフト検知。スペース/ハイフンを除いた連続7桁以上の数字
+// （口座番号・カード番号等）を検出。hard blockせず保存前にconfirmで確認に留める。
+function looksLikeSensitiveNumber(s){
+  return /\d{7,}/.test(String(s||'').replace(/[\s-]/g,''));
+}
+function confirmSecretSafe(data){
+  if(!looksLikeSensitiveNumber(data.secret))return true;
+  return confirm('メモに7桁以上の連続した数字が含まれています。口座番号・カード番号・暗証番号は保存しないでください（番号は通帳・金庫などアプリ外で保管を推奨）。このまま保存しますか？');
+}
+
 function addContract(){
   const data=readForm();
   if(!data.name)return;
+  if(!confirmSecretSafe(data))return;
   if(contracts.filter(c=>!c.archived).length>=CONTRACT_BETA_MAX){
     showBetaLimitModal();
     return;
@@ -2306,7 +2317,9 @@ function openEditModal(){
 function saveEdit(){
   const c=contracts.find(x=>x.id===selectedId);
   if(!c)return;
-  Object.assign(c,readForm());
+  const data=readForm();
+  if(!confirmSecretSafe(data))return;
+  Object.assign(c,data);
   persistState();
   closeModal();renderList();showDetail(selectedId);updateSummary();
 }
