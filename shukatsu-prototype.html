@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v54</title>
+<title>きずなbaton プロトタイプ v58</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1197,7 +1197,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
   <div class="modal-bg" id="restore-error-modal">
     <div class="modal">
       <button class="modal-close-text" onclick="closeRestoreErrorModal()" aria-label="閉じる">閉じる</button>
-      <h2 style="color:#A32D2D"><i class="ti ti-alert-circle"></i>復元できませんでした</h2>
+      <h2 style="color:#A32D2D"><i class="ti ti-alert-circle"></i><span id="restore-error-title">復元できませんでした</span></h2>
       <div class="restore-warning-box">
         <i class="ti ti-alert-triangle"></i>
         <div id="restore-error-msg"></div>
@@ -1348,6 +1348,14 @@ const todayDate=new Date();
 const todayDay=todayDate.getDate();
 const todayMonth=todayDate.getMonth()+1;
 
+// === XSS対策: HTMLエスケープ ===
+// テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
+// ユーザー入力（契約名・メモ・url・メンバー名・カテゴリ・import復元データ等）を
+// 出力する箇所では必ず通すこと。JS文字列in属性のonclickは data属性+dataset で回避する。
+function esc(v){return String(v==null?'':v)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
 function getMember(id){return members.find(m=>m.id===id);}
 function getOwnerName(c){const m=getMember(c.ownerId);return m?m.name:'?';}
 function getOwnerColor(c){const m=getMember(c.ownerId);return m?m.color:'#888';}
@@ -1380,7 +1388,7 @@ function canViewContract(c,viewerId,stage){
     if(v.mode==='private')return false;
     if(v.mode==='after_only')return false; // 生前は本人にしか見えない
     if(v.mode==='selected')return (v.liveViewers||[]).includes(viewerId);
-    return true;
+    return false; // v58(APP-SEC-VIS): 未知modeは非公開側へ fail-safe。既知mode(all/private/after_only/selected)は上で明示処理、undefinedはgetVisibilityがall正規化＝後方互換
   }
   // もしもの時モード（相続判断/完全開示共通）
   if(c.ownerId===viewerId)return true; // 自分自身の契約は常に見える
@@ -1391,7 +1399,7 @@ function canViewContract(c,viewerId,stage){
     const after=v.afterViewers||[];
     return after.length===0?true:after.includes(viewerId); // 空配列なら家族全員
   }
-  return true;
+  return false; // v58(APP-SEC-VIS): 未知modeは非公開側へ fail-safe（破損/不正import時のみ到達）
 }
 // 公開範囲のラベル（本人視点用）
 function visibilityLabel(c){
@@ -1402,7 +1410,8 @@ function visibilityLabel(c){
     const names=(v.liveViewers||[]).map(id=>{const m=getMember(id);return m?m.name:'';}).filter(Boolean);
     return {key:'selected',text:names.length?names.join('・')+'のみ':'未設定',icon:'ti-user-check'};
   }
-  return {key:'all',text:'家族全員',icon:'ti-users'};
+  if(v.mode==='all')return {key:'all',text:'家族全員',icon:'ti-users'};
+  return {key:'private',text:'本人のみ（もしもの時も非開示）',icon:'ti-eye-off'}; // v58(APP-SEC-VIS): 未知modeはcanViewContractと整合し非公開ラベルへ fail-safe。undefinedはgetVisibilityがall正規化＝従来通り家族全員
 }
 
 // 機密情報が見られるか
@@ -1459,7 +1468,7 @@ function renderPreviewBar(){
   const banner=document.getElementById('death-banner');
   if(isPreviewing()){
     const m=getMember(previewAsId);
-    document.getElementById('preview-info').innerHTML=`<strong>${m.name}</strong>さんの視点でプレビュー中`;
+    document.getElementById('preview-info').innerHTML=`<strong>${esc(m.name)}</strong>さんの視点でプレビュー中`;
     bar.classList.add('show');
     // v53(APP-EMG-PREVIEW): emergencyMode=false 時は旧2段階(相続判断/完全開示)トグルを隠す。
     // 永久廃止UI(ToS7.1)の露出抑止であり、新規emergency実装ではない。フラグ復活時にそのまま再表示される。
@@ -1524,9 +1533,9 @@ function renderSwitchMenu(){
   members.forEach(m=>{
     if(m.id===MY_ID)return;
     const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
-    html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" onclick="selectView('${m.id}')">
-      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
-      <div class="info"><div class="name">${m.name}</div><div class="sub">${cnt}件の契約</div></div>
+    html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" data-mid="${esc(m.id)}" onclick="selectView(this.dataset.mid)">
+      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="info"><div class="name">${esc(m.name)}</div><div class="sub">${cnt}件の契約</div></div>
       ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
     </div>`;
   });
@@ -1638,9 +1647,9 @@ function openPreviewModal(){
   document.getElementById('switch-menu').classList.remove('open');
   const el=document.getElementById('preview-member-list');
   el.innerHTML=members.filter(m=>m.id!==MY_ID).map(m=>
-    `<div class="preview-opt" onclick="startPreview('${m.id}')">
-      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
-      <div class="info"><div class="nm">${m.name}さんの視点</div><div class="sub">${m.name}さんがアプリを見たときの表示を確認</div></div>
+    `<div class="preview-opt" data-mid="${esc(m.id)}" onclick="startPreview(this.dataset.mid)">
+      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="info"><div class="nm">${esc(m.name)}さんの視点</div><div class="sub">${esc(m.name)}さんがアプリを見たときの表示を確認</div></div>
       <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
     </div>`
   ).join('');
@@ -1660,7 +1669,7 @@ document.addEventListener('click',(e)=>{
 function renderCatTabs(){
   const t=document.getElementById('tabs');
   const all=['すべて',...categories];
-  t.innerHTML=all.map(c=>`<div class="tab${c===activeCat?' active':''}" onclick="setCat('${c}')">${c}</div>`).join('');
+  t.innerHTML=all.map(c=>`<div class="tab${c===activeCat?' active':''}" data-cat="${esc(c)}" onclick="setCat(this.dataset.cat)">${esc(c)}</div>`).join('');
 }
 function setCat(c){activeCat=c;renderCatTabs();renderList();}
 
@@ -1776,7 +1785,7 @@ function renderList(){
       document.getElementById('empty-q').textContent=searchQuery;
     } else {
       const who=viewOwnerId==='all'?'家族全員':getMember(viewOwnerId)?.name||'';
-      el.innerHTML=`<div class="empty-state">${who}の契約はありません</div>`;
+      el.innerHTML=`<div class="empty-state">${esc(who)}の契約はありません</div>`;
     }
     return;
   }
@@ -1799,18 +1808,18 @@ function renderList(){
       const vl=visibilityLabel(c);
       if(vl.key!=='all'){
         const color=vl.key==='private'?'#A32D2D':'#854F0B';
-        visIconHtml=`<i class="ti ${vl.icon} hidden-icon" style="color:${color}" title="${vl.text}しか見られません"></i>`;
+        visIconHtml=`<i class="ti ${vl.icon} hidden-icon" style="color:${color}" title="${esc(vl.text)}しか見られません"></i>`;
       }
     }
     const ownerName=getOwnerName(c);
     const ownerColor=getOwnerColor(c);
     const ownerInitial=ownerName.charAt(0);
-    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColor}">${ownerInitial}</div>`:'';
-    const ownerMeta=viewOwnerId==='all'?` · ${ownerName}`:'';
+    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${esc(ownerColor)}">${esc(ownerInitial)}</div>`:'';
+    const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     const logoDomain=inferLogoDomain(c);
     const logoUrl=logoDomain?logoDevImageUrl(logoDomain,64):'';
     const iconOrLogo=logoUrl
-      ?`<img class="logo-img" src="${logoUrl}" alt="${c.name} logo" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
+      ?`<img class="logo-img" src="${esc(logoUrl)}" alt="${esc(c.name)} logo" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
       :`<i class="ti ${icon}" style="color:${tc}"></i>`;
     let amountMain,amountSub;
     if(c.cycle==='yearly'){
@@ -1826,8 +1835,8 @@ function renderList(){
         ${ownerDot}
       </div>
       <div class="card-body">
-        <div class="card-name">${c.name}${cyclePill}${visIconHtml}${lockIcon}</div>
-        <div class="card-meta">${c.cat}${ownerMeta}${c.memo?' · '+c.memo:''}${payIconHtml}</div>
+        <div class="card-name">${esc(c.name)}${cyclePill}${visIconHtml}${lockIcon}</div>
+        <div class="card-meta">${esc(c.cat)}${ownerMeta}${c.memo?' · '+esc(c.memo):''}${payIconHtml}</div>
         ${badge}
       </div>
       <div class="card-right">
@@ -1871,7 +1880,7 @@ function showDetail(id){
   else if(d<=30)urgentBadge=`<span class="badge badge-soon" style="margin-left:6px">${d}日後</span>`;
 
   let docsHtml=c.docs&&c.docs.length
-    ?c.docs.map(d=>`<span class="doc-tag"><i class="ti ti-file" style="font-size:10px;margin-right:3px"></i>${d}</span>`).join('')
+    ?c.docs.map(d=>`<span class="doc-tag"><i class="ti ti-file" style="font-size:10px;margin-right:3px"></i>${esc(d)}</span>`).join('')
     :'<span style="font-size:12px;color:var(--color-text-tertiary)">なし</span>';
 
   let amountSection='';
@@ -1909,9 +1918,9 @@ function showDetail(id){
           <div class="section-title">
             <span><i class="ti ${stm.icon}" style="font-size:10px;margin-right:3px"></i>${stm.title}</span>
           </div>
-          ${isCardPayment&&c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${c.cardBrand}</div></div></div>`:''}
-          ${isCardPayment&&c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード下4桁</div><div class="info-val masked">**** ${c.cardLast4}</div></div></div>`:''}
-          ${c.secret?`<div class="info-row"><i class="ti ti-key info-icon"></i><div><div class="info-label">${pm==='bank_debit'?'引落口座の所在メモ':pm==='bank_transfer'?'振込先口座の所在メモ':'メモ（保管場所等）'}</div><div class="info-val">${c.secret}</div></div></div>`:''}
+          ${isCardPayment&&c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${esc(c.cardBrand)}</div></div></div>`:''}
+          ${isCardPayment&&c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード下4桁</div><div class="info-val masked">**** ${esc(c.cardLast4)}</div></div></div>`:''}
+          ${c.secret?`<div class="info-row"><i class="ti ti-key info-icon"></i><div><div class="info-label">${pm==='bank_debit'?'引落口座の所在メモ':pm==='bank_transfer'?'振込先口座の所在メモ':'メモ（保管場所等）'}</div><div class="info-val">${esc(c.secret)}</div></div></div>`:''}
         </div>`;
     } else if(seeSecret){
       // 家族閲覧（開示ON）
@@ -1919,8 +1928,8 @@ function showDetail(id){
         secretHtml=`
           <div class="section">
             <div class="section-title"><span><i class="ti ti-shield" style="font-size:10px;margin-right:3px"></i>支払い情報（開示済）</span></div>
-            ${c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${c.cardBrand}</div></div></div>`:''}
-            ${c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード番号</div><div class="info-val masked">**** **** **** ${c.cardLast4}</div></div></div>`:''}
+            ${c.cardBrand?`<div class="info-row"><i class="ti ti-credit-card info-icon"></i><div><div class="info-label">カード会社</div><div class="info-val">${esc(c.cardBrand)}</div></div></div>`:''}
+            ${c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード番号</div><div class="info-val masked">**** **** **** ${esc(c.cardLast4)}</div></div></div>`:''}
             <div class="sealed-note"><i class="ti ti-info-circle" style="font-size:12px"></i>カード番号フルはアプリに保管していません。カード会社にお問い合わせください。</div>
           </div>`;
       } else {
@@ -1942,7 +1951,7 @@ function showDetail(id){
       secretHtml=`
         <div class="section">
           <div class="section-title"><span><i class="ti ti-lock" style="font-size:10px;margin-right:3px"></i>機密情報</span></div>
-          <div class="sealed-note"><i class="ti ti-shield-lock" style="font-size:12px"></i>この情報は ${ownerName} 本人のみ閲覧可能です。</div>
+          <div class="sealed-note"><i class="ti ti-shield-lock" style="font-size:12px"></i>この情報は ${esc(ownerName)} 本人のみ閲覧可能です。</div>
         </div>`;
     }
   }
@@ -1953,7 +1962,7 @@ function showDetail(id){
   } else if(owner&&c.archived&&!isPreviewing()){
     actionsHtml=`<div class="detail-actions"><button onclick="restoreContract(${c.id})"><i class="ti ti-arrow-back-up"></i>復元する</button><button class="btn-danger" onclick="deleteContract(${c.id})"><i class="ti ti-trash"></i>削除</button></div>`;
   } else {
-    actionsHtml=`<div style="padding:12px 16px;font-size:11px;color:var(--color-text-tertiary);text-align:center"><i class="ti ti-eye"></i> 閲覧のみ（${ownerName}の契約）</div>`;
+    actionsHtml=`<div style="padding:12px 16px;font-size:11px;color:var(--color-text-tertiary);text-align:center"><i class="ti ti-eye"></i> 閲覧のみ（${esc(ownerName)}の契約）</div>`;
   }
   document.getElementById('edit-btn-top').style.display=owner&&!c.archived&&!isPreviewing()?'':'none';
 
@@ -1961,40 +1970,40 @@ function showDetail(id){
 
   // 本人視点でのみ公開範囲バッジを表示
   const headerVisBadge=(!isPreviewing()&&c.ownerId===MY_ID)
-    ?`<span class="visibility-badge ${vl.key}"><i class="ti ${vl.icon}" style="font-size:10px"></i>${vl.text}に表示</span>`
+    ?`<span class="visibility-badge ${vl.key}"><i class="ti ${vl.icon}" style="font-size:10px"></i>${esc(vl.text)}に表示</span>`
     :'';
 
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">
       <div class="detail-icon" style="background:${bg}"><i class="ti ${icon}" style="color:${tc};font-size:20px"></i></div>
       <div>
-        <div class="detail-name">${c.name}${cycleLabel}</div>
-        <div class="detail-cat">${c.cat} <span class="owner-pill"><span class="av" style="background:${ownerColor}">${ownerInitial}</span>${ownerName}</span>${headerVisBadge}</div>
+        <div class="detail-name">${esc(c.name)}${cycleLabel}</div>
+        <div class="detail-cat">${esc(c.cat)} <span class="owner-pill"><span class="av" style="background:${esc(ownerColor)}">${esc(ownerInitial)}</span>${esc(ownerName)}</span>${headerVisBadge}</div>
       </div>
     </div>
 
-    ${c.archived?`<div class="section"><div class="section-title">解約記録</div><div class="archived-box"><p><strong style="font-weight:500">解約日:</strong> ${c.archivedDate||'-'}</p>${c.archivedNote?`<p style="margin-top:4px"><strong style="font-weight:500">備考:</strong> ${c.archivedNote}</p>`:''}</div></div>`:''}
+    ${c.archived?`<div class="section"><div class="section-title">解約記録</div><div class="archived-box"><p><strong style="font-weight:500">解約日:</strong> ${esc(c.archivedDate||'-')}</p>${c.archivedNote?`<p style="margin-top:4px"><strong style="font-weight:500">備考:</strong> ${esc(c.archivedNote)}</p>`:''}</div></div>`:''}
 
-    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none">${c.familyMessage}</div></div>`:''}
+    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none">${esc(c.familyMessage)}</div></div>`:''}
 
     <div class="section">
       <div class="section-title">支払い情報</div>
       <div class="info-row"><i class="ti ti-calendar info-icon"></i><div><div class="info-label">支払日</div><div class="info-val">${paymentDateText(c)}${urgentBadge}</div></div></div>
       ${amountSection}
       <div class="info-row"><i class="ti ${payMethodInfo(c).icon} info-icon"></i><div><div class="info-label">支払方法</div><div class="info-val">${payMethodInfo(c).label}</div></div></div>
-      ${c.memo?`<div class="info-row"><i class="ti ti-notes info-icon"></i><div><div class="info-label">メモ</div><div class="info-val">${c.memo}</div></div></div>`:''}
+      ${c.memo?`<div class="info-row"><i class="ti ti-notes info-icon"></i><div><div class="info-label">メモ</div><div class="info-val">${esc(c.memo)}</div></div></div>`:''}
     </div>
 
     <div class="section">
       <div class="section-title">連絡先</div>
-      ${c.tel?`<div class="info-row"><i class="ti ti-phone info-icon"></i><div><div class="info-label">契約先の電話番号</div><div class="info-val">${c.tel}</div></div></div>`:''}
-      ${c.url?`<div class="info-row"><i class="ti ti-world info-icon"></i><div style="flex:1"><div class="info-label">ウェブサイト</div><div class="url-btn" onclick="openLink('${c.url}')"><i class="ti ti-link"></i><span>${c.url}</span><i class="ti ti-external-link ext"></i></div></div></div>`:''}
+      ${c.tel?`<div class="info-row"><i class="ti ti-phone info-icon"></i><div><div class="info-label">契約先の電話番号</div><div class="info-val">${esc(c.tel)}</div></div></div>`:''}
+      ${c.url?`<div class="info-row"><i class="ti ti-world info-icon"></i><div style="flex:1"><div class="info-label">ウェブサイト</div><div class="url-btn" data-url="${esc(c.url)}" onclick="openLink(this.dataset.url)"><i class="ti ti-link"></i><span>${esc(c.url)}</span><i class="ti ti-external-link ext"></i></div></div></div>`:''}
       ${!c.tel&&!c.url?'<span style="font-size:12px;color:var(--color-text-tertiary)">未登録</span>':''}
     </div>
 
     <div class="section">
       <div class="section-title">解約方法</div>
-      <div class="cancel-box"><p>${c.cancel||'未登録'}</p></div>
+      <div class="cancel-box"><p>${c.cancel?esc(c.cancel):'未登録'}</p></div>
     </div>
 
     <div class="section">
@@ -2048,8 +2057,14 @@ function archiveContract(){
   showDetail(selectedId);renderList();updateSummary();
 }
 
-function openLink(url){window.open(url,'_blank');}
-function setupOwnerSelect(sel,val){sel.innerHTML=members.map(m=>`<option value="${m.id}"${m.id===val?' selected':''}>${m.name}</option>`).join('');}
+function openLink(url){
+  // スキーム検証（javascript:/data: 等を弾き http/https/tel/mailto のみ許可）
+  const u=String(url||'').trim();
+  if(/^(https?:|tel:|mailto:)/i.test(u)){window.open(u,'_blank','noopener');}
+  else if(/^[^:]*[.\/]/.test(u)&&!/^[a-z][a-z0-9+.-]*:/i.test(u)){window.open('https://'+u,'_blank','noopener');}
+  else {alert('このリンクは開けません: '+u);}
+}
+function setupOwnerSelect(sel,val){sel.innerHTML=members.map(m=>`<option value="${esc(m.id)}"${m.id===val?' selected':''}>${esc(m.name)}</option>`).join('');}
 function setupMonthSelect(sel,val){
   let html='';
   for(let i=1;i<=12;i++)html+=`<option value="${i}"${i===val?' selected':''}>${i}月</option>`;
@@ -2114,9 +2129,9 @@ function renderViewerChecks(){
   el.innerHTML=others.map(m=>{
     const checked=formLiveViewers.includes(m.id)?'checked':'';
     return `<label class="vc-row">
-      <input type="checkbox" ${checked} onchange="toggleLiveViewer('${m.id}',this.checked)">
-      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
-      <div class="nm">${m.name}</div>
+      <input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleLiveViewer(this.dataset.mid,this.checked)">
+      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="nm">${esc(m.name)}</div>
     </label>`;
   }).join('');
 }
@@ -2132,9 +2147,9 @@ function renderAfterViewerChecks(){
   el.innerHTML=others.map(m=>{
     const checked=formAfterViewers.includes(m.id)?'checked':'';
     return `<label class="vc-row">
-      <input type="checkbox" ${checked} onchange="toggleAfterViewer('${m.id}',this.checked)">
-      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
-      <div class="nm">${m.name}</div>
+      <input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleAfterViewer(this.dataset.mid,this.checked)">
+      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="nm">${esc(m.name)}</div>
     </label>`;
   }).join('');
 }
@@ -2171,7 +2186,7 @@ function openModal(){
     showBetaLimitModal();
     return;
   }
-  document.getElementById('f-cat').innerHTML=categories.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('f-cat').innerHTML=categories.map(c=>`<option>${esc(c)}</option>`).join('');
   setupOwnerSelect(document.getElementById('f-owner'),MY_ID);
   setupMonthSelect(document.getElementById('f-month'),todayMonth);
   ['f-name','f-amount','f-day','f-day-yearly','f-tel','f-url','f-cancel','f-docs','f-memo','f-family-message','f-card-brand','f-card-last4','f-secret'].forEach(id=>document.getElementById(id).value='');
@@ -2247,7 +2262,7 @@ function openEditModal(){
   if(selectedId===null)return;
   const c=contracts.find(x=>x.id===selectedId);
   if(!c||!isOwner(c)||isPreviewing())return;
-  document.getElementById('f-cat').innerHTML=categories.map(cat=>`<option${cat===c.cat?' selected':''}>${cat}</option>`).join('');
+  document.getElementById('f-cat').innerHTML=categories.map(cat=>`<option${cat===c.cat?' selected':''}>${esc(cat)}</option>`).join('');
   setupOwnerSelect(document.getElementById('f-owner'),c.ownerId);
   setupMonthSelect(document.getElementById('f-month'),c.month||todayMonth);
   document.getElementById('f-name').value=c.name;
@@ -2500,8 +2515,10 @@ function loadPersistentState(){
   }catch(e){
     console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
     // パース失敗時はサンプルデータのまま継続。破損データを上書きしないため persistState() は呼ばない
+    corruptStateDetected=true; // v57(APP-DATA-CORRUPT): 初期化後にユーザーへ通知
   }
 }
+let corruptStateDetected=false; // v57(APP-DATA-CORRUPT): loadPersistentState のパース失敗を記録
 
 // === v32: ?blank=1 ブランクモード ===
 let isBlankMode=false; // v54(APP-DATA-BLANK): blankモード中は persistState を抑止し実データ消失を防ぐ
@@ -2721,10 +2738,10 @@ function renderInvitations(){
     const remainDays=Math.max(0,Math.ceil(remainMs/(24*60*60*1000)));
     return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;color:var(--color-text-primary)">${inv.suggestedName} <span style="font-size:10px;color:var(--color-text-tertiary)">（${inv.suggestedRelation}）</span></div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px"><i class="ti ti-clock" style="font-size:10px"></i> 残り${remainDays}日 · OTP ${inv.otp}</div>
+        <div style="font-size:12px;color:var(--color-text-primary)">${esc(inv.suggestedName)} <span style="font-size:10px;color:var(--color-text-tertiary)">（${esc(inv.suggestedRelation)}）</span></div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px"><i class="ti ti-clock" style="font-size:10px"></i> 残り${remainDays}日 · OTP ${esc(inv.otp)}</div>
       </div>
-      <button onclick="revokeInvitation('${inv.id}')" title="招待を取消" style="padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid #F09595;background:transparent;color:#A32D2D;font-size:11px;cursor:pointer"><i class="ti ti-x"></i></button>
+      <button data-iid="${esc(inv.id)}" onclick="revokeInvitation(this.dataset.iid)" title="招待を取消" style="padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid #F09595;background:transparent;color:#A32D2D;font-size:11px;cursor:pointer"><i class="ti ti-x"></i></button>
     </div>`;
   }).join('');
 }
@@ -2806,18 +2823,19 @@ function renderMemberList(){
     const isMyself=m.id===MY_ID;
     const revokable=!isMyself && canRevokeMember(m);
     // 24h 取消ウィンドウ内のメンバーは「取消（24h）」ボタンを追加表示
+    const mid=esc(m.id);
     const revokeBtn=revokable
-      ?`<button onclick="revokeAcceptedMember('${m.id}')" title="24h以内の受諾取消" style="background:#A32D2D;color:#fff;border-color:#A32D2D"><i class="ti ti-clock-x"></i></button>`
+      ?`<button data-mid="${mid}" onclick="revokeAcceptedMember(this.dataset.mid)" title="24h以内の受諾取消" style="background:#A32D2D;color:#fff;border-color:#A32D2D"><i class="ti ti-clock-x"></i></button>`
       :'';
     return `<div class="member-row">
-      <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
+      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
       <div class="name">
-        <input type="text" value="${m.name}" onchange="renameMember('${m.id}',this.value)" style="font-size:13px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
+        <input type="text" value="${esc(m.name)}" data-mid="${mid}" onchange="renameMember(this.dataset.mid,this.value)" style="font-size:13px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
         <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:2px">契約 ${contractCount}件${isMyself?' · あなた':''}${revokable?' · 24h取消可':''}</div>
       </div>
-      <div class="color-dot" style="background:${m.color}" onclick="openColorModal('${m.id}')" title="色を変える"></div>
+      <div class="color-dot" style="background:${esc(m.color)}" data-mid="${mid}" onclick="openColorModal(this.dataset.mid)" title="色を変える"></div>
       ${revokeBtn}
-      <button onclick="stopMemberViewing('${m.id}')" title="閲覧権限を停止"${isMyself||contractCount>0?' disabled style="opacity:0.3;cursor:not-allowed"':''}><i class="ti ti-eye-off"></i></button>
+      <button data-mid="${mid}" onclick="stopMemberViewing(this.dataset.mid)" title="閲覧権限を停止"${isMyself||contractCount>0?' disabled style="opacity:0.3;cursor:not-allowed"':''}><i class="ti ti-eye-off"></i></button>
     </div>`;
   }).join('');
 }
@@ -2862,7 +2880,7 @@ const removeMember=stopMemberViewing;
 function openColorModal(id){
   colorTargetId=id;
   const m=getMember(id);
-  document.getElementById('color-modal-title').innerHTML=`<i class="ti ti-palette"></i>${m.name} の色を選ぶ`;
+  document.getElementById('color-modal-title').innerHTML=`<i class="ti ti-palette"></i>${esc(m.name)} の色を選ぶ`;
   const picker=document.getElementById('color-picker');
   picker.innerHTML=PALETTE.map(c=>`<div style="background:${c}" class="${c===m.color?'selected':''}" onclick="pickColor('${c}')"></div>`).join('');
   document.getElementById('color-modal').classList.add('open');
@@ -2941,7 +2959,7 @@ function doExport(){
     return doExportJSON();
   }
   closeExportModal();
-  const meName=getMember(MY_ID).name;
+  const meName=esc(getMember(MY_ID).name);
   let filtered=contracts.filter(c=>viewOwnerId==='all'||c.ownerId===viewOwnerId);
   // 死後モード（相続判断・完全開示）では「本人のみ」契約を除外。生前モードでは after_only も除外（生前は本人にしか見えない）
   if(exportMode==='inheritance'||exportMode==='family'){
@@ -2955,7 +2973,7 @@ function doExport(){
   const yearlyTotal=active.reduce((s,c)=>s+yearlyAmount(c),0);
   const dateStr=new Date().toLocaleDateString('ja-JP');
   const modeLabel=exportMode==='self'?'通常版（自分用）':(exportMode==='inheritance'?'相続判断モード（Stage 1）':'完全開示モード（Stage 2）');
-  const ownerLabel=viewOwnerId==='all'?'家族全員':getMember(viewOwnerId).name;
+  const ownerLabel=viewOwnerId==='all'?'家族全員':esc(getMember(viewOwnerId).name);
 
   // 死後モードで「一部にだけ見せる」契約に補足を付ける
   function visibilityNote(c){
@@ -2965,7 +2983,7 @@ function doExport(){
       const after=(v.afterViewers||[]);
       if(after.length){
         const names=after.map(id=>{const m=getMember(id);return m?m.name:'';}).filter(Boolean);
-        return `<div style="font-size:10px;color:#854F0B;margin-top:3px"><strong>※もしもの時の閲覧範囲:</strong> ${names.join('・')}のみ</div>`;
+        return `<div style="font-size:10px;color:#854F0B;margin-top:3px"><strong>※もしもの時の閲覧範囲:</strong> ${esc(names.join('・'))}のみ</div>`;
       }
     }
     if(v.mode==='after_only'){
@@ -2979,16 +2997,16 @@ function doExport(){
     if(exportMode==='self'){
       if(c.ownerId!==MY_ID){
         // 他メンバーの契約：支払方法のみ表示
-        return `<div style="font-size:11px;color:#888">支払方法: ${pmLabel}${c.cardBrand?' / '+c.cardBrand+(c.cardLast4?' **** '+c.cardLast4:''):''}</div>`;
+        return `<div style="font-size:11px;color:#888">支払方法: ${pmLabel}${c.cardBrand?' / '+esc(c.cardBrand)+(c.cardLast4?' **** '+esc(c.cardLast4):''):''}</div>`;
       }
       // 自分の契約：すべて表示
       let parts=[];
       parts.push('支払方法: '+pmLabel);
       if(payMethodOf(c)==='credit_card'){
-        if(c.cardBrand)parts.push('カード会社: '+c.cardBrand);
-        if(c.cardLast4)parts.push('下4桁: ****'+c.cardLast4);
+        if(c.cardBrand)parts.push('カード会社: '+esc(c.cardBrand));
+        if(c.cardLast4)parts.push('下4桁: ****'+esc(c.cardLast4));
       }
-      if(c.secret)parts.push('機密: '+c.secret);
+      if(c.secret)parts.push('機密: '+esc(c.secret));
       return `<div style="font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px">${parts.join(' / ')}</div>`;
     } else if(exportMode==='inheritance'){
       // 相続判断モード：機密情報は完全に伏せる。支払方法ラベルのみ
@@ -2997,8 +3015,8 @@ function doExport(){
       // 完全開示モード（Stage 2）：機密情報は支払方法と種別のみ表示（口座詳細は除外）
       let parts=['支払方法: '+pmLabel];
       if(payMethodOf(c)==='credit_card'){
-        if(c.cardBrand)parts.push(c.cardBrand);
-        if(c.cardLast4)parts.push('**** '+c.cardLast4);
+        if(c.cardBrand)parts.push(esc(c.cardBrand));
+        if(c.cardLast4)parts.push('**** '+esc(c.cardLast4));
       } else if(payMethodOf(c)==='bank_debit'||payMethodOf(c)==='bank_transfer'){
         parts.push('口座詳細は本人確認後に開示');
       }
@@ -3050,17 +3068,17 @@ ${active.map(c=>{
 return `
 <div class="contract">
   <div class="c-head">
-    <div><span class="c-name">${c.name}</span>${cycleTag} <span class="c-cat">${c.cat} / ${getOwnerName(c)}</span></div>
+    <div><span class="c-name">${esc(c.name)}</span>${cycleTag} <span class="c-cat">${esc(c.cat)} / ${esc(getOwnerName(c))}</span></div>
     <div>${amount}</div>
   </div>
   <div class="c-row"><strong>支払日:</strong> ${paymentDateText(c)}</div>
   <div class="c-row"><strong>支払方法:</strong> ${payMethodInfo(c).label}</div>
-  ${c.tel?`<div class="c-row"><strong>電話:</strong> ${c.tel}</div>`:''}
-  ${c.url?`<div class="c-row"><strong>URL:</strong> ${c.url}</div>`:''}
-  ${c.cancel?`<div class="c-row"><strong>解約方法:</strong> ${c.cancel}</div>`:''}
-  ${c.docs&&c.docs.length?`<div class="c-row"><strong>必要書類:</strong> ${c.docs.join(' / ')}</div>`:''}
-  ${c.memo?`<div class="c-row"><strong>メモ:</strong> ${c.memo}</div>`:''}
-  ${c.familyMessage?`<div style="margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap"><strong style="color:#A04B6E;font-weight:600">家族への一言:</strong> ${c.familyMessage}</div>`:''}
+  ${c.tel?`<div class="c-row"><strong>電話:</strong> ${esc(c.tel)}</div>`:''}
+  ${c.url?`<div class="c-row"><strong>URL:</strong> ${esc(c.url)}</div>`:''}
+  ${c.cancel?`<div class="c-row"><strong>解約方法:</strong> ${esc(c.cancel)}</div>`:''}
+  ${c.docs&&c.docs.length?`<div class="c-row"><strong>必要書類:</strong> ${esc(c.docs.join(' / '))}</div>`:''}
+  ${c.memo?`<div class="c-row"><strong>メモ:</strong> ${esc(c.memo)}</div>`:''}
+  ${c.familyMessage?`<div style="margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap"><strong style="color:#A04B6E;font-weight:600">家族への一言:</strong> ${esc(c.familyMessage)}</div>`:''}
   ${secretRow(c)}
   ${visibilityNote(c)}
 </div>`;
@@ -3068,9 +3086,9 @@ return `
 
 ${archived.length?`<h2>■ 解約済みアーカイブ（${archived.length}件）</h2><div class="archived">${archived.map(c=>`
 <div class="contract">
-  <div class="c-head"><div><span class="c-name">${c.name}</span> <span class="c-cat">${c.cat} / ${getOwnerName(c)}</span></div><div class="c-amount" style="color:#888">解約済</div></div>
-  <div class="c-row"><strong>解約日:</strong> ${c.archivedDate||'-'}</div>
-  ${c.archivedNote?`<div class="c-row"><strong>備考:</strong> ${c.archivedNote}</div>`:''}
+  <div class="c-head"><div><span class="c-name">${esc(c.name)}</span> <span class="c-cat">${esc(c.cat)} / ${esc(getOwnerName(c))}</span></div><div class="c-amount" style="color:#888">解約済</div></div>
+  <div class="c-row"><strong>解約日:</strong> ${esc(c.archivedDate||'-')}</div>
+  ${c.archivedNote?`<div class="c-row"><strong>備考:</strong> ${esc(c.archivedNote)}</div>`:''}
 </div>`).join('')}</div>`:''}
 
 <div class="footer">きずなbaton より出力 / ${dateStr}</div>
@@ -3085,7 +3103,7 @@ function openCatModal(){renderCatList();document.getElementById('cat-modal').cla
 function closeCatModal(){document.getElementById('cat-modal').classList.remove('open');renderCatTabs();}
 function renderCatList(){
   document.getElementById('cat-list').innerHTML=categories.map((c,i)=>
-    `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${c}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="renameCat(${i})" aria-label="${c}をリネーム"><i class="ti ti-pencil"></i></button><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${c}を削除"><i class="ti ti-trash"></i></button></div>`
+    `<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)"><i class="ti ${ICONS[c]||'ti-tag'}"></i><span style="flex:1">${esc(c)}</span><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="renameCat(${i})" aria-label="${esc(c)}をリネーム"><i class="ti ti-pencil"></i></button><button style="background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary)" onclick="deleteCat(${i})" aria-label="${esc(c)}を削除"><i class="ti ti-trash"></i></button></div>`
   ).join('');
 }
 function renameCat(i){
@@ -3356,9 +3374,9 @@ function renderWorkflowModal(){
     members.filter(m=>m.id!==MY_ID).forEach(m=>{
       const approved=wf.stage2Approvers.includes(m.id);
       apprHtml+=`<div class="wf-approver-row${approved?' approved':''}">
-        <div class="av" style="background:${m.color}">${m.name.charAt(0)}</div>
-        <div class="nm">${m.name}さん${approved?'（承認済み）':''}</div>
-        ${approved?'<i class="ti ti-check" style="color:#0F6E56;font-size:14px"></i>':`<button onclick="approveStage2('${m.id}')">承認</button>`}
+        <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+        <div class="nm">${esc(m.name)}さん${approved?'（承認済み）':''}</div>
+        ${approved?'<i class="ti ti-check" style="color:#0F6E56;font-size:14px"></i>':`<button data-mid="${esc(m.id)}" onclick="approveStage2(this.dataset.mid)">承認</button>`}
       </div>`;
     });
     apprList.innerHTML=apprHtml;
@@ -3566,7 +3584,7 @@ function doBackup(){
     app:'kizuna-baton',
     version:'v19',
     exportedAt:new Date().toISOString(),
-    data:{contracts:contracts,members:members}
+    data:{contracts:contracts,members:members,categories:categories.slice()}
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -3618,11 +3636,14 @@ function openRestoreConfirmModal(parsed){
   const el=document.getElementById('restore-confirm-summary');
   const cc=(parsed.data.contracts||[]).length;
   const mc=(parsed.data.members||[]).length;
+  const catRow=Array.isArray(parsed.data.categories)&&parsed.data.categories.length
+    ? `<div>カテゴリ：<strong>${parsed.data.categories.length}件</strong></div>` : '';
   const at=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString('ja-JP'):'不明';
   el.innerHTML=`<div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7">
     <div>バックアップ日時：<strong>${at}</strong></div>
     <div>契約：<strong>${cc}件</strong></div>
     <div>家族メンバー：<strong>${mc}名</strong></div>
+    ${catRow}
   </div>`;
   document.getElementById('restore-confirm-modal').classList.add('open');
 }
@@ -3634,6 +3655,16 @@ function applyRestore(){
   if(!pendingRestore){closeRestoreConfirmModal();return;}
   contracts=pendingRestore.contracts.slice();
   members=pendingRestore.members.slice();
+  // v56(APP-DATA-BACKUP): categories も復元（loadPersistentState と同型のバックフィル）。
+  // 旧バックアップ（categories 無し）は既存カテゴリ維持＝後方互換。
+  if(Array.isArray(pendingRestore.categories)&&pendingRestore.categories.length){
+    categories=pendingRestore.categories.slice();
+    categories.forEach(c=>{
+      if(!ICONS[c])ICONS[c]='ti-tag';
+      if(!COLORS[c])COLORS[c]='#D3D1C7';
+      if(!TCOLORS[c])TCOLORS[c]='#444441';
+    });
+  }
   // 整合性リセット
   selectedId=null;
   viewOwnerId=MY_ID;
@@ -3653,7 +3684,9 @@ function applyRestore(){
   renderAll();
   showToast('データを復元しました','success');
 }
-function openRestoreErrorModal(msg,detail){
+function openRestoreErrorModal(msg,detail,title){
+  const t=document.getElementById('restore-error-title');
+  if(t)t.textContent=title||'復元できませんでした';
   document.getElementById('restore-error-msg').textContent=msg;
   document.getElementById('restore-error-detail').textContent=detail||'';
   document.getElementById('restore-error-modal').classList.add('open');
@@ -3672,6 +3705,17 @@ renderAll();
 // v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
 if(maybeShowOwnerConsent()){
   maybeShowOnboarding();
+}
+
+// v57(APP-DATA-CORRUPT): 保存データ破損を検知した場合はユーザーへ通知（サンプル表示に戻している旨）。
+// 破損データは上書きしていない（loadPersistentState で persistState 抑止済＝安全側）。
+// 同意/オンボーディング等のモーダルが出ているときはスタック回避のため通知しない（破損はサンプル表示で安全継続のため猶予可）。
+if(corruptStateDetected && !document.querySelector('.modal-bg.open')){
+  openRestoreErrorModal(
+    '保存していたデータを読み込めなかったため、サンプル表示に戻しています。バックアップファイルがあれば「復元」からやり直せます。',
+    'localStorage の保存データを解析できませんでした（データは上書きしていません）',
+    'データを読み込めませんでした'
+  );
 }
 
 // === v52(APP-S83-3): persistState 呼び忘れ安全網 ===
