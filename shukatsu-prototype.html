@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v59</title>
+<title>きずなbaton プロトタイプ v60</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1521,8 +1521,8 @@ function renderSwitchMenu(){
   const myCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&canViewContract(c,viewer)).length;
   html+=`<div class="switch-section-header">契約の表示</div>`;
   html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
-    <div class="av" style="background:${me.color}">${me.name.charAt(0)}</div>
-    <div class="info"><div class="name">${me.name} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
+    <div class="av" style="background:${esc(me.color)}">${esc(me.name.charAt(0))}</div>
+    <div class="info"><div class="name">${esc(me.name)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
     ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
   </div>`;
   html+=`<div class="switch-item${viewOwnerId==='all'?' active':''}" onclick="selectView('all')">
