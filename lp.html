@@ -177,6 +177,19 @@ section{padding:88px 0}
 .form-help{font-size:12px;color:var(--text-mute);margin-top:6px;line-height:1.6}
 .form-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-sub);line-height:1.7}
 .form-check input{margin-top:4px;flex-shrink:0}
+.reaction-chips{display:flex;flex-wrap:wrap;gap:10px}
+.reaction-chip{position:relative;flex:1 1 auto;min-width:120px}
+.reaction-chip input{position:absolute;opacity:0;width:0;height:0}
+.reaction-chip span{display:block;text-align:center;padding:12px 14px;border:1px solid var(--border-strong);border-radius:999px;font-size:14px;font-weight:600;color:var(--text-sub);cursor:pointer;transition:all .15s ease}
+.reaction-chip input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.reaction-chip input:focus-visible+span{outline:2px solid var(--accent-soft);outline-offset:2px}
+.form-details{margin-bottom:18px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.form-details>summary{padding:12px 14px;font-size:13px;font-weight:600;color:var(--text-sub);cursor:pointer;list-style:none}
+.form-details>summary::-webkit-details-marker{display:none}
+.form-details>summary::before{content:'＋ ';color:var(--accent-soft)}
+.form-details[open]>summary::before{content:'− '}
+.form-details-body{padding:4px 14px 14px}
+.form-details-body .form-row:last-child{margin-bottom:0}
 .form button[type=submit]{width:100%;margin-top:8px;padding:15px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s ease}
 .form button[type=submit]:hover{background:#6F4109}
 .form .legal{font-size:11px;color:var(--text-mute);margin-top:14px;text-align:center;line-height:1.7}
@@ -247,7 +260,7 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
       </p>
       <div class="hero-cta">
         <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html?blank=1" target="_blank" rel="noopener" class="btn btn-primary">今すぐβ版を試す <i class="ti ti-arrow-right"></i></a>
-        <a href="#waitlist" class="btn btn-ghost">感想・続報を受け取る</a>
+        <a href="#waitlist" class="btn btn-ghost">最新情報を受け取る</a>
       </div>
       <div class="hero-meta">
         <i class="ti ti-shield-check"></i>
@@ -519,43 +532,83 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
   <div class="container">
     <span class="waitlist-eyebrow">TRY THE BETA</span>
     <h2 class="section-title">まずは、β版を試してみてください</h2>
-    <p class="section-lead">いま、無料でお試しいただけます。<br>使ってみた感想や、続報のご希望があれば、下のフォームからお聞かせください（任意）。</p>
+    <p class="section-lead">いま、無料でお試しいただけます。<br>正式版のリリースや新機能の最新情報を受け取りたい方は、下のフォームからご登録ください。</p>
     <div style="display:flex;justify-content:center;margin-bottom:28px">
       <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html?blank=1" target="_blank" rel="noopener" class="btn btn-primary">今すぐβ版を試す <i class="ti ti-arrow-right"></i></a>
     </div>
-    <form class="form" action="https://formspree.io/f/xredoben" method="POST">
+    <form class="form" id="waitlist-form" action="https://formspree.io/f/xredoben" method="POST">
       <div class="form-row">
-        <label class="form-label" for="email">メールアドレス<span class="req">*</span></label>
-        <input class="form-input" type="email" id="email" name="email" required placeholder="example@email.com">
+        <label class="form-label">試してみていかがですか？<span class="req">*</span></label>
+        <div class="reaction-chips">
+          <label class="reaction-chip">
+            <input type="radio" name="reaction" value="tried" required>
+            <span>もう試した</span>
+          </label>
+          <label class="reaction-chip">
+            <input type="radio" name="reaction" value="will_try">
+            <span>これから試す</span>
+          </label>
+          <label class="reaction-chip">
+            <input type="radio" name="reaction" value="curious">
+            <span>気になっている</span>
+          </label>
+        </div>
+        <div class="form-help">ワンタップでお気持ちを送れます。メールの入力は任意です。</div>
       </div>
       <div class="form-row">
-        <label class="form-label" for="name">お名前（ニックネーム可）</label>
-        <input class="form-input" type="text" id="name" name="name" placeholder="山田 / Yamada">
+        <label class="form-label" for="email">メールアドレス（任意）</label>
+        <input class="form-input" type="email" id="email" name="email" placeholder="example@email.com">
+        <div class="form-help">最新情報が欲しい方のみ。空欄でも送信できます。</div>
       </div>
-      <div class="form-row">
-        <label class="form-label" for="role">どんな立場でご利用予定ですか？</label>
-        <select class="form-select" id="role" name="role">
-          <option value="">選択してください</option>
-          <option value="self_prepare">自分の契約を家族に残す準備として</option>
-          <option value="couple">夫婦・パートナーで一緒に管理したい</option>
-          <option value="parent_help">親の契約整理を手伝いたい</option>
-          <option value="both">残す側・受け継ぐ側、両方として</option>
-          <option value="other">その他</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label class="form-label" for="message">ご要望・期待される機能（任意）</label>
-        <textarea class="form-textarea" id="message" name="message" placeholder="こんな機能があったら使いたい、こんな悩みがある、など"></textarea>
-      </div>
-      <div class="form-row">
+      <details class="form-details">
+        <summary>もっと伝える（任意）</summary>
+        <div class="form-details-body">
+          <div class="form-row">
+            <label class="form-label" for="name">お名前（ニックネーム可）</label>
+            <input class="form-input" type="text" id="name" name="name" placeholder="山田 / Yamada">
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="role">どんな立場でご利用予定ですか？</label>
+            <select class="form-select" id="role" name="role">
+              <option value="">選択してください</option>
+              <option value="self_prepare">自分の契約を家族に残す準備として</option>
+              <option value="couple">夫婦・パートナーで一緒に管理したい</option>
+              <option value="parent_help">親の契約整理を手伝いたい</option>
+              <option value="both">残す側・受け継ぐ側、両方として</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="message">ご要望・期待される機能</label>
+            <textarea class="form-textarea" id="message" name="message" placeholder="こんな機能があったら使いたい、こんな悩みがある、など"></textarea>
+            <div class="form-help">カード番号・口座番号・暗証番号などは入力しないでください。</div>
+          </div>
+        </div>
+      </details>
+      <div class="form-row" id="agree-row" hidden>
         <label class="form-check">
-          <input type="checkbox" name="agree" required>
+          <input type="checkbox" name="agree" id="agree-check">
           <span>続報や関連情報のメール配信に同意します。<br>個人情報は本サービスのご案内目的にのみ利用し、第三者には提供しません。</span>
         </label>
       </div>
-      <button type="submit">感想・続報を送る <i class="ti ti-send"></i></button>
+      <button type="submit">送信する <i class="ti ti-send"></i></button>
       <div class="legal">登録は無料です。いつでも配信停止できます。</div>
     </form>
+    <script>
+      (function(){
+        var email = document.getElementById('email');
+        var agreeRow = document.getElementById('agree-row');
+        var agreeCheck = document.getElementById('agree-check');
+        function syncAgree(){
+          var hasEmail = email.value.trim() !== '';
+          agreeRow.hidden = !hasEmail;
+          agreeCheck.required = hasEmail;
+          if(!hasEmail){ agreeCheck.checked = false; }
+        }
+        email.addEventListener('input', syncAgree);
+        syncAgree();
+      })();
+    </script>
   </div>
 </section>
 
