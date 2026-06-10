@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v69</title>
+<title>きずなbaton プロトタイプ v70</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -102,9 +102,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .setting-toggle input:checked+.setting-toggle-thumb{background:var(--accent-warm);border-color:var(--accent-warm)}
 .setting-toggle input:checked+.setting-toggle-thumb::before{transform:translateX(16px)}
 
-.blank-banner{background:#E8F0FA;border-bottom:0.5px solid #185FA5;padding:8px 12px;display:none;align-items:center;gap:6px;font-size:11px;color:#0F3D6E}
-.blank-banner.show{display:flex}
-.blank-banner i{font-size:14px;flex-shrink:0}
+.demo-banner{background:#E8F0FA;border-bottom:0.5px solid #185FA5;padding:8px 12px;display:none;align-items:center;gap:8px;font-size:11px;color:#0F3D6E}
+.demo-banner.show{display:flex}
+.demo-banner i{font-size:14px;flex-shrink:0}
+.demo-banner .demo-fresh-btn{margin-left:auto;flex-shrink:0;border:0.5px solid #185FA5;background:#fff;color:#185FA5;border-radius:var(--border-radius-md);padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer}
 .preview-bar{background:#FAEEDA;border-bottom:0.5px solid #EF9F27;padding:8px 12px;display:none;flex-direction:column;gap:6px;font-size:11px;color:#633806}
 .preview-bar.show{display:flex}
 .preview-bar .pb-top{display:flex;align-items:center;gap:8px}
@@ -478,9 +479,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
     </div>
     <div class="switch-menu" id="switch-menu"></div>
-    <div class="blank-banner" id="blank-banner">
+    <div class="demo-banner" id="demo-banner">
       <i class="ti ti-flask"></i>
-      <div>お試しモード：入力するまでデータは保存されません</div>
+      <div>これはデモ（サンプル）です。自由に触ってお試しください。</div>
+      <button class="demo-fresh-btn" onclick="startFresh()">サンプルを消して入力する</button>
     </div>
     <div class="preview-bar" id="preview-bar">
       <div class="pb-top">
@@ -719,7 +721,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           このアプリは <strong>契約情報そのものを保管するアプリではなく、契約の存在と解約手順をご家族に伝えるアプリ</strong> です（Apple Legacy Contact と同じ設計思想）。<br>
           機密情報は金庫やパスワードマネージャーで別管理してください。
         </div>
-        <p class="ob-sample-note" id="ob-sample-note">※ 最初はサンプルデータが入っています。自由に触って試してください。</p>
+        <p class="ob-sample-note" id="ob-sample-note">※ 最初はサンプルデータが入っています。自由に触って試してください。ご自身のデータで始めるときは、上部の「サンプルを消して入力する」を押してください。</p>
       </div>
       <!-- Step 2: 保存範囲 -->
       <div class="ob-step" data-step="2" style="display:none">
@@ -1824,6 +1826,7 @@ function inferLogoDomain(c){
 }
 
 function renderList(){
+  renderDemoBanner(); // v70(APP-DEMO-FRESH): デモ表示中のみ案内バナーを出す
   const el=document.getElementById('contract-list');
   const list=filterContracts();
   const sorted=viewMode==='archived'
@@ -2591,15 +2594,6 @@ function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 const DATA_KEY='kizuna-baton:data:v20';
 function persistState(){
   if(isPrivateMode)return;
-  if(isBlankMode){
-    // v69(APP-LP-BLANK): 新規LP訪問者(端末に実データ無し)が初回の実操作を行った時点で保存ONへ移行。
-    // 既存ユーザーのデモ閲覧(実データ有り)は v54(APP-DATA-BLANK)保護を維持し、ここで保存しない。
-    if(blankHadPreexistingData)return;
-    isBlankMode=false;
-    renderBlankBanner();
-    showToast('保存を開始しました');
-    // フォールスルーして以降の lsSet で実際に保存する
-  }
   lsSet(DATA_KEY,JSON.stringify({
     version:'v20',
     savedAt:new Date().toISOString(),
@@ -2654,27 +2648,31 @@ function loadPersistentState(){
 }
 let corruptStateDetected=false; // v57(APP-DATA-CORRUPT): loadPersistentState のパース失敗を記録
 
-// === v32: ?blank=1 ブランクモード ===
-let isBlankMode=false; // v54(APP-DATA-BLANK): blankモード中は persistState を抑止し実データ消失を防ぐ
-// v69(APP-LP-BLANK): blank突入時に「既に実データが端末に存在したか」を記録。
-// false=新規LP訪問者 → 初回の実操作で保存ONへ移行。true=既存ユーザーのデモ閲覧 → v54保護を維持し保存しない。
-let blankHadPreexistingData=false;
-function applyBlankMode(){
-  const p=new URLSearchParams(location.search);
-  if(p.get('blank')!=='1')return;
-  isBlankMode=true;
-  blankHadPreexistingData=!!lsGet(DATA_KEY); // 既存実データの有無を保存ON移行の判定に使う
+// === v70(APP-DEMO-FRESH): デモ先行＋ワンタップ「サンプルを消して入力する」 ===
+// 全ユーザーが最初にサンプル(デモ)を見て使い方を理解 → 自分のデータで始めたい人はワンタップでクリア。
+// （旧 v32/v54/v69 の ?blank=1 ブランクモードはこの方式へ置換）
+function isShowingDemo(){
+  // 表示中の契約がすべて組込サンプルのときデモ扱い（DATA_KEY の有無に依存しない）。
+  // 理由: pagehide 安全網(APP-S83-3)がサンプルを保存し得るため、保存有無で判定すると
+  // 再訪時にバナーが出ない。クリア後(空=length0)・自分の契約を追加/編集した後は自動で false。
+  return contracts.length>0 && contracts.every(isBuiltInSampleContract);
+}
+function renderDemoBanner(){
+  const bar=document.getElementById('demo-banner');
+  if(!bar)return;
+  bar.classList.toggle('show', isShowingDemo());
+}
+function startFresh(){
+  if(!confirm('サンプル（デモ）をすべて消して、自分のデータの入力を始めますか？\nこの操作は元に戻せません。'))return;
   contracts=[];
   members=[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
+  invitations=[];
   nextId=1;
   nextMemberId=2;
-  renderBlankBanner();
-}
-// v69(APP-LP-BLANK): お試し中バナーの表示制御。新規訪問者がblank中のみ表示。
-function renderBlankBanner(){
-  const bar=document.getElementById('blank-banner');
-  if(!bar)return;
-  bar.classList.toggle('show', isBlankMode && !blankHadPreexistingData);
+  viewOwnerId=MY_ID; // 削除済みメンバーを指したままにしない
+  persistState();    // 以降は自分の入力を保存
+  renderAll();       // renderList 内で renderDemoBanner() が走りバナーは消える
+  showToast('自分のデータで始めます');
 }
 
 // === v18: ダークモード ===
@@ -2710,9 +2708,9 @@ function maybeShowOnboarding(){
 function openOnboarding(){
   onboardingStep=1;
   renderOnboardingStep();
-  // v32: blankモード(?blank=1)ではサンプル説明バナーを非表示
+  // v70(APP-DEMO-FRESH): 全員デモ先行のためサンプル説明ノートは常に表示
   const sn=document.getElementById('ob-sample-note');
-  if(sn) sn.style.display=new URLSearchParams(location.search).get('blank')==='1'?'none':'block';
+  if(sn) sn.style.display='block';
   document.getElementById('onboarding-modal').classList.add('open');
 }
 function reopenOnboarding(){
@@ -3848,7 +3846,6 @@ function closeRestoreErrorModal(){document.getElementById('restore-error-modal')
 detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
 loadSortPrefs();
 loadPersistentState();    // v20: 契約・メンバーを localStorage から復元（renderAll 前）
-applyBlankMode();         // v32: ?blank=1 の場合は contracts を空起動に上書き
 initDarkMode();
 initLargeMode();
 updateSortBtnLabel();
