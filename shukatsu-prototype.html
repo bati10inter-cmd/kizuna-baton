@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v60</title>
+<title>きずなbaton プロトタイプ v65</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -49,24 +49,24 @@
   --card-shadow:0 1px 2px rgba(0,0,0,0.35);
   --card-shadow-hover:0 4px 12px rgba(0,0,0,0.45);
 }
-/* 老眼モード(U1): 主要テキストのみ +2px 拡大。アイコン・バッジ・極小ラベル・印刷出力は据え置き */
-:root.large .card-name{font-size:16px}
-:root.large .card-meta{font-size:13px}
-:root.large .card-amount{font-size:17px}
-:root.large .card-amount-sub{font-size:12px}
-:root.large .topbar h1{font-size:19px}
-:root.large .topbar p{font-size:13px}
-:root.large .stat-val{font-size:20px}
-:root.large .stat-label{font-size:12px}
-:root.large .stat-sub{font-size:12px}
-:root.large .empty-state{font-size:14px}
-:root.large .detail-name{font-size:19px}
-:root.large .detail-cat{font-size:13px}
-:root.large .info-label{font-size:13px}
-:root.large .info-val{font-size:16px}
-:root.large .family-message-box{font-size:16px}
-:root.large .form-row label{font-size:12px}
-:root.large .form-row input,:root.large .form-row select,:root.large .form-row textarea{font-size:14px}
+/* 老眼モード(U1): 主要テキストを拡大。v64で本文20pxへさらに強化（β協力者FB＋実機判定）。アイコン・バッジ・極小ラベル・印刷出力は据え置き */
+:root.large .card-name{font-size:20px;white-space:normal;overflow:visible;text-overflow:clip;align-items:flex-start;line-height:1.25}
+:root.large .card-meta{font-size:16px}
+:root.large .card-amount{font-size:21px}
+:root.large .card-amount-sub{font-size:14px}
+:root.large .topbar h1{font-size:23px}
+:root.large .topbar p{font-size:15px}
+:root.large .stat-val{font-size:24px}
+:root.large .stat-label{font-size:14px}
+:root.large .stat-sub{font-size:14px}
+:root.large .empty-state{font-size:16px}
+:root.large .detail-name{font-size:23px}
+:root.large .detail-cat{font-size:15px}
+:root.large .info-label{font-size:15px}
+:root.large .info-val{font-size:20px}
+:root.large .family-message-box{font-size:20px}
+:root.large .form-row label{font-size:15px}
+:root.large .form-row input,:root.large .form-row select,:root.large .form-row textarea{font-size:17px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -254,6 +254,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .cycle-toggle div{flex:1;padding:6px;text-align:center;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px}
 .cycle-toggle div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
 .amount-helper{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;text-align:right}
+
+/* v65: β上限到達時の任意アンケート（notice モーダル内・左寄せ） */
+.beta-survey{margin:4px 0 14px;text-align:left;border-top:0.5px solid var(--color-border-tertiary);padding-top:14px}
+.beta-survey .survey-q{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px;line-height:1.6}
+.survey-chips{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.survey-chips .survey-chip{padding:8px 10px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);text-align:center}
+.survey-chips .survey-chip.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary);font-weight:500}
+.beta-survey textarea{width:100%;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit;resize:none;height:54px;line-height:1.5}
 
 
 .pay-icon{display:inline-flex;align-items:center;gap:2px;font-size:10px;color:var(--color-text-tertiary);margin-left:3px;vertical-align:1px}
@@ -527,13 +535,26 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
   <!-- v35: 契約追加の拡張FAB（screen-list 表示時のみ・詳細画面では ~ セレクタで非表示） -->
   <button class="fab" id="add-fab" onclick="openModal()"><i class="ti ti-plus"></i>契約を追加</button>
 
-  <!-- v42: ベータ版 契約件数上限の中央通知モーダル -->
+  <!-- v42: ベータ版 契約件数上限の中央通知モーダル（v65: 任意アンケート追加） -->
   <div class="modal-bg center" id="beta-limit-modal">
     <div class="modal notice">
       <div class="notice-icon"><i class="ti ti-seeding"></i></div>
       <h3>ベータ版の上限に達しました</h3>
       <p>ベータ版でご登録いただけるのは契約5件までです。<br>続きは、これからの製品版で。<br>お試しいただきありがとうございます。</p>
-      <div class="btn-row"><button class="btn-primary" onclick="closeBetaLimitModal()">わかりました</button></div>
+      <div class="beta-survey" id="beta-survey">
+        <div class="survey-q">もしよければ、感想をひとつだけ教えてください（任意）</div>
+        <div class="survey-chips">
+          <div class="survey-chip" id="survey-chip-continue" onclick="setSurveyReaction('continue')">続きも使いたい</div>
+          <div class="survey-chip" id="survey-chip-wait" onclick="setSurveyReaction('wait')">様子を見たい</div>
+          <div class="survey-chip" id="survey-chip-enough" onclick="setSurveyReaction('enough')">ここまでで十分</div>
+        </div>
+        <textarea id="survey-comment" placeholder="ひとことあれば（任意）&#10;※カード番号・暗証番号などは入力しないでください"></textarea>
+      </div>
+      <div class="btn-row" id="beta-survey-actions">
+        <button onclick="closeBetaLimitModal()">閉じる</button>
+        <button class="btn-primary" onclick="submitBetaSurvey()">感想を送る</button>
+      </div>
+      <div class="btn-row" id="beta-survey-done" style="display:none"><button class="btn-primary" onclick="closeBetaLimitModal()">わかりました</button></div>
     </div>
   </div>
 
@@ -806,7 +827,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.2）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.4）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -837,7 +858,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
       <!-- β版データ取扱いの簡潔説明 -->
       <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
-        ※ β版は<strong>本人の端末内（localStorage）</strong>にのみ情報を保存し、外部サーバーへは送信しません（Tabler Icons CDN を除く）。詳細はプライバシーポリシー第2条「β版における実取得情報」をご確認ください。
+        ※ β版は<strong>本人の端末内（localStorage）</strong>にのみ情報を保存します。外部送信は、契約サービスのロゴ画像取得のため Logo.dev へ当該サービスのドメイン名のみ（氏名・メール等は送信しません）、アイコン表示の Tabler Icons CDN、および<strong>ご自身が任意で感想を送信した場合に限り</strong>フィードバックフォーム Formspree へ入力内容のみ（感想の選択値・自由記述・送信元区分のみ。契約名・番号類は送信しません）に限られます。詳細はプライバシーポリシー第2条「β版における実取得情報」をご確認ください。
       </div>
 
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
@@ -847,7 +868,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.2）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.4）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -1227,6 +1248,21 @@ const FEATURES={
 
 // =========== β版: 契約件数上限 ===========
 const CONTRACT_BETA_MAX=5; // ベータ版：アクティブ契約は5件まで
+// 説明用サンプルはβ登録上限に数えない。id/name は CLAUDE.md のサンプル固定方針に合わせて判定する。
+const SAMPLE_CONTRACT_NAMES_BY_ID=Object.freeze({
+  1:'Netflix',
+  2:'生命保険（〇〇生命）',
+  3:'住宅ローン',
+  4:'電気（東京電力）',
+  5:'Amazon Prime',
+  6:'自動車保険',
+  7:'NHK受信料',
+  8:'動画配信サービス（旧）',
+  9:'趣味のサブスク',
+  10:'個人寄付（〇〇基金）'
+});
+function isBuiltInSampleContract(c){return SAMPLE_CONTRACT_NAMES_BY_ID[c.id]===c.name;}
+function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isBuiltInSampleContract(c)).length;}
 
 // =========== Step 6: 招待フロー（invitation-flow-design.md v3.2） ===========
 // pending+accepted 合計 5件上限 / 1日3件発行上限 / 7日有効期限
@@ -1288,7 +1324,7 @@ let members=[
 
 const MY_ID='m1';
 const TERMS_VERSION='v3.2.2';
-const PRIVACY_VERSION='v3.2.2';
+const PRIVACY_VERSION='v3.2.4';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はβ版デフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: β版公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
@@ -1708,7 +1744,8 @@ function filterContracts(){
     if(!canViewContract(c,viewer))return false;
     // v17: テキスト検索（公開範囲チェックを通過した契約のみが対象）
     if(q){
-      const hay=[c.name,c.cat,c.memo,c.cancelHow,c.contact,c.secret,c.familyMessage]
+      const searchableSecret=(c.ownerId===viewer&&!isDeathMode()&&canSeeSecret(c))?c.secret:'';
+      const hay=[c.name,c.cat,c.memo,c.cancelHow,c.contact,searchableSecret,c.familyMessage]
         .filter(Boolean).join(' ').toLowerCase();
       if(!hay.includes(q))return false;
     }
@@ -2177,11 +2214,47 @@ function updateAmountHelper(){
   }
 }
 
-function showBetaLimitModal(){document.getElementById('beta-limit-modal').classList.add('open');}
+// v65: β上限到達時の任意アンケート（送信先=既存 Formspree f/xredoben・source=after_beta_limit）
+// 送信データは reaction（3択）＋ comment（任意自由記述）＋ source のみ。契約データ・番号類・メール・localStorage 保存は一切なし。
+let surveyReaction=null;
+let betaSurveySent=false; // セッション内のみ。永続化しない（localStorage キー追加なし）
+function setSurveyReaction(v){
+  surveyReaction=v;
+  ['continue','wait','enough'].forEach(k=>{
+    document.getElementById('survey-chip-'+k).classList.toggle('active',k===v);
+  });
+}
+function showBetaLimitModal(){
+  // 開く度に状態リセット
+  surveyReaction=null;
+  ['continue','wait','enough'].forEach(k=>document.getElementById('survey-chip-'+k).classList.remove('active'));
+  document.getElementById('survey-comment').value='';
+  const sent=betaSurveySent;
+  document.getElementById('beta-survey').style.display=sent?'none':'';
+  document.getElementById('beta-survey-actions').style.display=sent?'none':'';
+  document.getElementById('beta-survey-done').style.display=sent?'':'none';
+  document.getElementById('beta-limit-modal').classList.add('open');
+}
 function closeBetaLimitModal(){document.getElementById('beta-limit-modal').classList.remove('open');}
+function submitBetaSurvey(){
+  if(!surveyReaction){showToast('感想を選んでください（任意のため、閉じても大丈夫です）','');return;}
+  const comment=document.getElementById('survey-comment').value.trim();
+  fetch('https://formspree.io/f/xredoben',{
+    method:'POST',
+    headers:{'Accept':'application/json','Content-Type':'application/json'},
+    body:JSON.stringify({reaction:surveyReaction,comment:comment,source:'after_beta_limit'})
+  }).then(res=>{
+    if(!res.ok)throw new Error('bad response');
+    betaSurveySent=true;
+    showToast('送信しました。ありがとうございます。','success');
+    closeBetaLimitModal();
+  }).catch(()=>{
+    showToast('送信できませんでした。通信環境をご確認ください。','');
+  });
+}
 
 function openModal(){
-  const activeCount=contracts.filter(c=>!c.archived).length;
+  const activeCount=betaActiveContractCount();
   if(activeCount>=CONTRACT_BETA_MAX){
     showBetaLimitModal();
     return;
@@ -2246,21 +2319,22 @@ function readForm(){
   return data;
 }
 
-// APP-DATA-SCOPE: 機密メモの番号類ソフト検知。スペース/ハイフンを除いた連続7桁以上の数字
-// （口座番号・カード番号等）を検出。hard blockせず保存前にconfirmで確認に留める。
+// APP-DATA-SCOPE-HARD: 機密メモの番号類を保存前に拒否。スペース/ハイフンを除いた連続7桁以上の数字
+// （口座番号・カード番号等）を検出し、CLAUDE.md の「保存しない」方針へ寄せる。
 function looksLikeSensitiveNumber(s){
   return /\d{7,}/.test(String(s||'').replace(/[\s-]/g,''));
 }
 function confirmSecretSafe(data){
   if(!looksLikeSensitiveNumber(data.secret))return true;
-  return confirm('メモに7桁以上の連続した数字が含まれています。口座番号・カード番号・暗証番号は保存しないでください（番号は通帳・金庫などアプリ外で保管を推奨）。このまま保存しますか？');
+  alert('メモに7桁以上の連続した数字が含まれています。口座番号・カード番号・暗証番号は保存できません。番号は通帳・金庫などアプリ外で保管してください。');
+  return false;
 }
 
 function addContract(){
   const data=readForm();
   if(!data.name)return;
   if(!confirmSecretSafe(data))return;
-  if(contracts.filter(c=>!c.archived).length>=CONTRACT_BETA_MAX){
+  if(betaActiveContractCount()>=CONTRACT_BETA_MAX){
     showBetaLimitModal();
     return;
   }
@@ -2424,7 +2498,7 @@ function acceptConsent(){
 }
 
 // === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
-const CONSENT_KEY='kizuna-baton:consent-shown:v22';
+const CONSENT_KEY='kizuna-baton:consent-shown:v24';
 const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
 function openOwnerConsentModal(){
   // 事前チェック禁止: 開く度に毎回クリア
@@ -2971,9 +3045,15 @@ function doExport(){
   if(typeof exportFormat!=='undefined'&&exportFormat==='json'){
     return doExportJSON();
   }
+  const viewer=currentViewerId();
+  if(exportMode==='self'&&viewer!==MY_ID){
+    alert('印刷出力はご本人のみが実行できます。');
+    return;
+  }
   closeExportModal();
   const meName=esc(getMember(MY_ID).name);
-  let filtered=contracts.filter(c=>viewOwnerId==='all'||c.ownerId===viewOwnerId);
+  const exportStage=exportMode==='inheritance'?'inheritance':(exportMode==='family'?'full':'live');
+  let filtered=contracts.filter(c=>(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer,exportStage));
   // 死後モード（相続判断・完全開示）では「本人のみ」契約を除外。生前モードでは after_only も除外（生前は本人にしか見えない）
   if(exportMode==='inheritance'||exportMode==='family'){
     filtered=filtered.filter(c=>getVisibility(c).mode!=='private');

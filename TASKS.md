@@ -1,0 +1,154 @@
+# きずなbaton タスク台帳（状態の単一正本）
+
+最終更新: 2026-06-09（**v64 老眼モード(U1)本文20pxへ再拡大✅完了**＝v63(18px)の実機判定→オーナー指示で1段階拡大〔APP-U1-STRONGER〕。preview検証済・未デプロイ。前回: **v63 老眼モード(U1)拡大幅強化✅完了**＝β協力者「文字が小さい」FB対応で `:root.large` をベース+2px→+4px相当へ。前々回: **v62 Codexレビュー精査対応✅完了**＝APP-CC2凍結を維持し、検索/出力の情報漏れ・β初回追加導線・番号類hard blockを最小差分で是正。旧Stage1/2死蔵整理はAPP-CC2境界に近いため凍結記録のみ。前回: **MK-TARGET=ターゲット戦略評価✅完了**＝`marketing/target-strategy-evaluation.md`〔Meta 06/01-08 年齢×性別データを根拠に14成果物＋反論3回。45-54女性起点を**獲得面で支持**・課金は未検証〔全層CV0〕→F1+A/Bで06-17前に検証・実装はgo後／3機能=C採用・Bラベル限定・A大幅縮小〔薬/病院=要配慮個人情報でβ除外〕／**既存A広告の文言変更は06-17まで実施しない**〕。LEG-41a/FIN-LAW1 = 弁護士の当たり付けリスト進行中。LEG-42e / MK-USAGE-F1 / IP-6 / IP-7 / IP-2 / MK-KPI / LEG-42b / MK-BETAGUIDE はクローズ済。LEG-LOGO はギャップ具体化のうえオーナー承認待ち）
+
+> 🟦 **このファイルが「done / open / 次の一手」の唯一の正本**。各部門doc（finance / legal / docs / marketing）は**戦略・根拠・詳細**を持ち、状態は本台帳を参照する（再記述しない）。
+> セッション開始時はまず本台帳の「open」行を確認すること。`NEXT_SESSION_PROMPT.md` は起動手順のみ・残タスクは本台帳が正本。
+>
+> 状態: ✅完了 / 🔄進行中 / 🔲未着手 / ⏸保留（条件待ち） / 🧊凍結（着手不可）
+> 完了の定義(DoD)＝CLAUDE.md「バージョン更新時（必ず3点）」: ①HTML title ②handover-doc.md ③**本台帳の該当行を close ＋関連語を grep 照合**。
+
+---
+
+## 🚨 絶対ルール（着手前に必ず確認）
+
+- **emergencyMode（もしもの時）のコード実装は弁護士フルレビュー完了後にのみ着手**。レビュー前はドキュメント整備のみ。オーナー承認だけでは着手しない（承認ミスの可能性あり）。正本: `legal/legal-strategy.md` / `docs/emergency-mode-requirements.md` §9。
+
+---
+
+## 🟦 アプリ開発（app）
+
+| ID | タスク | 状態 | 関連doc | 反映/メモ |
+|---|---|---|---|---|
+| APP-F3B | プラン選択UIモック（梅=無料/竹=¥500） | ✅完了 | finance/pricing-strategy §2,§7 | v46 で実装済（`shukatsu-prototype.html:3490-3551`）。松はUI非表示（法務クリアまで） |
+| APP-S83-1 | invitations 永続化 | ✅完了 | — | v44 |
+| APP-S83-3 | persistState 呼び忘れ対策（安全網） | ✅完了 | — | v52: `pagehide`/`visibilitychange(hidden)` で離脱・背面遷移時に保存を補完。全mutation一元化は侵襲大で見送り |
+| APP-S83-4 | iOS Safari 7日 eviction 緩和 | ✅緩和済 | — | コード対処困難。既存 beta-info モーダル（データ消失シナリオ＋定期バックアップ推奨）で緩和済。v52で追加注記は重複につき見送り |
+| APP-S83-2 | localStorage スキーママイグレーション | ⏸保留 | — | `DATA_KEY :v20` 固定でキー名を変えなければ孤児化なし。将来の仮定への足場作りは過剰のため見送り |
+| APP-SEC-XSS | 保存型XSS対策（動的HTMLへのユーザー入力混入） | ✅完了 | HANDOVER 2026-06-06レビュー | v55: `esc()`ヘルパー新設（&<>"'）し全描画関数で一律適用＝`renderList`/`showDetail`/`renderMemberList`/`renderInvitations`/switch・preview・viewerリスト/カテゴリ(tabs/list/option)/print export。JS文字列in属性のonclick（url/category/メンバーid等）は`data-*`+`dataset`へ移行し`openLink`にスキーム検証追加（javascript:/data:拒否）。color/id等import破損データも一律esc。preview検証＝`<img onerror>`等を全フィールド投入でxss不発火・openLink javascript:/data:遮断・正常表示維持を確認 |
+| APP-DATA-BLANK | `?blank=1` と pagehide 保存安全網の衝突対策 | ✅完了 | HANDOVER 2026-06-06レビュー | v54: `isBlankMode` フラグ新設。`applyBlankMode()` で true 化し `persistState()` 冒頭で `isPrivateMode` と同型ガード。blankデモの空状態を実データへ上書き保存しない。preview検証＝実データ10件保有→`?blank=1`→`persistState()`実行でlocalStorage不変(10件維持) |
+| APP-EMG-PREVIEW | emergencyMode=false時の旧Stage1/2プレビュー露出抑止 | ✅完了 | docs/emergency-mode-requirements §8-2 | v53: `renderPreviewBar`で`#stage-toggle`を`emergencyMode?'':'none'`、`setPreviewStage`は`s!=='live'`を早期return（多層防御）。新規emergency実装ではなくdead UI隠蔽。フラグ復活でそのまま再表示。露出抑止はオーナー承認(2026-06-06)で着手可と確認 |
+| APP-SEC-XSS-2 | `renderSwitchMenu` 本人(m1)行のXSS残穴 esc化 | ✅完了 | HANDOVER 2026-06-06 Codex再レビュー | v60: 本人行（`shukatsu-prototype.html:1523-1527`）の `me.color`/`me.name.charAt(0)`/`me.name` を `esc(...)` 化（他メンバー行と同型）。onclick の `MY_ID` は定数のため対象外。本人名は `renameMember` で編集可＝保存型XSS経路だった。preview検証＝payload注入で不発火・`&lt;img`へエスケープ・color属性もエスケープ・復元後正常・JSerror0。**Codex再レビュー由来のアプリ防御も全件クローズ** |
+| APP-DATA-SCOPE | 機密メモの番号類入力拒否/検知 | ✅完了 | CLAUDE.md データ範囲 / PP第3条 | v59でソフト検知を入れたが、2026-06-09 Codexレビュー精査で「保存しない」方針に対して弱いと再判定。v62: `confirmSecretSafe` を native `confirm` から `alert` + `return false` に変更し、`f-secret` の7桁以上連続数字（スペース/ハイフン除去後）は hard block。カード下4桁欄は専用欄のため対象外。 |
+| APP-SEC-VIS | 未知 visibility.mode の fail-safe（live のみ非公開側へ） | ✅完了 | CLAUDE.md 後方互換 | v58: `canViewContract` の2末尾fallthrough `return true`→`return false`（未知mode文字列でのみ到達＝非公開側へ倒す）。`visibilityLabel` は `all` を明示し未知modeを非公開ラベル（本人のみ）へ整合。undefinedは`getVisibility`がall正規化＝未設定契約は従来通り公開/ラベルall・後方互換維持。owner(自分の契約)は未知modeでもlive/death常に閲覧可。preview検証＝未知mode m2視点live/death=false・owner=true・未設定=all維持・既存all/private不変・ラベル整合・通常表示8件/¥123,205・JSerror0件 |
+| APP-SEC-SEARCH | 機密メモの検索ヒット漏れ防止 | ✅完了 | CLAUDE.md データ範囲 / canViewContract/canSeeSecret | v62: `filterContracts` は従来 `canViewContract` 通過後も `c.secret` を検索haystackに含めていたため、画面に本文表示しない機密メモが検索ヒットで推測される余地があった。検索対象の secret は「本人が自分の契約を通常表示中」かつ `canSeeSecret(c)` のときだけ含める。 |
+| APP-SEC-EXPORT | 印刷/PDF出力の可視性チェック漏れ防止 | ✅完了 | CLAUDE.md アカウント設計 / canViewContract | v62: `doExport` のPDF/print抽出を `viewOwnerId` だけでなく `canViewContract(c, viewer, exportStage)` に通すよう変更。JSON同様、self印刷は本人（`currentViewerId()===MY_ID`）のみ実行可能にし、家族プレビュー中の本人向け出力を遮断。 |
+| APP-BETA-SAMPLE | サンプル9件とβ上限5件の衝突解消 | ✅完了 | CLAUDE.md サンプルデータ / v42 β上限 | v62: 説明用サンプル（id/name一致）はβ登録上限のカウント対象外にする `betaActiveContractCount()` を追加し、`openModal`/`addContract` の上限判定へ適用。サンプル契約のid/name/amountは変更しない。 |
+| APP-U1-STRONGER | 老眼モード(U1)の文字拡大幅を強化（β協力者FB） | ✅完了 | CLAUDE.md UIルール / v43 U1 | v63で+4px相当へ→**v64で本文20pxへ再拡大（実機判定→オーナー指示）**。`:root.large`（`shukatsu-prototype.html:52-69`）= card-name20/card-amount21/topbar-h1 23/stat-val24/detail-name23/info-val20/family-message20/input17 等。トグル(U1)はオン/オフ維持・ロジック不変・後方互換・アイコン/印刷据え置き。preview検証＝一覧/詳細で崩れ無し・横スクロール無し(scrollW=clientW=687)・JSerror0。**長名省略対策（同v64）**＝老眼モード時のみカード名折返し許可（`:root.large .card-name`に`white-space:normal`等／通常モードは単行省略のまま不変）。長名2行全文表示・短名1行維持を実測。未デプロイ＝v61再同意と束ねて06-17後反映推奨 |
+| APP-EMG-DEADCODE | 旧Stage1/2コード・文言の死蔵整理 | 🧊凍結 | APP-CC2 / emergency-mode-requirements §9 | 2026-06-09 Codexレビュー精査では「整理したい」は妥当だが、削除・再設計は APP-CC2（emergencyMode実装凍結）境界に近い。今回v62ではコード未変更。弁護士フルレビュー後、1段階存在通知モード実装時に旧Stage1/2の関数・文言・exportモードを一括棚卸しする。 |
+| APP-DATA-BACKUP | doBackup に categories 同梱（restore整合） | ✅完了 | — | v56: `doBackup`の`data`に`categories:categories.slice()`を同梱。`applyRestore`で`loadPersistentState`同型に復元＋ICONS/COLORS/TCOLORSバックフィル。旧バックアップ（categories無し）は既存カテゴリ維持＝後方互換。restore確認モーダルにカテゴリ件数行を追加。preview検証＝カスタムcat→export→liveをcorrupt→restoreでcat復元＆icon/color/tcolorバックフィルOK、categories無し旧バックアップ復元で既存cat維持を確認 |
+| APP-DATA-CORRUPT | localStorage破損時のユーザー通知 | ✅完了 | — | v57: `loadPersistentState` の catch で `corruptStateDetected=true` を記録し、init末尾（同意/オンボーディング後）に `restore-error-modal` 再利用で通知。`restore-error-title` をspan+id化し `openRestoreErrorModal` に第3引数 title 追加（既定=「復元できませんでした」維持）。通知文＝「データを読み込めませんでした／サンプル表示に戻している／復元案内」。スタック回避のため他 `.modal-bg.open` がある間は通知保留（破損はサンプル表示で安全継続）。preview検証＝破損JSON投入→`loadPersistentState`でflag立ち＆contracts非破壊＆localStorage非上書き(安全側)、consentモーダル開中は通知抑止、他モーダル閉時にtitle/msg/detail正表示をscreenshotで確認 |
+| APP-PROD-ARCH | 本番移行アーキ設計（BaaS選定・localStorage→Firestore移行・アカウント分離） | ✅完了（ドラフト） | docs/production-migration-architecture.md | 2026-06-07 `production-migration-architecture.md` v0.1 作成（**コードなし**）。道②フル本番の設計＝Firebase Auth+Firestore第一候補・コレクション設計/移行手順（doBackup JSON流用）・招待サーバ化(Cloud Functions+OTP)・`canViewContract`をセキュリティルールへ写像・段階ロードマップP0〜P6。emergencyModeは含めずフルレビュー独立ゲート維持。**実装着手は06-17 good＋資金調達＋フルレビュー後・オーナー承認**。道①ライト本番は環境変更不要（finance §6.1） |
+| APP-CC2 | 候補C v13コード改修（1段階・存在通知） | 🧊凍結 | docs/emergency-mode-requirements §8-2 | 弁護士フルレビュー後まで着手不可 |
+| APP-F1 | アプリ内レビュー誘導 | ⏸保留 | — | ストア未公開で誘導先なし。ストア公開接近後に再開 |
+| APP-N3 | 各支払日のカレンダー表示 | ⏸保留 | — | 規模大。オーナー判断で再開 |
+
+---
+
+## 💰 ファイナンス（finance）
+
+正本: `finance/finance-strategy.md`（上位戦略） / `finance/pricing-strategy.md`（価格） / **`finance/funding-plan.md`（資金調達の手段・PF比較・目標額逆算・トリガー＝2026-06-07新設）**
+
+| ID | タスク | 状態 | 関連doc | 反映/メモ |
+|---|---|---|---|---|
+| FIN-PRICE | 価格・SKU確定（¥500/月・¥5,000/年・梅/竹） | ✅完了 | pricing-strategy §7 | 2026-06-05 オーナー承認 |
+| FIN-PHB | Phase B プラン選択UIモック | ✅完了 | pricing-strategy §7 | = APP-F3B（v46） |
+| FIN-CF | クラファン目標額・リターン最終確定 | ⏸保留 | funding-plan.md §3,§6,§7,§8 | 06-17 good 後に判断（＝撤退余地放棄判断とセット）。**2026-06-07 設計済**＝CAMPFIRE+AON第一候補・第1¥120,000/本¥500,000・リターン=正式版後の竹無料利用権＋サポーター表示。**最終確定（目標額・リターン・PF）は06-17 good 後** |
+| FIN-FUND | 資金調達プラン起案（手段マップ・PF比較・逆算・トリガー） | ✅完了 | funding-plan.md | 2026-06-07 `funding-plan.md` v0.1 新設。3万円超ゲート＋**option C（家族/知人少額借入）凍結**前提で、調達手段マップ（撤退余地保全順）・クラファンPF比較・制度資金（持続化補助金=N3マーケ/公庫=本格化/特定創業支援=無料オプション）・無料先行3点（よろず/認定/非弁無料一次確認）・目標額逆算・トリガーB(クラファン)/D(制度資金)・順序リスクを整備。即時5-10万ゲートは06-17前に開けられず＝スポット相談は本格化commitment下流に固定。finance-strategy旧前提5か所を是正 |
+| FIN-FREE | 無料先行アクション（よろず相談/特定創業支援認定/非弁の無料一次確認） | 🔲未着手 | funding-plan.md §5 | 06-17前に着手可・撤退余地ゼロ消費。①よろず支援拠点/商工会議所で補助金適合性・公庫制度融資の当たり付け（無料）②特定創業支援等事業の認定取得＝信用保証/公庫利率優遇のオプション化 ③法テラス/弁護士会の無料枠で非弁の致命傷有無だけ一次確認（持込=spot-consultation-emergency-mode.md）。実施はオーナー |
+| FIN-LITE | 低コスト本番開始（ライト本番）プラン | ⏸保留 | finance-strategy §6.1 | 06-17 weak 時の第3の道。固定費≒¥0で一般公開PWA継続。最小ゲート＝LEG-41c(スポット相談)＋LEG-42c(placeholder/公開日)＋emergencyMode OFF維持。広告停止・梅のみ・クラファン無し |
+| FIN-TAX | 特商法表記・インボイス要否・IAPのJP消費税納税義務者 | ⏸保留 | pricing-strategy §6 | 税理士/弁護士確認。Phase4課金前 |
+| FIN-LAW1 | 弁護士の当たり付けリスト作成 | 🔄進行中 | legal/lawyer-shortlist.md | = LEG-41a（同一成果物）。枠組み確定済・実候補記入待ち。**支出ゲート＝相談実行(5-10万)は資金調達後**（3万円超）。当たり付け・見積取得は無料で先行可 |
+
+---
+
+## ⚖️ 法務（legal）
+
+正本: `legal/legal-strategy.md` §4。方針＝レビューはドキュメントベース・実装はレビュー後。
+
+| ID | タスク | 状態 | 関連doc | 反映/メモ |
+|---|---|---|---|---|
+| LEG-41a | 弁護士の当たり付けリスト作成（β前最優先） | 🔄進行中 | legal/lawyer-shortlist.md | 2026-06-06 枠組み確定＝`lawyer-shortlist.md` v0.1（求める専門性〔主=非弁72条＋IT個情/副=相続終活/後段=特商法〕・足切り条件・探すチャネル・比較テンプレ・確認質問・資金ゲート連動）。**残＝§5 表に実候補3〜5件を記入**（オーナー/Web検索補助可）→2〜3件に問い合わせ見積取得（無料）。実相談はLEG-41c・資金調達後。= FIN-LAW1 共同 |
+| LEG-41b | スポット相談 論点1枚化 | ✅完了 | legal/spot-consultation-emergency-mode.md | 2026-06-06 |
+| LEG-41c | スポット相談の予約・実施（自己資金5-10万） | ⏸保留 | legal §4.1 | オーナー承認後 |
+| LEG-42a | 要件定義の確定（1段階・存在通知） | 🔄進行中 | docs/emergency-mode-requirements v1.1 | doc側完了。コード反映(APP-CC2)はレビュー後 |
+| LEG-42b | ToS/PP を1段階・存在通知へ整合確認 | ✅完了 | legal §4.2 | 2026-06-06 全文走査済。ToS（`terms-of-service.md:92-95`）・PP（`privacy-policy.md:73,152,154`）の旧2段階関連表現はすべて「β版・本番版を問わず提供しない」除外宣言で、相続判断/完全開示を**現行仕様として提示する箇所はゼロ**。相続放棄（ToS:115-116）は適正な専門家相談の免責条項。**書換不要＝残存なしを記録** |
+| LEG-LOGO | PP の外部サービス（Logo.dev 等）言及と委託先記載の整合 | ✅完了 | legal §4.2 / PP第7条 | v61（2026-06-07・オーナー承認A）。①PP第2条β外部通信節を Tabler Icons CSS＋Logo.dev（送信＝ドメイン名のみ・本人特定情報非送信）の2種に明示 ②第7条第1項に「ロゴ画像取得サービス（Logo.dev）」追加 ③`PRIVACY_VERSION` `v3.2.2→v3.2.3`（`:1291`）。**実装上の発見＝同意ゲート（`:2473`）は `CONSENT_KEY` 真偽フラグ方式で PRIVACY_VERSION をゲート判定に使わず、bump 単独では既存ユーザー再同意が出ない**→新規委託先開示（material change）に伴い `CONSENT_KEY` を `:v22→:v23` bump で再同意強制（`CONSENT_LOG_KEY` は `:v22` 据置＝監査証跡継続）。本人/招待家族 両同意モーダルのPPラベル v3.2.3 化（ToSラベルは TERMS_VERSION 不変で v3.2.2 据置）・本人モーダル本文(`:840`)に Logo.dev 開示追記。HTML変更ゆえ app版数 v60→v61（title＋sw.js CACHE_NAME）。preview検証＝既存ユーザー再同意発動/同意済み無限ループなし/consentLog ppVersion v3.2.3/title v61/JSerror0。**デプロイ未実施＝2026-06-07 オーナー判断で 06-17 テスト結論まで保留**（再同意で既存βテスター離脱を避けるため）。go/weak 後に commit→push→本番curl→Desktop上書き。本番=v60／作業ツリー=v61 の差分は意図的に温存 |
+| LEG-42c | 残4 placeholder 確定（＋HTML反映箇所洗い出し） | 🔄進行中 | legal §4.2 / docs/README.md 置換表 | 2026-06-07 洗い出し（APP-PROD-ARCH 関連・コードなし）。**実docs照合で4点中3点は v3.2.2 で確定済＝旧「残4・未着手」は stale**: ①連絡先メール=`kizunabaton.official@gmail.com`（ToS第1条3項/PP238行）✅ ②問い合わせフォームURL=廃止・メール一本化（v3.2.2でフォーム欄削除）✅ ③管轄=横浜地方裁判所相模原支部（ToS第19条4項）✅ ④サービス公開日=**附則に `2026-05-27` 記載済**（ToS:233/PP:242）だが front-matter（両doc 13行目）の「{サービス公開日} 未確定」注記と**docs内で矛盾**⚠️。**HTML側の値差し込み箇所は無し**＝`shukatsu-prototype.html` はToS/PP本文を埋め込まずリンク＋版ラベルのみ参照（本人同意 `:805/:809`・招待家族同意 `:846/:850`＝`docs/*.md` リンク／版ラベル ToS v3.2.2・PP v3.2.3）。連絡先メールのアプリUI内直接表示は無し。**残＝(a) 本番一般公開日の意味づけ確定（β公開2026-05-27と本番公開を分けるか）→附則更新要否、(b) 13行目 front-matter 注記の矛盾解消、(c) GitHub Pages での `docs/*.md` 直リンクUX（生md表示懸念・別論点）。ToS/PP本体は法務確定事項のため未編集** |
+| LEG-42d | 委託先(BaaS)確定後のプライバシーセンター作成 | ⏸保留 | legal §4.2 / PP第7条 | Phase2以降 |
+| LEG-42e | 運営者突然死・データ引継ぎ手順の定義 | ✅完了 | legal/operator-succession-plan.md / checklist §9 | 2026-06-06。`operator-succession-plan.md` v0.1 作成＝β（端末ローカル＝運営者有事でも利用者データは残る・被害限定）と本番（BaaS＝heartbeat/自動凍結/第三者運用が必要）を区分。β最小準備（資産リスト/第三者1名/デッドマンメモ/告知・エクスポート周知）＋本番事前定義＋フルレビュー論点5件をchecklist §9へ供給。legal §3 パッケージ#7に追加。実装/実契約はオーナー承認後（資産リストはリポジトリ外保管） |
+| LEG-42f | フルレビュー見積取得（複数弁護士） | 🔲未着手 | legal §4.2 | 数十万規模 |
+| LEG-43 | フルレビュー依頼→反映→確定後に実装 | ⏸保留 | legal §4.3 | finance のクラファン/自己資金判断後・PWA公開前 |
+
+---
+
+## 🧩 知的財産（IP）
+
+正本: `legal/ip-strategy.md` §4。検討フェーズ（出願・依頼はオーナー承認後）。
+
+| ID | タスク | 状態 | 関連doc | 反映/メモ |
+|---|---|---|---|---|
+| IP-1 | 予備調査（Web） | ✅完了 | ip-strategy §5 | 2026-06-06。完全一致未発見・baton系は36類混雑 |
+| IP-2 | J-PlatPat 正式確認（オーナー実施） | ✅完了 | ip-strategy §5.4b/§8 | 2026-06-06 オーナー実施・件数ベース。完全一致0件／称呼キズナバトン0件／第42類バトン0件 → **9＋42戦略は前進可能**。残＝件数あるパターン（baton09/42・きずな09）の指定役務の内容精査は出願判断(06-17後)の弁理士相談へ |
+| IP-3 | 商標出願 区分・指定役務の設計（9＋42基本） | ⏸保留 | ip-strategy §4 | 06-17テスト後に判断 |
+| IP-4 | 弁理士の当たり付け＋論点1枚化 | ⏸保留 | ip-strategy §4 | 法務スポット相談への相乗り可否含む |
+| IP-5 | 独自ドメイン候補・主要TLD空き確認 | 🔲未着手 | ip-strategy §4 | LP URL判断と連動・06-17後 |
+| IP-6 | 主要SNSハンドル防衛確保の棚卸し | ✅完了 | ip-strategy §10 | 2026-06-06。§10 に主要11プラットフォームの棚卸し（優先度/候補ハンドル/コスト/アクション）＋オーナー確認手順§10.3＋仕分け§10.5。**Threads はIGハンドル共通で自動防衛済**（「見送り」は運用しない意）。表記ゆれ `kizunabaton`(無)/`kizuna_baton`(有) を §10.1 で整理。空き確認はオーナー実施→§10.4 転記。今やる候補=X(無)/note/Bluesky/FBページ、YouTube/TikTokは取るなら維持必須、LINE公式は06-17後 |
+| IP-7 | 重要コピー/UIの初出証跡リスト化 | ✅完了 | ip-strategy §9 | 2026-06-06。Git履歴から8要素の初出commit＋日付を確定（§9表）。公開日2026-05-27・最古commit`c79867c`。今後の重要コピー変更時は §9 へ追記運用 |
+
+---
+
+## 📣 マーケティング（marketing・副次／オーナー明示指示時のみ）
+
+正本: `marketing/social-post-queue.md` / `marketing/monitoring-log.md` / `marketing/social-posting-log.md`
+
+| ID | タスク | 状態 | 関連doc | 反映/メモ |
+|---|---|---|---|---|
+| MK-SNS-T4 | SNS T4 投稿（X文面＝LP付き＋IGカルーセル3） | ✅完了 | social-posting-log.md | 2026-06-07 手動トリガーで投稿。X=https://x.com/kizuna_baton/status/2063574833204789435 ／ IG（カルーセル3）=https://www.instagram.com/kizuna_baton/p/DZSDlYvE8tA/ 。禁止表現チェック済。次回は MK-SNS-T5（Xのみ） |
+| MK-SNS-T5 | SNS T5 投稿（Xのみ・残しておくと助かる契約情報リスト） | ✅完了 | social-posting-log.md | 2026-06-08 手動トリガーで投稿。X=https://x.com/kizuna_baton/status/2063802195477483617 。X重み271/280・禁止表現チェック済。write_clipboard→Cmd+Vで投稿。次回は MK-SNS-T6（Xのみ） |
+| MK-SNS-T6 | SNS T6 投稿（Xのみ・アプリの線引き＝判断はしない/契約の所在を残す） | ✅完了 | social-posting-log.md | 2026-06-09 手動トリガーで投稿（投稿ログに実URLあり）。X=https://x.com/kizuna_baton/status/2064163934991712646 。X重み約246/280・禁止表現なし・段落改行3つ保持。次回は MK-SNS-T7 |
+| MK-SNS-T7 | SNS T7 投稿（X＝契約整理は1件だけ＋IGカルーセル4「家族に残しておきたい契約リスト」） | ✅完了 | social-posting-log.md / social-post-queue.md | 2026-06-10 X＋IG実施。X=https://x.com/kizuna_baton/status/2064538231262351497 （X重み222/280）／ IG（カルーセル4・4:5・フィルターなし・5スライド）=https://www.instagram.com/p/DZY55eJkyal/ 。禁止表現なし。次回は MK-SNS-T8（Xのみ） |
+| MK-META | Meta広告 1週間後チェック（2026-06-10頃） | 🔄進行中 | monitoring-log.md | 2026-06-10 実施中。実数値はオーナー読み上げ待ち（CTR/CPC/クリック/インプレッション/消化金額）→monitoring-log 06-10行へ記録予定。中間確認＝撤退判断はしない。最終判断06-17 |
+| MK-BETAGUIDE | β案内/オンボーディングの旧2段階説明を1段階・存在通知へ差替 | ✅完了 | docs/emergency-mode-requirements §8-2 | 2026-06-06 `beta-onboarding-guide.md:75` のフィードバック項目「2段階発動フロー／相続判断モード・完全開示モード」を「『もしもの時』の考え方（存在通知モード）＝β版未提供・件数/総額レンジのみ通知設計の説明が伝わるか」へ差替。走査で他の旧2段階前提の説明文は残存なし（他hitは除外宣言/免責）。LEG-42b と整合 |
+| MK-USAGE | 使用シグナル獲得施策（アプリ使用者からのアクション取得） | 🔄進行中 | marketing/usage-signal-ideas.md | 2026-06-06 ドラフト作成→**Codexレビュー＋Claude再精査完了**。優先=F1→SNS→LP軽量化→(PP改定)→A1/A3。C1解析は06-17前不採用・Pixel/UTM/見返り/emergencyMode導線は不採用。子=MK-USAGE-F1/SNS/LP/PP/APP |
+| MK-USAGE-F1 | 直接ヒアリング5–10名＋質問3問確定（支払意思/継続意向/詰まり） | ✅完了 | usage-signal-ideas.md §F1 | 2026-06-06 確定。§F1 に15分スクリプト＝導入(前提3点)/タスク観察/**確定3問**(Q1支払意思＝自由WTP→¥500反応2段・実課金なし明記/Q2継続意向＋ドライバー/Q3詰まり＝観察突合)/締め。PIIなし記録テンプレ＋good/weak目安（monitoring-log補助シグナルへ集約・FIN-LITE判断材料）。誘導語回避・番号類NG。PP改定不要・インフラ0。実施はオーナー（beta-participants.local.md 連動）。**2026-06-08 §F1 に45-54女性ターゲット調整を追記（MK-TARGET連動）＝人選を45-54女性中心に・タスク観察の入口を"自分ごと"に・所感欄で「自分用/家族橋渡し」を把握。確定3問は不変** |
+| MK-USAGE-SNS | D1/D3 SNS反応ループ（bio link-in-bio→LP・IG poll/質問スタンプ「試した?」） | 🔲未着手 | usage-signal-ideas.md D | 新トラッキング無＝方針整合。social-post-queue.md に導線追加 |
+| MK-USAGE-LP | B1/B2 LPフォーム軽量化（1タップ反応＋任意メール・要望折畳） | ✅完了 | usage-signal-ideas.md B / lp.html | 2026-06-06 実装。①反応chip3択 `name=reaction`（required・もう試した/これから試す/気になっている）を先頭に追加＝メール無しでも送れる最軽量シグナル ②email を必須→任意化（req削除） ③立場select＋要望textarea を `<details>`「もっと伝える（任意）」へ折畳＋要望欄に番号類NG注記 ④agree出し分け＝末尾の最小インラインJSで email 非空時のみ agree-row 表示＋`required`付与（空欄時は非表示・非required・checked解除） ⑤送信ボタン「最新情報を受け取る」→「送信する」。主CTA(lp.html:524)・Formspree送信先据置＝PP改定不要。:root変数のみ使用。preview検証＝初期agree非表示/非req・email入力で表示&req・空に戻すと再非表示、details展開で3項目＋NG注記、JSerror0 |
+| MK-USAGE-PP | A1/A3前提のPP改定差分作成（第2条L59外部通信・第7条委託先Formspree・consent UI L840） | ✅完了 | docs/privacy-policy.md / shukatsu-prototype.html | 2026-06-10 v65 で実施。PP v3.2.3→**v3.2.4**＝第2条「β段階における外部通信」を2→3種に拡張（③Formspree＝感想の選択値・自由記述・送信元区分のみ／番号類・契約名・メール非送信）・第7条第1項委託先に「フィードバック調査フォーム（Formspree）」追記・改訂履歴 v3.2.4・consent-shown 参照 `:v23→:v24`。同意モーダルPPラベル v3.2.4 化（:830/:871）・本人モーダル本文（:861）に Formspree 開示追記。LEGフルレビュー対象外（Logo.dev/LEG-LOGO と同種の軽微差分）。発効はオーナー承認 |
+| MK-USAGE-APP | A1/A3 アプリ内実装（送信最小化・非課金明記・A4表示制御のみ） | ✅完了 | usage-signal-ideas.md A / shukatsu-prototype.html:530- | 2026-06-10 v65 で実装。**トリガーはオーナー決定で「契約追加直後」→「β上限到達モーダル（5件到達＝関心ピーク）」に変更**。既存 v42 β上限モーダルに感想3択（continue/wait/enough）＋任意一言＋「感想を送る」を追加。`submitBetaSurvey()` が既存 Formspree `f/xredoben` へ `{reaction,comment,source:'after_beta_limit'}` を fetch POST。**契約名/金額/番号/メール/localStorage は送らない**。送信後はアンケート非表示＋「わかりました」のみ・reaction未選択ガード・成功/失敗トースト。preview検証＝POST 200(ok:true)・console error 0。v番3点DoD（title/sw.js v65・handover・本表）。**未デプロイ（要オーナー push 承認）** |
+| MK-TARGET | ターゲット戦略評価（45-54女性起点への転換検討） | ✅完了（評価ドラフト） | marketing/target-strategy-evaluation.md / monitoring-log.md 06-08内訳 | 2026-06-08。Meta 06/01-08 年齢×性別（45-54女性 CPC¥29・全クリック55%・正規化指標で真の刺さり確定／B・C未配信＝全てA訴求／**全層CV0**）を根拠に14成果物＋反論3回を作成。結論＝**獲得は45-54女性起点を支持・課金は未検証**→F1（MK-USAGE-F1）+訴求A/Cテストで06-17前に検証・実装はgo後。3機能＝**C お願いメッセージ採用**（固定テンプレ）/**B 共有レベルはラベル限定**（自動発動なし＝emergencyMode回避）/**A 安心ノート大幅縮小**（薬・かかりつけ病院・保険詳細=要配慮個人情報でβ除外・所在メモ3項目のみ）。**既存A広告の文言変更・E案差替は06-17まで実施しない**（テスト整合性＋A好調＋不変制約）。実装はすべて06-17 go後。**2026-06-08 オーナー決定＝06-17前はF1ヒアリング優先（LP micro-test見送り＝サンプル不足で有意差出ず）・訴求A/Cテスト設計は §10 に正本化し06-17後の広告レベル本命テスト用に保存** |
+| MK-KPI | 06-17判定表の拡張（登録以外の需要シグナル記録） | ✅完了 | monitoring-log.md | 2026-06-06 `monitoring-log.md` に「補助需要シグナル」節を追加＝SNSエンゲージメント/問い合わせDMの質/β協力者の実入力/支払意思の4軸を good/weak 参考目安付きで記録。オーナー確定3KPI（主判定・AND条件）は不変、補助は境界時の weak/good 方向づけ用（FIN-LITE と連動）。06-17最終判定表にも補助シグナル行を追加。LP内行動はPixel/UTM非導入で計測対象外と明記 |
+
+---
+
+## 改訂履歴
+
+- 2026-06-09: **v64 老眼モード(U1)を本文20pxへ再拡大（APP-U1-STRONGER 継続・✅完了）**。v63(本文18px)の実機判定を受けオーナー指示で1段階拡大。`:root.large`（`shukatsu-prototype.html:52-69`）= card-name20/card-amount21/topbar-h1 23/stat-val24/detail-name23/info-val20/family-message20/input17 等。トグル(U1)はオン/オフ維持・多段階化せず・ロジック不変・後方互換・アイコン/印刷据え置き。`<title>`/`sw.js` を v64 bump。preview検証（SW unregister＋caches クリア後に実v64取得）＝一覧/詳細崩れ無し・横スクロール無し(scrollW=clientW=687)・JSerror0。20pxで長い契約名の一覧省略(…)が早まる件は**同v64で老眼モード時のみカード名折返し許可**（`:root.large .card-name`に`white-space:normal`等／通常モードは単行省略のまま不変）で解消＝長名2行全文・短名1行を実測。未デプロイ＝v61再同意と束ねて06-17判断後に1回反映推奨。
+- 2026-06-09: **v63 老眼モード(U1)の文字拡大幅を強化（APP-U1-STRONGER ✅完了）**。β協力者「文字が小さくて見づらい」FB対応。既存U1（設定「文字を大きく」トグル）の拡大量がベース+2pxと弱かったため `:root.large`（`shukatsu-prototype.html:52-69`）を**+4px相当**へ引き上げ（本文18px・金額19px・見出し21〜22px・入力16px）。トグルはオン/オフ維持・多段階化せず・ロジック不変・後方互換・アイコン/印刷据え置き。`<title>`/`sw.js` を v63 bump。preview検証＝一覧/詳細/フォーム崩れ無し・横スクロール無し(scrollW=clientW=687)・JSerror0。未デプロイ＝v61再同意モーダルと束ねて06-17判断後に1回反映推奨。
+- 2026-06-09: **v62 Codexレビュー精査対応（APP-CC2凍結維持）**。優先順位を P0=出力漏れ/検索漏れ、P1=β初回追加導線/番号hard block、P2=旧Stage1/2死蔵整理（凍結）に確定。`doExport` PDF/print を `canViewContract(c, viewer, exportStage)` に通し、self印刷は本人のみへ制限。`filterContracts` は `c.secret` を本人通常表示時のみ検索対象化。β上限は説明用サンプル（id/name一致）を登録件数に数えず、初回追加を可能化。`confirmSecretSafe` は番号類を `alert` + 保存拒否へ変更。旧Stage1/2コード削除はAPP-CC2境界に近いため未着手・凍結行として記録。
+- 2026-06-08: **SNSキュー終活ワード軽微置換（MK-TARGET連動・marketingのみ）**。未投稿分の終活前面ワードを「家族が困らない備え／契約の地図」へ置換＝T10「終活の入口」→「契約の地図」／T12「終活向けだからこそ」→「家族に残すものだからこそ」／T13「終活領域」→「家族の備え」。トーン・構成不変・X重み280以内再確認・禁止表現なし（`social-post-queue.md`）。T0/T11親起点・T7/T9終活ライト文脈は据え置き。大改修は非推奨（SNSオーガニックreach小・45-54女性信号は有料Meta由来）。SNS文面リライトより MK-USAGE-SNS（D1 bio link-in-bio／D3 IG poll）が本命だが未着手。
+- 2026-06-08: **作戦決定（F1優先＋A/Cテスト設計正本化）**。オーナー決定＝06-17前はLP micro-test見送り（~10-14クリック/日・各variant50前後で有意差出ず）・**F1ヒアリングを最優先**。訴求A/Cテスト設計を `target-strategy-evaluation.md §10` に正本化（06-17後の広告レベル本命テスト用）。`usage-signal-ideas.md §F1` に45-54女性ターゲット調整を追記（人選を45-54女性中心・タスク観察の入口を自分ごとに・所感欄で自分用/家族橋渡しを把握。確定3問は不変）。MK-TARGET/MK-USAGE-F1 行にメモ反映。
+- 2026-06-08: **MK-TARGET（ターゲット戦略評価）追加＝完了（ドラフト）**。`marketing/target-strategy-evaluation.md` 新規作成＋`monitoring-log.md` に06-08 年齢×性別内訳を記録。ChatGPT提案（45-54女性起点への転換＋3機能追加）を実データで検証＝Meta 06/01-08 の正規化指標（45-54女性 CPC¥29＝全セグメント最安・全クリック55%／女性¥30<男性¥53）で**45-54女性の刺さりは配信配分でなく真の刺さりと確定**（B・C未配信＝全てA訴求由来）。ただし**全層CV0**＝課金は未検証。結論＝獲得ターゲットは45-54女性起点を支持、課金検証（F1＋訴求A/Cテスト）を06-17前に最優先、実装はgo後。3機能＝C採用（固定テンプレ）/Bラベル限定（emergencyMode回避）/A大幅縮小（要配慮個人情報のβ除外）。**既存A広告の文言変更は06-17まで非実施**（テスト整合性）。
+- 2026-06-07: **APP-PROD-ARCH 追加＝完了（ドラフト）**。`docs/production-migration-architecture.md` v0.1 作成（コードなし）。β→フル本番（道②＝遠隔家族共有あり）の移行設計＝Firebase Auth+Firestore選定・コレクション設計・localStorage(`DATA_KEY:v20`/doBackup JSON)→Firestore移行手順・招待サーバ化(Cloud Functions+OTP)・`canViewContract`のセキュリティルール写像・段階ロードマップ・コスト試算・フルレビュー論点接続。道①ライト本番（finance §6.1）は開発環境変更不要と整理。emergencyMode は本書スコープ外（フルレビュー独立ゲート維持）。実装着手は06-17 good＋資金調達＋フルレビュー後・オーナー承認。
+- 2026-06-06: 新規作成。各docに散在していた残タスク状態を本台帳に集約（単一正本化）。APP-F3B/FIN-PHB を v46 実装済としてクローズ（finance §7 の残タスク表記漏れを是正）。
+- 2026-06-06: Codexレビュー精査。**APP-EMG-PREVIEW を v53 でクローズ**（旧2段階トグルの露出抑止。dead UI隠蔽＝凍結対象外と整理しオーナー承認で着手）。APP-SEC-XSS のescape経路をメモ補強。新規防御タスク APP-SEC-VIS / APP-DATA-BACKUP / APP-DATA-CORRUPT を追加。
+- 2026-06-06: **APP-DATA-BLANK を v54 でクローズ**（`isBlankMode` ガードで `?blank=1` デモの空状態が実データを上書き保存する経路を遮断。preview検証済）。
+- 2026-06-06: **APP-SEC-XSS を v55 でクローズ**（`esc()`新設＋全描画関数で一律HTMLエスケープ。onclickのJS文字列引数は`data-*`+`dataset`へ移行、`openLink`にスキーム検証追加。import破損データのcolor/idも一律esc。preview検証＝全フィールド注入で不発火）。
+- 2026-06-06: **APP-DATA-BACKUP を v56 でクローズ**（`doBackup`が categories を同梱、`applyRestore` が `loadPersistentState` 同型でカテゴリ復元＋ICONS/COLORS/TCOLORS バックフィル。旧バックアップは既存カテゴリ維持＝後方互換。restore確認モーダルにカテゴリ件数を追加。preview round-trip 検証済）。
+- 2026-06-06: **APP-DATA-CORRUPT を v57 でクローズ**（`loadPersistentState` catch で破損フラグを記録し init 末尾に `restore-error-modal` 再利用で通知。`openRestoreErrorModal` に title 引数追加〔既定維持〕。破損データは非上書き＝安全側を維持。他モーダル開中はスタック回避で通知保留。preview検証済）。
+- 2026-06-06: **APP-SEC-VIS を v58 でクローズ**（`canViewContract` の2末尾fallthrough `return true`→`return false` で未知 visibility.mode を非公開側へ fail-safe。`visibilityLabel` も `all` 明示＋未知modeを非公開ラベルへ整合。undefinedは`getVisibility`がall正規化＝後方互換維持。owner は未知modeでも常に閲覧可。preview検証済。**Codexレビュー由来のアプリ防御は残り APP-DATA-SCOPE のみ**）。
+- 2026-06-06: **FIN-LITE 追加**（⏸保留）。広告反応 weak 時に撤退一択にせず、固定費≒¥0で本番（一般公開PWA）を開始する第3の道を常備。詳細＝finance-strategy §6.1。トリガー＝06-17 weak。
+- 2026-06-06: **Codex再レビュー精査の提案5行を追記**（APP-SEC-XSS-2／LEG-LOGO／LEG-42b具体化／MK-BETAGUIDE／MK-KPI）。**APP-SEC-XSS-2 を v60 でクローズ**（`renderSwitchMenu` 本人(m1)行の `me.color`/`me.name.charAt(0)`/`me.name` を esc 化＝v55 の取りこぼし是正。本人名は `renameMember` で編集可＝保存型XSS経路だった。preview検証で payload 不発火・エスケープ・正常表示・JSerror0 を確認）。**これで Codex 再レビュー由来のアプリ防御も全件クローズ**。
+- 2026-06-06: **MK-USAGE に子タスク5行追加**（Codexレビュー＋Claude再精査の結果反映）。MK-USAGE-F1/SNS/LP/PP/APP。優先順位＝F1直接ヒアリング→SNS反応ループ→LP軽量化→(PP改定)→A1/A3アプリ内。C1匿名計測は06-17前不採用（委託先名開示が前提・PP118-119）、Pixel/UTM・金銭/無料権の見返り・emergencyMode導線・LP主見出し/主CTA変更・バックエンド追加は不採用。MK-USAGE-APP のみ plan mode 提示対象（MK-USAGE-PP 先行が着手条件）。
+- 2026-06-06: **MK-KPI をクローズ**（ドキュメントのみ）。`monitoring-log.md` に「補助需要シグナル」節を新設＝SNSエンゲージメント/問い合わせDMの質/β協力者の実入力/支払意思の4軸を good/weak 参考目安付きで記録し、主3KPI境界時の weak/good 方向づけ（FIN-LITE 連動）に使う。オーナー確定3KPI（AND条件）は不変。06-17最終判定表に補助シグナル行を追加。
+- 2026-06-06: **LEG-42b／MK-BETAGUIDE をクローズ**（ドキュメントのみ）。旧Stage2文言を全文走査＝ToS/PP には除外宣言のみで現行仕様としての残存なし（LEG-42b＝書換不要を記録）。`beta-onboarding-guide.md:75` のフィードバック項目を旧2段階（相続判断/完全開示モード）→「『もしもの時』の考え方（存在通知モード・β未提供）」へ差替（MK-BETAGUIDE）。**LEG-LOGO はギャップ具体化**＝PP第7条に Logo.dev/ドメイン名送信の記載なしを確認、追記案を memo 化（PRIVACY_VERSION bump 波及のためオーナー承認後）。参考＝SubscBox PP の logo.dev「送信データ＝ドメイン名のみ」表形式。
+- 2026-06-06: **MK-USAGE-LP をクローズ**（lp.html のみ・アプリ版数3点DoD対象外）。B1/B2＝フォーム先頭に1タップ反応chip3択（`name=reaction` required）を追加しメールを必須→任意化、立場select＋要望textareaを `<details>`「もっと伝える（任意）」へ折畳＋番号類NG注記、agree出し分けを末尾インラインJSで実装（email非空時のみ表示&required）。主CTA(`lp.html:524`)・Formspree送信先(`f/xredoben`)据置＝**PP改定不要**。:root変数のみ。preview検証済（agree出し分け/details/JSerror0）。残りのMK-USAGE open＝F1/SNS/PP/APP。
+- 2026-06-06: **IP-7（重要コピー/UI初出証跡リスト化）をクローズ**（ドキュメントのみ）。`ip-strategy.md` §9 に8要素の初出証跡表を作成＝Git履歴の commit ハッシュ＋日付で著作権の証跡を担保。公開日2026-05-27・最古commit`c79867c`。今後の重要コピー変更時は §9 へ追記運用。
+- 2026-06-06: **IP-2（J-PlatPat 正式確認）をクローズ**。オーナーが §8 手順で実施・件数ベース取得。検索1完全一致＝全0件／検索3称呼キズナバトン＝0件／検索2は バトン09=1・baton09=11・バトン42=**0**・baton42=5・きずな09=11(+KIZUNA8)・きずな42=3(+KIZUNA4)。**「きずなbaton」は文字・称呼とも完全一致なし＋中核の第42類バトン0件 → 9＋42戦略は前進可能**（§5.4b に転記）。残＝件数あるパターンの指定役務の内容精査は出願判断(06-17後)の弁理士相談へ。次のIP open＝IP-3(出願設計・⏸06-17後)/IP-5/IP-6/IP-7。
+- 2026-06-06: **LEG-41a / FIN-LAW1（弁護士の当たり付けリスト）を進行中に更新**（ドキュメントのみ）。`legal/lawyer-shortlist.md` v0.1 新規作成＝求める専門性（主＝非弁72条＋IT個情／副＝相続終活／後段＝特商法は今不要）・足切り条件（スポット可/オンライン可/料金明示/個人事業対応）・探すチャネル（オンライン法律相談PF/事務所直/法テラス・弁護士会/著者/紹介）・比較テンプレ・申込前確認質問4件・資金ゲート連動を整備。**支出ゲート反映＝実相談(5-10万)は資金調達後（3万円超）・当たり付けと見積取得は無料で先行**。特商法は同時にしない方針を §4 に明記。IP弁理士相乗りは06-17後ゆえ今は束ねない。残＝§5 表に実候補記入（オーナー/Web検索補助）→見積取得。実相談はLEG-41c（資金調達後・オーナー承認後）。
+- 2026-06-06: **LEG-42e（運営者突然死・データ引継ぎ手順の定義）をクローズ**（ドキュメントのみ）。`legal/operator-succession-plan.md` v0.1 新規作成＝checklist §9 の「未定義」を解消。①リスク区分＝β段階はデータが**端末ローカルのみ**＝運営者有事でも利用者データは失われず被害限定／BaaS導入後（本番）は管理者不在で閲覧・削除・課金が宙に浮く＝要本格手順。②β最小準備＝資産/アクセス情報リスト（リポジトリ外・パスワードマネージャー/金庫保管）＋信頼できる第三者1名（運用停止/告知のみ・非弁境界厳守）＋デッドマンメモ＋有事時は告知・エクスポート（doExportJSON 本人）周知。③本番事前定義＝heartbeat/30日凍結→60日終了→削除タイムライン（現「将来導入予定」を本番実装・コードは今作らない）＋第三者は運用継続/秩序ある終了に限定（相続執行/法的助言はしない）。④フルレビュー論点5件をchecklist §9へ供給（第三者引継ぎ適法性/削除義務vs開示請求権/相続人とのアクセス切り分け/β十分性/非弁境界）。legal-strategy §3 パッケージ#7に追加・§4.2クローズ。実装/資産リスト実作成/第三者選定はオーナー承認後。
+- 2026-06-06: **MK-USAGE-F1（直接ヒアリング質問3問確定）をクローズ**（ドキュメントのみ）。`usage-signal-ideas.md` §F1 に15分インタビュー確定スクリプトを整備＝①導入で前提3点（無料β/実課金なし・番号類NG・正直な批判歓迎でyes-bias抑制）②タスク観察（契約1件→家族に渡す状態まで／先回りせず詰まり観察）③**確定3問**：Q1支払意思（自由WTP→月¥500反応の2段で価格誘導を分離・「今は課金されません」明記＝fake-doorの正直さ）／Q2継続意向（使い続けるか＋継続/離脱ドライバー）／Q3詰まり（観察と突合）④締めで要望（金銭/確約しない）。PIIなし記録テンプレ＋good/weak目安を付与し `monitoring-log.md` 補助シグナル（支払意思/β実入力軸）へ集約＝FIN-LITE/06-17境界判断の材料。主3KPIは不変・補助扱い。PP改定不要・インフラ0。実施はオーナー。MK-USAGE 親は SNS/PP/APP が残るため 🔄進行中 継続。
+- 2026-06-06: **IP-6（主要SNSハンドル防衛確保の棚卸し）をクローズ**（ドキュメントのみ）。`ip-strategy.md` §10 に主要11プラットフォーム（X✅/IG✅/Threads/YouTube/TikTok/FBページ/LINE公式/note/Bluesky/Pinterest/ブログ）の棚卸し表＝優先度・候補ハンドル・コスト・アクションを整備。①**Threads はIGハンドル共通で自動防衛済**（`project`メモの「見送り」は運用しない意と判明）②表記ゆれ `kizunabaton`(無)/`kizuna_baton`(有) の方針を §10.1 で整理（第1候補=無し・X/IGは現行有り維持）③空き確認はオーナー手順 §10.3 →§10.4 転記運用 ④仕分け §10.5＝今やる候補 X(無)/note/Bluesky/FBページ・YouTube/TikTokは取るなら維持必須・LINE公式は06-17後・アメブロ/はてな/Pinterestは見送り。⑤防衛空アカは X/YouTube で失効/再割当リスク＝最低限プロフィール必須を注記。次のIP open＝IP-3/IP-4/IP-5(⏸06-17後)・IP-6完了でSNSハンドルの「今できる無料防衛」棚卸しは完了。
+- 2026-06-07: **FIN-FUND（資金調達プラン起案）をクローズ**＝`finance/funding-plan.md` v0.1 新設。**option C（家族/知人少額借入）をオーナー判断で🧊凍結**＝義務の軽い即時調達手段が消滅し、即時5-10万スポット相談ゲートは06-17前に開けられず（補助金=後払い+専門家費対象外公算/公庫=負債小額不向き/クラファン=撤退余地放棄+06-17後）→スポット相談は本格化commitment下流に固定（順序リスク）。緩和=非弁の無料一次確認（FIN-FREE③）。PF比較=CAMPFIRE17%/Makuake20%/GREEN FUNDING20%＝CAMPFIRE+AON第一候補。目標額=第1¥120,000/本¥500,000。制度資金=持続化補助金(N3マーケ)/公庫(本格化)/特定創業支援(無料オプション)。新規 **FIN-FREE**（無料先行3点・06-17前可）追加・**FIN-CF** をfunding-plan参照に更新。`finance-strategy.md` 旧前提5か所（§2/§4/§5/§6/§6.1）＋§7を是正・MEMORYインデックス＆finance memoも更新。
+- 2026-06-06: **APP-DATA-SCOPE を v59 でクローズ**（`looksLikeSensitiveNumber`＋`confirmSecretSafe` を新設し `addContract`/`saveEdit` の保存前に挿入。`f-secret` の連続7桁以上の数字をソフト検知＝`confirm` で警告し「このまま保存」は許可〔hard blockしない〕。対象は `f-secret` のみ。preview検証済。**これで Codexレビュー由来のアプリ防御は全件クローズ**＝app の open は残らず〔APP-CC2🧊凍結・APP-F1/APP-N3⏸保留のみ〕）。
+- 2026-06-07: **LEG-LOGO を v61 でクローズ**（オーナー承認A）。PP に Logo.dev へのドメイン名送信を開示＝第2条β外部通信節（Tabler＋Logo.dev の2種）・第7条第1項（委託先カテゴリ追加）＋`PRIVACY_VERSION` `v3.2.2→v3.2.3`。**重要発見＝同意ゲートは `CONSENT_KEY` 真偽フラグ方式で PRIVACY_VERSION をゲート判定に使わず、bump 単独では既存ユーザー再同意が出ない**ことが preview で判明→新規委託先開示（material change）に伴い `CONSENT_KEY` を `:v22→:v23` bump で再同意を強制（`CONSENT_LOG_KEY` は `:v22` 据置＝監査証跡継続）。本人/招待家族 両同意モーダルのPPラベルを v3.2.3 化（ToSは TERMS_VERSION 不変で v3.2.2 据置）・本人モーダル本文に Logo.dev 開示を追記。HTML変更ゆえ app版数 v60→v61（title＋sw.js CACHE_NAME）。preview検証＝既存ユーザー再同意発動/同意済み無限ループなし/consentLog ppVersion v3.2.3/title v61/JSerror0。**デプロイ未実施＝本番反映は既存βテスターに再同意モーダルが出るためオーナー承認後**。
