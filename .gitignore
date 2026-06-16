@@ -31,3 +31,6 @@ native/www/
 /docs/dorize-kaigyou-todoke-worksheet.md
 /docs/dorize-aoiro-shinsei-worksheet.md
 node_modules/
+
+# 引き継ぎドキュメント（ブラウザ用・各種派生も含め内部扱い）
+HANDOVER*.md
