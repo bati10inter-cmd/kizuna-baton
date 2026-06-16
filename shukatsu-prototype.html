@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v70</title>
+<title>きずなbaton プロトタイプ v72</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -714,12 +714,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-warm);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-heart-handshake"></i></div>
         </div>
         <h2 style="text-align:center"><i class="ti ti-sparkles" style="color:#E0B43D"></i> きずなbaton へようこそ</h2>
-        <div style="font-size:13px;line-height:1.8;color:var(--color-text-secondary);margin:12px 0 8px">
-          家族の絆をバトンのように次世代へ手渡すアプリです。
-        </div>
-        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:8px">
-          このアプリは <strong>契約情報そのものを保管するアプリではなく、契約の存在と解約手順をご家族に伝えるアプリ</strong> です（Apple Legacy Contact と同じ設計思想）。<br>
-          機密情報は金庫やパスワードマネージャーで別管理してください。
+        <div style="font-size:13px;line-height:1.9;color:var(--color-text-secondary);margin:12px 0 8px">
+          あなたが続けてきた毎月の支払いや契約を、いつか<strong>ご家族がそっと引き継げるように</strong>。<br>そのための「ひとこと」と手順を、ここに残しておけます。
         </div>
         <p class="ob-sample-note" id="ob-sample-note">※ 最初はサンプルデータが入っています。自由に触って試してください。ご自身のデータで始めるときは、上部の「サンプルを消して入力する」を押してください。</p>
       </div>
@@ -741,6 +737,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         </div>
         <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">
           ※ 機密メモ欄には番号類は書かず、「証券番号は金庫内」のような<strong>所在メモ</strong>として使ってください。
+        </div>
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.8;color:var(--color-text-secondary);margin-top:10px">
+          きずなbaton は、情報そのものを預かる金庫ではありません。<strong>「どんな契約があるか」と「解約のしかた」を、ご家族に伝えておく</strong>ためのものです（Apple の「Legacy Contact（故人アカウント管理連絡先）」と同じ設計思想です）。番号やパスワードは、金庫やパスワード管理アプリで別に保管してください。
         </div>
       </div>
       <!-- Step 3: 公開範囲 -->
@@ -774,6 +773,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <strong>β版での重要なお知らせ:</strong><br>
           本人の応答途絶を契機とする <strong>「もしもの時」の自動開示は提供されません</strong>。家族メンバーへの開示は、本人が公開範囲設定で手動共有した契約に限ります。
         </div>
+        <div style="text-align:center;font-size:12px;line-height:1.8;color:var(--color-text-secondary);margin-top:12px">
+          いつか手渡す、その日まで。<br>あなたのペースで、少しずつ整えていきましょう。
+        </div>
       </div>
 
       <!-- ページネーション -->
@@ -787,6 +789,23 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="btn-row" style="margin-top:10px">
         <button onclick="skipOnboarding()" style="font-size:11px;color:var(--color-text-tertiary)">スキップ</button>
         <button id="ob-next-btn" class="btn-primary" onclick="onboardingNext()"><i class="ti ti-arrow-right"></i> 次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v71: オンボ直後プレビュー誘導（1回のみ・既存 openPreviewModal へ橋渡し・新機能なし） -->
+  <div class="modal-bg" id="preview-nudge-modal">
+    <div class="modal">
+      <div style="text-align:center;margin-bottom:12px">
+        <div style="width:56px;height:56px;border-radius:50%;background:#EF9F27;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:26px"><i class="ti ti-eye-search"></i></div>
+      </div>
+      <h2 style="text-align:center">ご家族から、どう見えている？</h2>
+      <div style="font-size:13px;line-height:1.9;color:var(--color-text-secondary);margin:10px 0 8px;text-align:center">
+        公開範囲を設定すると、ご家族の視点で見え方を確認できます。いちど確認してみましょう。
+      </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button onclick="closePreviewNudge(false)" style="font-size:12px;color:var(--color-text-tertiary)">あとで</button>
+        <button class="btn-primary" onclick="closePreviewNudge(true)"><i class="ti ti-eye-search"></i> 確認する</button>
       </div>
     </div>
   </div>
@@ -2027,6 +2046,9 @@ function showDetail(id){
     ?`<span class="visibility-badge ${vl.key}"><i class="ti ${vl.icon}" style="font-size:10px"></i>${esc(vl.text)}に表示</span>`
     :'';
 
+  // サンプル契約のみ「家族への一言」を既定で展開（自分データはプライバシー配慮で折畳維持）
+  const fmOpen=isBuiltInSampleContract(c);
+
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">
       <div class="detail-icon" style="background:${bg}"><i class="ti ${icon}" style="color:${tc};font-size:20px"></i></div>
@@ -2038,7 +2060,7 @@ function showDetail(id){
 
     ${c.archived?`<div class="section"><div class="section-title">解約記録</div><div class="archived-box"><p><strong style="font-weight:500">解約日:</strong> ${esc(c.archivedDate||'-')}</p>${c.archivedNote?`<p style="margin-top:4px"><strong style="font-weight:500">備考:</strong> ${esc(c.archivedNote)}</p>`:''}</div></div>`:''}
 
-    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">タップで表示<i class="ti ti-chevron-down" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:none">${esc(c.familyMessage)}</div></div>`:''}
+    ${c.familyMessage?`<div class="section"><div class="section-title family-msg-toggle" onclick="toggleFamilyMsg(this)" style="cursor:pointer;user-select:none"><span><i class="ti ti-message-heart" style="font-size:11px;margin-right:4px;color:#A04B6E"></i>家族への一言</span><span class="fm-hint" style="font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px">${fmOpen?'非表示にする':'タップで表示'}<i class="ti ti-chevron-${fmOpen?'up':'down'}" style="font-size:12px"></i></span></div><div class="family-message-box" style="display:${fmOpen?'block':'none'}">${esc(c.familyMessage)}</div></div>`:''}
 
     <div class="section">
       <div class="section-title">支払い情報</div>
@@ -2663,7 +2685,7 @@ function renderDemoBanner(){
   bar.classList.toggle('show', isShowingDemo());
 }
 function startFresh(){
-  if(!confirm('サンプル（デモ）をすべて消して、自分のデータの入力を始めますか？\nこの操作は元に戻せません。'))return;
+  if(!confirm('サンプル（デモ）を消して、ご自身とご家族の記録を始めますか？\nサンプルは元に戻せません（ご自身のデータはいつでも追加・編集できます）。'))return;
   contracts=[];
   members=[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
   invitations=[];
@@ -2741,7 +2763,21 @@ function skipOnboarding(){closeOnboarding();}
 function closeOnboarding(){
   document.getElementById('onboarding-modal').classList.remove('open');
   lsSet(ONBOARDING_KEY,'1');
+  const wasFirstTime=!forceShowOnboarding;
   forceShowOnboarding=false;
+  if(wasFirstTime) maybeShowPreviewNudge();
+}
+// v71: オンボ初回完了直後に1回だけ「家族からの見え方」プレビューへ誘導（導線追加のみ・新機能なし）
+const PREVIEW_NUDGE_KEY='kizuna-baton:preview-nudge-shown:v71';
+function maybeShowPreviewNudge(){
+  if(lsGet(PREVIEW_NUDGE_KEY)) return;       // 既出なら出さない
+  if(members.length<=1) return;              // プレビュー対象（他の家族）がいなければ出さない
+  document.getElementById('preview-nudge-modal').classList.add('open');
+}
+function closePreviewNudge(go){
+  lsSet(PREVIEW_NUDGE_KEY,'1');
+  document.getElementById('preview-nudge-modal').classList.remove('open');
+  if(go) openPreviewModal();
 }
 function showWelcomeAfterAccept(inviterName){
   document.getElementById('welcome-inviter-name').textContent=inviterName;
@@ -3712,6 +3748,7 @@ function renderPlanModal(){
         <span class="plan-card-name">家族プラン</span>
         <span class="plan-card-badge reco">おすすめ</span>
       </div>
+      <div style="font-size:11.5px;color:var(--accent-warm);line-height:1.5;margin:0 0 6px">もしもの時も、ご家族が迷わないように。</div>
       <div class="plan-card-price">${takePrice}</div>
       <ul class="plan-feat">
         <li><i class="ti ti-check"></i>契約の登録 無制限</li>
