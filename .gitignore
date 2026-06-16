@@ -9,3 +9,25 @@ docs/emergency-mode-future-spec.md
 docs/legal-review-checklist.md
 # ローカル運用専用ファイル（協力者の個人情報など、公開リポジトリに含めない）
 *.local.md
+# Capacitor / Node（App Store ラップ用 native/ プロジェクト）
+native/node_modules/
+native/ios/App/Pods/
+native/ios/App/build/
+native/www/
+
+# === 内部ドキュメント（公開リポジトリに含めない・2026-06-17 追加） ===
+# 下記は git rm --cached で追跡解除済。手元には残るが push 対象外。
+/TASKS.md
+/NEXT_SESSION_PROMPT.md
+/marketing/
+/legal/
+/finance/
+/products/
+/docs/gtm-decision-2026-06-17.md
+/docs/failure-definition.md
+/docs/app-store-submission-plan.md
+/docs/production-migration-architecture.md
+/docs/emergency-mode-requirements.md
+/docs/dorize-kaigyou-todoke-worksheet.md
+/docs/dorize-aoiro-shinsei-worksheet.md
+node_modules/
