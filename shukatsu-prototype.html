@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v73</title>
+<title>きずなbaton プロトタイプ v74</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -178,6 +178,42 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .badge-urgent{background:#FCEBEB;color:#A32D2D}
 .badge-soon{background:#FAEEDA;color:#854F0B}
 .badge-archived{background:#F1EFE8;color:#5F5E5A}
+/* APP-N3: 表示モード切替＋支払日カレンダー */
+.display-toggle{display:flex;gap:6px;padding:8px 12px 0;background:var(--color-background-primary)}
+.dt-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;padding:6px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid transparent;cursor:pointer}
+.dt-btn.active{color:var(--color-text-primary);background:var(--color-background-primary);border-color:var(--color-border-secondary);font-weight:500}
+.dt-btn i{font-size:14px}
+.calendar{padding:12px}
+.calendar.hidden,.list.hidden{display:none}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-title{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.cal-nav{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);color:var(--color-text-primary);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.cal-nav:active{opacity:0.6}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-weekdays{margin-bottom:3px}
+.cal-wd{text-align:center;font-size:10px;color:var(--color-text-tertiary);padding:2px 0}
+.cal-wd.sun{color:#C2564F}
+.cal-wd.sat{color:#3E7CB1}
+.cal-cell{min-height:46px;border-radius:6px;padding:3px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--color-background-secondary);border:0.5px solid transparent}
+.cal-cell.empty{background:transparent}
+.cal-cell.has-pay{cursor:pointer}
+.cal-cell.has-pay:active{opacity:0.6}
+.cal-cell.today{border-color:var(--color-text-primary)}
+.cal-daynum{font-size:11px;color:var(--color-text-secondary)}
+.cal-cell.today .cal-daynum{font-weight:600;color:var(--color-text-primary)}
+.cal-markers{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center}
+.cal-marker{width:14px;height:14px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary)}
+.cal-marker.dot{border:none;background:#D3D1C7}
+.cal-more{font-size:9px;color:var(--color-text-tertiary)}
+.cal-footer{margin-top:12px;font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px;justify-content:center}
+.cal-footer i{font-size:14px}
+.cal-footer strong{color:var(--color-text-primary)}
+.day-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:6px;cursor:pointer}
+.day-row:active{opacity:0.6}
+.day-row-body{flex:1;min-width:0}
+.day-row-name{font-size:13px;color:var(--color-text-primary)}
+.day-row-meta{font-size:11px;color:var(--color-text-secondary)}
+.day-row-amt{font-size:13px;color:var(--color-text-primary);white-space:nowrap}
 
 /* v35: 契約追加の拡張FAB（右下固定・常時表示） */
 .fab{position:absolute;right:16px;bottom:16px;z-index:15;display:inline-flex;align-items:center;gap:7px;padding:12px 18px;border-radius:24px;border:none;cursor:pointer;background:var(--color-text-primary);color:var(--color-background-primary);font-size:13px;font-weight:500;font-family:var(--font-sans);box-shadow:var(--card-shadow-hover);transition:transform .15s ease}
@@ -360,6 +396,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 :root.dark .badge-urgent{background:rgba(163,45,45,0.28);color:#E89999}
 :root.dark .badge-soon{background:rgba(239,159,39,0.22);color:#EFBA6A}
 :root.dark .badge-archived{background:rgba(140,138,128,0.22);color:#BFBDB3}
+:root.dark .cal-wd.sun{color:#E08B85}
+:root.dark .cal-wd.sat{color:#7FA9CE}
 :root.dark .baton-tag{background:rgba(239,159,39,0.22);color:#EFBA6A}
 :root.dark .masked{background:var(--color-background-secondary)}
 :root.dark .doc-tag{background:var(--color-background-secondary);color:var(--color-text-secondary)}
@@ -511,6 +549,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="stat"><div class="stat-label">登録件数</div><div class="stat-val" id="total-count">0</div><div class="stat-sub"><span id="urgent-count">0</span>件が30日以内</div></div>
     </div>
 
+    <div class="display-toggle" id="display-toggle">
+      <button class="dt-btn active" id="dt-list" onclick="setDisplayMode('list')"><i class="ti ti-list"></i>リスト</button>
+      <button class="dt-btn" id="dt-calendar" onclick="setDisplayMode('calendar')"><i class="ti ti-calendar-month"></i>カレンダー</button>
+    </div>
     <div class="view-tabs">
       <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
       <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
@@ -525,6 +567,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
     <div class="tabs" id="tabs"></div>
     <div class="list" id="contract-list"></div>
+    <div class="calendar hidden" id="contract-calendar"></div>
 
     <div class="share-bar">
       <i class="ti ti-users" style="font-size:16px;color:var(--color-text-secondary)"></i>
@@ -1233,6 +1276,15 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- APP-N3: カレンダー「その日の支払い」一覧シート -->
+  <div class="modal-bg" id="day-detail-modal">
+    <div class="modal">
+      <button class="modal-close-text" onclick="closeDayDetail()" aria-label="閉じる">閉じる</button>
+      <h2><i class="ti ti-calendar-event"></i><span id="day-detail-title"></span></h2>
+      <div id="day-detail-list"></div>
+    </div>
+  </div>
+
   <!-- v19: 復元確認モーダル -->
   <div class="modal-bg" id="restore-confirm-modal">
     <div class="modal">
@@ -1424,6 +1476,10 @@ function payMethodInfo(c){return PAY_METHODS[payMethodOf(c)]||PAY_METHODS.credit
 const todayDate=new Date();
 const todayDay=todayDate.getDate();
 const todayMonth=todayDate.getMonth()+1;
+
+// APP-N3: 表示モード（リスト / 支払日カレンダー）
+let displayMode='list'; // 'list' | 'calendar'
+let calCursor={y:todayDate.getFullYear(),m:todayMonth}; // カレンダー表示中の年月（初期=当月）
 
 // === XSS対策: HTMLエスケープ ===
 // テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
@@ -1748,13 +1804,28 @@ function renderCatTabs(){
   const all=['すべて',...categories];
   t.innerHTML=all.map(c=>`<div class="tab${c===activeCat?' active':''}" data-cat="${esc(c)}" onclick="setCat(this.dataset.cat)">${esc(c)}</div>`).join('');
 }
-function setCat(c){activeCat=c;renderCatTabs();renderList();}
+function setCat(c){activeCat=c;renderCatTabs();renderMain();}
 
 function setView(m){
   viewMode=m;
   document.getElementById('vt-active').classList.toggle('active',m==='active');
   document.getElementById('vt-archived').classList.toggle('active',m==='archived');
-  renderList();updateSummary();
+  renderMain();updateSummary();
+}
+
+// APP-N3: 表示モード（リスト⇄カレンダー）切替
+function renderMain(){displayMode==='calendar'?renderCalendar():renderList();}
+function setDisplayMode(m){
+  if(m!=='list'&&m!=='calendar')return;
+  displayMode=m;
+  document.getElementById('dt-list').classList.toggle('active',m==='list');
+  document.getElementById('dt-calendar').classList.toggle('active',m==='calendar');
+  document.getElementById('contract-list').classList.toggle('hidden',m==='calendar');
+  document.getElementById('contract-calendar').classList.toggle('hidden',m!=='calendar');
+  // 並び替えはリストの並び順専用なのでカレンダー時のみ隠す（利用中/解約済みタブは両モードで維持）
+  const sortBtn=document.getElementById('sort-btn');
+  if(sortBtn)sortBtn.style.display=m==='calendar'?'none':'';
+  renderMain();
 }
 
 // v17: 検索クエリ（部分一致・大文字小文字無視）
@@ -1762,14 +1833,14 @@ let searchQuery='';
 function onSearchInput(v){
   searchQuery=(v||'').trim();
   document.getElementById('search-clear').style.display=searchQuery?'flex':'none';
-  renderList();
+  renderMain();
 }
 function clearSearch(){
   const inp=document.getElementById('search-input');
   inp.value='';
   searchQuery='';
   document.getElementById('search-clear').style.display='none';
-  renderList();
+  renderMain();
   inp.focus();
 }
 
@@ -1926,6 +1997,95 @@ function renderList(){
     </div>`;
   }).join('');
 }
+
+// === APP-N3: 支払日カレンダー（月グリッド・monthly/yearly混在・可視性は filterContracts 経由） ===
+function daysInMonth(y,m){return new Date(y,m,0).getDate();}
+function clampDay(day,y,m){return Math.min(day,daysInMonth(y,m));} // 31日指定で30日月→末日に寄せる
+function contractsOnDay(list,y,m,day){
+  return list.filter(c=>{
+    if(c.cycle==='monthly')return clampDay(c.day,y,m)===day;
+    return c.month===m&&clampDay(c.day,y,m)===day; // yearly：該当月のみ出現
+  });
+}
+function monthPaymentTotal(list,m){
+  let t=0;
+  list.forEach(c=>{ if(c.cycle==='monthly')t+=c.amount; else if(c.month===m)t+=c.amount; });
+  return t;
+}
+function calPrev(){let{y,m}=calCursor;m--;if(m<1){m=12;y--;}calCursor={y,m};renderCalendar();}
+function calNext(){let{y,m}=calCursor;m++;if(m>12){m=1;y++;}calCursor={y,m};renderCalendar();}
+function renderCalendar(){
+  renderDemoBanner();
+  const el=document.getElementById('contract-calendar');
+  const {y,m}=calCursor;
+  const list=filterContracts(); // 選択中タブ（利用中/解約済み）に追従
+  const dim=daysInMonth(y,m);
+  const firstW=new Date(y,m-1,1).getDay(); // 0=日
+  const WD=['日','月','火','水','木','金','土'];
+  let cells='';
+  for(let i=0;i<firstW;i++)cells+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=dim;d++){
+    const dayContracts=contractsOnDay(list,y,m,d);
+    const isToday=(y===todayDate.getFullYear()&&m===todayMonth&&d===todayDay);
+    let markers='';
+    if(dayContracts.length){
+      const shown=dayContracts.slice(0,3).map(c=>{
+        const dom=inferLogoDomain(c);
+        const url=dom?logoDevImageUrl(dom,32):'';
+        if(url)return `<img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`;
+        const bg=COLORS[c.cat]||'#D3D1C7';
+        return `<span class="cal-marker dot" style="background:${bg}"></span>`;
+      }).join('');
+      const more=dayContracts.length>3?`<span class="cal-more">+${dayContracts.length-3}</span>`:'';
+      markers=`<div class="cal-markers">${shown}${more}</div>`;
+    }
+    const cls='cal-cell'+(dayContracts.length?' has-pay':'')+(isToday?' today':'');
+    const click=dayContracts.length?` onclick="openDayDetail(${d})"`:'';
+    cells+=`<div class="${cls}"${click}><span class="cal-daynum">${d}</span>${markers}</div>`;
+  }
+  const total=monthPaymentTotal(list,m);
+  el.innerHTML=`
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calPrev()" aria-label="前の月"><i class="ti ti-chevron-left"></i></button>
+      <div class="cal-title">${y}年 ${m}月</div>
+      <button class="cal-nav" onclick="calNext()" aria-label="次の月"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="cal-grid cal-weekdays">${WD.map((w,i)=>`<div class="cal-wd${i===0?' sun':''}${i===6?' sat':''}">${w}</div>`).join('')}</div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-footer"><i class="ti ti-coin"></i>この月の支払い合計 <strong>¥${total.toLocaleString()}</strong></div>`;
+}
+function openDayDetail(d){
+  const {y,m}=calCursor;
+  const list=contractsOnDay(filterContracts(),y,m,d);
+  document.getElementById('day-detail-title').textContent=`${m}月${d}日 の支払い（${list.length}件）`;
+  const el=document.getElementById('day-detail-list');
+  if(!list.length){el.innerHTML=`<div class="empty-state">この日の支払いはありません</div>`;}
+  else{
+    el.innerHTML=list.map(c=>{
+      const dom=inferLogoDomain(c);
+      const url=dom?logoDevImageUrl(dom,48):'';
+      const icon=ICONS[c.cat]||'ti-file';
+      const bg=COLORS[c.cat]||'#D3D1C7';
+      const tc=TCOLORS[c.cat]||'#444441';
+      const iconOrLogo=url
+        ?`<img class="logo-img" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
+        :`<i class="ti ${icon}" style="color:${tc}"></i>`;
+      const cyclePill=c.cycle==='yearly'?'<span class="cycle-pill yearly">年</span>':'';
+      const ownerMeta=viewOwnerId==='all'?` · ${esc(getOwnerName(c))}`:'';
+      return `<div class="day-row" onclick="goToContract(${c.id})">
+        <div class="icon-circle" style="background:${bg}">${iconOrLogo}</div>
+        <div class="day-row-body">
+          <div class="day-row-name">${esc(c.name)}${cyclePill}</div>
+          <div class="day-row-meta">${esc(c.cat)}${ownerMeta} · ${paymentDateTextShort(c)}</div>
+        </div>
+        <div class="day-row-amt">¥${c.amount.toLocaleString()}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('day-detail-modal').classList.add('open');
+}
+function closeDayDetail(){document.getElementById('day-detail-modal').classList.remove('open');}
+function goToContract(id){closeDayDetail();showDetail(id);}
 
 function updateSummary(){
   const viewer=currentViewerId();
@@ -3582,7 +3742,7 @@ function renderWorkflowModal(){
   document.getElementById('wf-go-stage2').disabled=stage!=='stage2_active';
 }
 
-function renderAll(){renderUserPill();renderPreviewBar();renderCatTabs();renderList();updateSummary();}
+function renderAll(){renderUserPill();renderPreviewBar();renderCatTabs();renderMain();updateSummary();}
 
 // === v23: 家族への一言 折りたたみ ===
 function toggleFamilyMsg(titleEl){
