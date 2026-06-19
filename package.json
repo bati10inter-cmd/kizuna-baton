@@ -1,0 +1,30 @@
+{
+  "name": "kizuna-baton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sw.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bati10inter-cmd/kizuna-baton.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bati10inter-cmd/kizuna-baton/issues"
+  },
+  "homepage": "https://github.com/bati10inter-cmd/kizuna-baton#readme",
+  "dependencies": {
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/preferences": "^8.0.1"
+  }
+}
