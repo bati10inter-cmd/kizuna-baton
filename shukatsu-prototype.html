@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v75</title>
+<title>きずなbaton プロトタイプ v76</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1572,7 +1572,20 @@ const ASSET_TYPES={
 };
 const ASSET_TYPE_ORDER=['bank','securities','workplace','card','insurance','loan','safebox'];
 function assetTypeInfo(a){return ASSET_TYPES[a&&a.type]||ASSET_TYPES.bank;}
-function coerceAssetNums(a){a.id=Number(a.id);return a;}
+// APP-ASSET-IMPORT-COERCE: 読込/復元時の軽い型正規化（細工JSONの防御・描画は別途esc済）。
+// id=数値／type=ホワイトリスト外はbank（assetTypeInfoのfallbackと整合）／ownerId・tel・urlは文字列化。
+// visibility は描画時 getVisibility＋canViewContract(APP-SEC-VIS)が正規化するため触れない。
+function coerceAssetNums(a){
+  a.id=Number(a.id);
+  a.type=ASSET_TYPES[a.type]?a.type:'bank';
+  a.ownerId=String(a.ownerId==null?'':a.ownerId);
+  if('tel' in a)a.tel=String(a.tel==null?'':a.tel);
+  if('url' in a)a.url=String(a.url==null?'':a.url);
+  return a;
+}
+// APP-ASSET-BETA-CAP: β版は資産の在りかもアクティブ5件まで（契約 CONTRACT_BETA_MAX と同数）。資産に説明用サンプルは無いため除外判定不要。
+const ASSET_BETA_MAX=5;
+function betaActiveAssetCount(){return assets.filter(a=>!a.archived).length;}
 
 // === XSS対策: HTMLエスケープ ===
 // テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
@@ -2631,14 +2644,21 @@ function readForm(){
   return data;
 }
 
-// APP-DATA-SCOPE-HARD: 機密メモの番号類を保存前に拒否。スペース/ハイフンを除いた連続7桁以上の数字
-// （口座番号・カード番号等）を検出し、CLAUDE.md の「保存しない」方針へ寄せる。
+// APP-DATA-SCOPE-HARD / APP-DATA-SCOPE-2: 機密メモの番号類を保存前に拒否し、CLAUDE.md の「保存しない」方針へ寄せる。
+// ①全角数字を半角へ正規化（IME 入力対策）②ルールA=日付に出ない区切り（空白/ハイフン/長音/中黒）除去後の連続7桁以上
+// ③ルールB=カード/マイナンバー型（3〜4桁グループが3つ以上連なり総桁数12以上）。/. は除去せず日付(2桁要素含む)を誤検知しない。
 function looksLikeSensitiveNumber(s){
-  return /\d{7,}/.test(String(s||'').replace(/[\s-]/g,''));
+  const t=String(s||'').replace(/[０-９]/g,d=>'０１２３４５６７８９'.indexOf(d));
+  // ルールA: 連続7桁以上（口座番号・全角番号・ハイフン/中黒区切り等）
+  if(/\d{7,}/.test(t.replace(/[\s\u3000\-－ー・]/g,'')))return true;
+  // ルールB: カード番号(4-4-4-4)・マイナンバー(4-4-4)型。3〜4桁グループ×3以上＋総桁12以上
+  const m=t.match(/(?:\d{3,4}[\s\u3000\-－/／._．＿・ー]){2,}\d{3,4}/);
+  if(m&&m[0].replace(/\D/g,'').length>=12)return true;
+  return false;
 }
 function confirmSecretSafe(data){
   if(!looksLikeSensitiveNumber(data.secret))return true;
-  alert('メモに7桁以上の連続した数字が含まれています。口座番号・カード番号・暗証番号は保存できません。番号は通帳・金庫などアプリ外で保管してください。');
+  alert('メモに口座番号・カード番号・暗証番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管してください。');
   return false;
 }
 
@@ -3371,14 +3391,17 @@ function doExportJSON(){
   closeExportModal();
   const me=getMember(MY_ID);
   const myContracts=contracts.filter(c=>c.ownerId===MY_ID);
+  // APP-ASSET-EXPORT: 本人所有の資産の在りかも書き出す（doBackup と整合・契約と同じ本人スコープ）
+  const myAssets=assets.filter(a=>a.ownerId===MY_ID);
   const data={
-    schemaVersion:1,
+    schemaVersion:2,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v14',
+    appVersion:'kizuna-baton-prototype-v76',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
-    contracts:myContracts
+    contracts:myContracts,
+    assets:myAssets
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -4025,6 +4048,11 @@ function onAssetTypeChange(){
   document.getElementById('f-asset-location').placeholder=hint;
 }
 function openAssetModal(){
+  // APP-ASSET-BETA-CAP: 上限到達時はフォームを開かず案内（契約 openModal と同型・アンケートは契約専用のため流用しない）
+  if(betaActiveAssetCount()>=ASSET_BETA_MAX){
+    alert('ベータ版で登録できる「資産の在りか」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
+    return;
+  }
   editingAssetId=null;
   fillAssetTypeSelect('bank');
   setupOwnerSelect(document.getElementById('f-asset-owner'),MY_ID);
@@ -4091,7 +4119,7 @@ function readAssetForm(){
 // データ範囲: location/note に7桁以上連続数字（口座/カード/証券番号・暗証）を検知して保存拒否（contract の confirmSecretSafe 同型）
 function confirmAssetSafe(data){
   if(looksLikeSensitiveNumber(data.location)||looksLikeSensitiveNumber(data.note)){
-    alert('在りか・メモに7桁以上の連続した数字が含まれています。口座番号・カード番号・暗証番号・証券番号は保存できません。番号は通帳・金庫などアプリ外で保管し、ここには「どこにあるか」だけを書いてください。');
+    alert('在りか・メモに口座番号・カード番号・暗証番号・証券番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管し、ここには「どこにあるか」だけを書いてください。');
     return false;
   }
   return true;
@@ -4100,6 +4128,11 @@ function addAsset(){
   const data=readAssetForm();
   if(!data.name){alert('会社名・機関名を入力してください。');return;}
   if(!confirmAssetSafe(data))return;
+  // APP-ASSET-BETA-CAP: 二重防御（フォーム未経由の直接追加も上限で拒否）
+  if(betaActiveAssetCount()>=ASSET_BETA_MAX){
+    alert('ベータ版で登録できる「資産の在りか」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
+    return;
+  }
   assets.push({id:nextAssetId++,...data,archived:false});
   persistState();
   closeAssetModal();renderAssetList();syncMainTabUI();
@@ -4361,12 +4394,16 @@ function openRestoreConfirmModal(parsed){
   const mc=(parsed.data.members||[]).length;
   const catRow=Array.isArray(parsed.data.categories)&&parsed.data.categories.length
     ? `<div>カテゴリ：<strong>${parsed.data.categories.length}件</strong></div>` : '';
+  // APP-ASSET-RESTORE-SUMMARY: 復元対象に資産の在りかがあれば件数を明示（applyRestore は assets 復元済み:4392）
+  const assetRow=Array.isArray(parsed.data.assets)&&parsed.data.assets.length
+    ? `<div>資産の在りか：<strong>${parsed.data.assets.length}件</strong></div>` : '';
   const at=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString('ja-JP'):'不明';
   el.innerHTML=`<div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7">
     <div>バックアップ日時：<strong>${at}</strong></div>
     <div>契約：<strong>${cc}件</strong></div>
     <div>家族メンバー：<strong>${mc}名</strong></div>
     ${catRow}
+    ${assetRow}
   </div>`;
   document.getElementById('restore-confirm-modal').classList.add('open');
 }
