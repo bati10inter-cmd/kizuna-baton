@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v78</title>
+<title>きずなbaton プロトタイプ v79</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -271,6 +271,16 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .toast.show{opacity:1;transform:translateY(0)}
 .toast.success{background:#0F6E56}
 .toast.warn{background:#A32D2D}
+/* APPSTORE-NATIVE-LOCK(v79): 生体ロック解錠オーバーレイ兼背景マスク。不透明・最前面(50)。既定 display:none＝Web無影響 */
+.app-lock-overlay{display:none;position:absolute;inset:0;z-index:50;background:var(--color-background-primary);border-radius:20px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.app-lock-overlay.open{display:flex}
+.app-lock-mask,.app-lock-auth{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.app-lock-mask i{font-size:40px;color:var(--color-text-tertiary)}
+.app-lock-bigicon{font-size:46px;color:var(--accent-warm)}
+.app-lock-title{font-size:17px;font-weight:600;color:var(--color-text-primary)}
+.app-lock-sub{font-size:13px;color:var(--color-text-secondary);line-height:1.7;max-width:260px;margin-bottom:8px}
+.app-lock-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-warm);color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:600;cursor:pointer}
+.app-lock-altbtn{background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:8px;text-decoration:underline}
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
@@ -507,6 +517,21 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 <div class="phone" id="phone">
   <!-- Step 6.5: トースト要素（招待受諾の即時通知ほか） -->
   <div class="toast" id="toast"></div>
+  <!-- APPSTORE-NATIVE-LOCK(v79): 生体ロック解錠UI兼App Switcher背景マスク。
+       native かつロックON時のみ表示（Webでは常に display:none）。.modal-bg(20)/toast(30)より上の z-index 50。 -->
+  <div class="app-lock-overlay" id="app-lock-overlay" aria-hidden="true">
+    <div class="app-lock-mask" id="app-lock-mask">
+      <i class="ti ti-shield-lock"></i>
+      <div class="app-lock-title">きずなbaton</div>
+    </div>
+    <div class="app-lock-auth" id="app-lock-auth" style="display:none">
+      <i class="ti ti-shield-lock app-lock-bigicon"></i>
+      <div class="app-lock-title">きずなbaton</div>
+      <div class="app-lock-sub">ご家族以外に見られないよう、ロックしています</div>
+      <button class="app-lock-btn" id="app-lock-unlock-btn" onclick="runAppUnlock()"><i class="ti ti-face-id"></i> Face ID / Touch IDで開く</button>
+      <button class="app-lock-altbtn" id="app-lock-passcode-btn" onclick="runAppUnlock()">端末のパスコードで開く</button>
+    </div>
+  </div>
   <div class="screen" id="screen-list">
     <div class="user-bar">
       <div class="user-pill" onclick="toggleSwitch(event)">
@@ -1836,6 +1861,16 @@ function renderSettingsModal(){
     <div class="info"><div class="name">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
+  // APPSTORE-NATIVE-LOCK(v79): アプリロック（native かつ生体利用可能時のみ表示。Web/非対応端末では出さない）
+  if(IS_NATIVE && appLockSupported){
+    const locked=lsGet(APP_LOCK_KEY)==='1';
+    html+=`<div class="switch-section-header">アプリを開く時の確認</div>`;
+    html+=`<div class="switch-item" onclick="toggleAppLock()">
+      <div class="av" style="background:#185FA5"><i class="ti ti-shield-lock" style="font-size:14px"></i></div>
+      <div class="info"><div class="name">Face ID / Touch IDで開く</div><div class="sub">${locked?'オン（開くときに確認します。使えない時は端末のパスコードで開けます）':'オフ（だれでもそのまま開けます）'}</div></div>
+      <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${locked?'checked':''} onchange="toggleAppLock()"><span class="setting-toggle-thumb"></span></label>
+    </div>`;
+  }
   // データ保管（印刷・書き出し / バックアップ / 復元）
   html+=`<div class="switch-section-header">データ保管</div>`;
   // APPSTORE-DATA-MIGRATE-UX: Web版（ブラウザ/PWA）とアプリ版（App Store）は保存領域が別＝
@@ -2902,9 +2937,21 @@ let forceShowOnboarding=false;
 // 同期キャッシュを正・書き込みは Preferences へ write-through(fire-and-forget＋離脱時flush)」で吸収。
 // Web(非native)は完全に従来の同期 localStorage 挙動を維持(後方互換)。
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-// バンドラ不使用のため npm JS を import せず、native ブリッジの registerPlugin で Preferences プロキシを得る。
+// バンドラ不使用＝npm JS(@capacitor/core)を import しないため registerPlugin は存在しない（native-bridge.js は未提供）。
+// 代わりに native(JSExport.swift)が atDocumentStart で注入する window.Capacitor.Plugins.<jsName>（各 pluginMethod を
+// nativePromise へ転送するプロキシ）を直接参照する。isPluginAvailable は cap.Plugins[name] の存在確認。
 const NativePref=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('Preferences'))
-  ? window.Capacitor.registerPlugin('Preferences') : null;
+  ? window.Capacitor.Plugins.Preferences : null;
+// APPSTORE-NATIVE-LOCK(v79): 生体認証プラグイン(@aparajita/capacitor-biometric-auth v10.0.0=Cap8/SPM対応)を
+// Preferences と同じ Plugins プロキシ方式で取得（バンドラ不使用＝npm JS import せず global ブリッジ参照）。
+// ★ネイティブ登録名(jsName)は 'BiometricAuthNative'（BiometricAuthNative.swift で確認）。
+// ★公開 native メソッドは checkBiometry / internalAuthenticate のみ（友好API authenticate は @capacitor/core の
+//   JSラッパー側＝本構成では未ロード。internalAuthenticate は成功でresolve・失敗でthrow）。native かつ同梱時のみ非null。
+const BiometricAuth=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('BiometricAuthNative'))
+  ? window.Capacitor.Plugins.BiometricAuthNative : null;
+const APP_LOCK_KEY='kizuna-baton:app-lock:v79'; // 端末ローカル設定（'1'=ロックON）。backup JSON には含めない（端末固有）
+let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
+let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
 const nativeCache={};                 // native: Preferences の同期ミラー
 const pendingWrites=new Set();        // native: 未完了の Preferences.set/remove Promise 群
 const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
@@ -4518,7 +4565,7 @@ function closeRestoreErrorModal(){document.getElementById('restore-error-modal')
 // === APPSTORE-PERSIST: init wiring（native は Preferences 先読み→移行を待ってから初期化）===
 // 既知の永続化キー（マイグレーション対象）。永続化キーを追加したら必ずここへ足すこと
 // （各キーの定数が上で定義済みのためこの位置で参照する。:vNN を bump したらこの配列も自動追従）。
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY];
 // 初回 native 起動時のみ: localStorage の既存値を Preferences へ複製しキャッシュへ反映（冪等・途中失敗で再試行可）。
 async function migrateIfNeeded(){
   if(!NativePref)return;
@@ -4536,11 +4583,105 @@ async function migrateIfNeeded(){
     await NativePref.set({key:NATIVE_MIGRATED_KEY,value:'1'}); // 全キー複製成功後に最後に立てる
   }catch(e){console.warn('[kizuna-baton] migrateIfNeeded failed（再試行可）:',e);}
 }
+
+// === APPSTORE-NATIVE-LOCK(v79): 生体認証アプリロック ===
+// Web(非native)・プラグイン未同梱では一切作動しない（appLockSupported=false のまま＝従来挙動）。
+// 秘密情報は保存しない＝端末の LocalAuthentication で「閲覧ゲート」を提供するのみ（CLAUDE.md データ範囲/セキュリティ方針）。
+
+// boot 時に1回だけ生体の利用可否を判定（設定トグルの表示条件・解錠可否に使用）。
+async function checkAppLockSupport(){
+  if(!BiometricAuth){appLockSupported=false;return;}
+  try{
+    const r=await BiometricAuth.checkBiometry();
+    // 生プロキシのため戻り値キー名差異に保険（isAvailable / available）。
+    appLockSupported=!!(r&&(r.isAvailable||r.available));
+  }catch(e){appLockSupported=false;}
+}
+
+// 実際の生体認証呼び出し。成功時 true。allowPasscode=true で端末パスコードのみ許容。
+async function authenticateBiometric(){
+  if(!BiometricAuth)return false;
+  try{
+    // 生proxyのため friendly authenticate() ではなく internalAuthenticate() を直接呼ぶ（成功=resolve / 失敗=throw）。
+    await BiometricAuth.internalAuthenticate({
+      reason:'きずなbaton を開きます',
+      cancelTitle:'キャンセル',
+      iosFallbackTitle:'端末のパスコードで開く',
+      allowDeviceCredential:true // 生体失敗時は端末パスコードにフォールバック（締め出し防止）
+    });
+    return true;
+  }catch(e){return false;}
+}
+
+// 解錠ボタン押下時。成功でオーバーレイを閉じ、未完了だった起動チェーンを継続。
+async function runAppUnlock(){
+  const ok=await authenticateBiometric();
+  if(ok){
+    appUnlocked=true;
+    hideAppLock();
+    if(appUnlockResolve){const f=appUnlockResolve;appUnlockResolve=null;f();}
+  }
+  // 失敗時はオーバーレイ維持（「もう一度試す/端末のパスコード」導線のまま）。
+}
+
+let appUnlockResolve=null;
+function showAppLockAuth(){
+  const ov=document.getElementById('app-lock-overlay');
+  document.getElementById('app-lock-mask').style.display='none';
+  document.getElementById('app-lock-auth').style.display='flex';
+  ov.classList.add('open');
+  ov.setAttribute('aria-hidden','false');
+}
+// App Switcher 用の背景マスク（解錠UIは出さず目隠しのみ）。
+function showAppLockMask(){
+  const ov=document.getElementById('app-lock-overlay');
+  document.getElementById('app-lock-auth').style.display='none';
+  document.getElementById('app-lock-mask').style.display='flex';
+  ov.classList.add('open');
+  ov.setAttribute('aria-hidden','false');
+}
+function hideAppLock(){
+  const ov=document.getElementById('app-lock-overlay');
+  ov.classList.remove('open');
+  ov.setAttribute('aria-hidden','true');
+}
+
+// ブートゲート: native かつロックON かつ利用可能時のみ、解錠まで Promise を保留して後続チェーンを止める。
+// それ以外は即 resolve（Web・ロックOFF は従来どおり素通り）。
+function maybeRequireAppUnlock(){
+  if(!BiometricAuth||!appLockSupported||lsGet(APP_LOCK_KEY)!=='1'){
+    appUnlocked=true; // ロック無し＝解錠済み扱い（自動ロックも作動しない）
+    return Promise.resolve();
+  }
+  return new Promise(resolve=>{
+    appUnlockResolve=resolve;
+    showAppLockAuth();
+    runAppUnlock(); // 起動直後に自動でプロンプト（失敗時はボタンで再試行）
+  });
+}
+
+// 設定トグル。ON にする時は先に認証成功を要求（生体未登録での締め出し防止）。OFF は即解除。
+async function toggleAppLock(){
+  const turningOn=lsGet(APP_LOCK_KEY)!=='1';
+  if(turningOn){
+    const ok=await authenticateBiometric();
+    if(!ok){renderSettingsModal();showToast('確認できなかったため、ロックはオンにしていません','warn');return;}
+    lsSet(APP_LOCK_KEY,'1');
+    appUnlocked=true; // 直後に自動ロックが暴発しないよう解錠済みに
+    showToast('アプリを開く時に確認するようにしました','success');
+  }else{
+    lsSet(APP_LOCK_KEY,'0');
+    showToast('アプリを開く時の確認をオフにしました','success');
+  }
+  renderSettingsModal();
+}
+
 async function boot(){
   if(NativePref){
     isPrivateMode=false;      // native は Preferences へ保存＝localStorage 検査に依存しない
     await hydrateNativeCache();
     await migrateIfNeeded();
+    await checkAppLockSupport(); // APPSTORE-NATIVE-LOCK(v79): 生体利用可否を判定（hydrate 後＝APP_LOCK_KEY 参照可）
   }else{
     detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
   }
@@ -4550,6 +4691,8 @@ async function boot(){
   initLargeMode();
   updateSortBtnLabel();
   renderAll();
+  // APPSTORE-NATIVE-LOCK(v79): native+ロックON時のみ解錠まで後続(同意/オンボ)を停止。Web/OFFは即素通り。
+  await maybeRequireAppUnlock();
   // v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
   if(maybeShowOwnerConsent()){
     maybeShowOnboarding();
@@ -4573,8 +4716,19 @@ boot();
 window.addEventListener('pagehide', persistState);
 document.addEventListener('visibilitychange', async ()=>{
   if(document.visibilityState==='hidden'){
+    // APPSTORE-NATIVE-LOCK(v79): ロックON時は App Switcher スナップショット対策に persistState より前へ同期で目隠し。
+    if(BiometricAuth && appLockSupported && lsGet(APP_LOCK_KEY)==='1'){
+      appUnlocked=false; // 復帰時に再認証させる
+      showAppLockMask();
+    }
     persistState();
     if(NativePref) await flushNativeWrites(); // native: 未完了の Preferences 書込を待つ（best-effort）
+  }else if(document.visibilityState==='visible'){
+    // 復帰時: ロックON かつ未解錠なら再認証ゲート。解除まで解錠UIを表示。
+    if(BiometricAuth && appLockSupported && lsGet(APP_LOCK_KEY)==='1' && !appUnlocked){
+      showAppLockAuth();
+      runAppUnlock();
+    }
   }
 });
 
