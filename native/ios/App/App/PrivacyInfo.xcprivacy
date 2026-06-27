@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- きずなbaton Privacy Manifest（APPSTORE-META-PRIVACY / Codex H5）
+	     2024-05 以降 App Store 提出に必須。Required Reason API を申告する。
+	     正＝docs/app-store-submission-plan.md §6 / TASKS.md APPSTORE-META-PRIVACY。 -->
+
+	<!-- トラッキングしない（ATT 不要・広告SDK無し）。CLAUDE.md データ範囲と一致。 -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<!-- トラッキング用ドメイン無し。 -->
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- 当アプリ自身がトラッキング/外部送信目的で収集するデータ無し。
+	     契約情報はローカル（Preferences/localStorage）保管。カード番号フル・口座番号・PIN・
+	     マイナンバー等の機密情報そのものは保存しない（CLAUDE.md データ範囲）。 -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<!-- Required Reason API 申告 -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- @capacitor/preferences（iOS=UserDefaults バッキング）＋ Capacitor core が
+			     UserDefaults を利用するため申告。APPSTORE-PERSIST で永続化を Preferences に寄せた。 -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- CA92.1: アプリ自身のみがアクセスする情報の読み書きに UserDefaults を使用。
+				     他アプリ/システムが書いた情報の読み取りや、他アプリから読める書き込みは行わない。 -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
