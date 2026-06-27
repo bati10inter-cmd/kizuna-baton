@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v76</title>
+<title>きずなbaton プロトタイプ v78</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -95,6 +95,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item .check{color:var(--color-text-primary);font-size:16px}
 .switch-section-header{padding:8px 16px;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
 .switch-section-header:first-child{border-top:none;margin-top:0}
+.switch-migrate-note{margin:0 12px 6px;padding:8px 10px;font-size:11px;line-height:1.6;color:var(--color-text-secondary);background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:8px}
+.switch-migrate-note i{color:var(--accent-warm);margin-right:4px}
 .setting-toggle{position:relative;width:40px;height:24px;flex-shrink:0;cursor:pointer;display:inline-block}
 .setting-toggle input{opacity:0;width:0;height:0;position:absolute}
 .setting-toggle-thumb{position:absolute;inset:0;background:var(--color-background-tertiary);border:1px solid var(--color-border-secondary);border-radius:12px;transition:background .15s ease,border-color .15s ease}
@@ -1836,6 +1838,11 @@ function renderSettingsModal(){
   </div>`;
   // データ保管（印刷・書き出し / バックアップ / 復元）
   html+=`<div class="switch-section-header">データ保管</div>`;
+  // APPSTORE-DATA-MIGRATE-UX: Web版（ブラウザ/PWA）とアプリ版（App Store）は保存領域が別＝
+  // コードでの自動移行は不可（Codex H3）。書き出し→復元の手動引き継ぎ導線を IS_NATIVE で文言分岐して明示。
+  html+=`<div class="switch-migrate-note">${IS_NATIVE
+    ? '<i class="ti ti-info-circle"></i>Web版（ブラウザ）で使っていたデータは自動では引き継がれません。Web版で「データをバックアップ」して書き出したファイルを、下の「データを復元」から読み込んでください。'
+    : '<i class="ti ti-info-circle"></i>アプリ版（App Store）へ引き継ぐときは、ここで「データをバックアップ」して書き出したファイルを、アプリ版の「データを復元」から読み込みます。ブラウザとアプリはデータの保存場所が別のため、自動では引き継がれません。'}</div>`;
   html+=`<div class="switch-item" onclick="openExportModal()">
     <div class="av" style="background:#555"><i class="ti ti-printer" style="font-size:14px"></i></div>
     <div class="info"><div class="name">印刷・書き出し</div><div class="sub">家族に渡す印刷書面やJSONで出力</div></div>
@@ -1843,12 +1850,12 @@ function renderSettingsModal(){
   </div>`;
   html+=`<div class="switch-item" onclick="doBackup()">
     <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">データをバックアップ</div><div class="sub">JSONファイルとして書き出し</div></div>
+    <div class="info"><div class="name">データをバックアップ</div><div class="sub">${IS_NATIVE?'JSONファイルとして書き出し（他端末への保管用）':'JSONファイルとして書き出し（アプリ版への引き継ぎにも使えます）'}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   html+=`<div class="switch-item" onclick="triggerRestore()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">データを復元</div><div class="sub">バックアップファイルから読込（上書き）</div></div>
+    <div class="info"><div class="name">データを復元</div><div class="sub">${IS_NATIVE?'Web版で書き出したファイルからも読込（上書き）':'バックアップファイルから読込（上書き）'}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // プラン（v46: 非機能の表示見本）
@@ -2888,8 +2895,59 @@ function maybeShowOwnerConsent(){
 const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
 let onboardingStep=1;
 let forceShowOnboarding=false;
-function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+// === APPSTORE-PERSIST: localStorage / Capacitor Preferences 抽象化 ===
+// iOS WKWebView の localStorage はストレージ逼迫時にOSがパージし得るため、native では
+// Capacitor Preferences(UserDefaults バッキング・パージ対象外)へ永続化する。同期APIの
+// localStorage と非同期の Preferences の差は「起動時に同期キャッシュへ先読み(hydrate)し、以降は
+// 同期キャッシュを正・書き込みは Preferences へ write-through(fire-and-forget＋離脱時flush)」で吸収。
+// Web(非native)は完全に従来の同期 localStorage 挙動を維持(後方互換)。
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+// バンドラ不使用のため npm JS を import せず、native ブリッジの registerPlugin で Preferences プロキシを得る。
+const NativePref=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('Preferences'))
+  ? window.Capacitor.registerPlugin('Preferences') : null;
+const nativeCache={};                 // native: Preferences の同期ミラー
+const pendingWrites=new Set();        // native: 未完了の Preferences.set/remove Promise 群
+const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
+function lsGet(k){
+  if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
+  try{return localStorage.getItem(k);}catch(e){return null;}
+}
+function lsSet(k,v){
+  if(NativePref){
+    const val=String(v);
+    nativeCache[k]=val;
+    const p=NativePref.set({key:k,value:val}).catch(()=>{}).finally(()=>pendingWrites.delete(p));
+    pendingWrites.add(p);
+    return;
+  }
+  try{localStorage.setItem(k,v);}catch(e){}
+}
+function lsRemove(k){
+  if(NativePref){
+    delete nativeCache[k];
+    const p=NativePref.remove({key:k}).catch(()=>{}).finally(()=>pendingWrites.delete(p));
+    pendingWrites.add(p);
+    return;
+  }
+  try{localStorage.removeItem(k);}catch(e){}
+}
+// 起動時: Preferences の全キーを同期キャッシュへ先読み(loadPersistentState より前に await)。
+async function hydrateNativeCache(){
+  if(!NativePref)return;
+  try{
+    const r=await NativePref.keys();
+    const keys=(r&&r.keys)||[];
+    for(const k of keys){
+      const g=await NativePref.get({key:k});
+      nativeCache[k]=(g&&g.value!=null)?g.value:'';
+    }
+  }catch(e){console.warn('[kizuna-baton] hydrateNativeCache failed:',e);}
+}
+// 重要な離脱時に未完了書き込みを待つ(best-effort)。iOS バックグラウンドでの完了は保証しない。
+async function flushNativeWrites(){
+  if(!NativePref)return;
+  try{await Promise.allSettled([...pendingWrites]);}catch(e){}
+}
 
 // === v20: 契約・メンバーの localStorage 永続化 ===
 const DATA_KEY='kizuna-baton:data:v20';
@@ -4457,38 +4515,72 @@ function openRestoreErrorModal(msg,detail,title){
 }
 function closeRestoreErrorModal(){document.getElementById('restore-error-modal').classList.remove('open');}
 
-// === init wiring ===
-detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
-loadSortPrefs();
-loadPersistentState();    // v20: 契約・メンバーを localStorage から復元（renderAll 前）
-initDarkMode();
-initLargeMode();
-updateSortBtnLabel();
-renderAll();
-// v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
-if(maybeShowOwnerConsent()){
-  maybeShowOnboarding();
+// === APPSTORE-PERSIST: init wiring（native は Preferences 先読み→移行を待ってから初期化）===
+// 既知の永続化キー（マイグレーション対象）。永続化キーを追加したら必ずここへ足すこと
+// （各キーの定数が上で定義済みのためこの位置で参照する。:vNN を bump したらこの配列も自動追従）。
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY];
+// 初回 native 起動時のみ: localStorage の既存値を Preferences へ複製しキャッシュへ反映（冪等・途中失敗で再試行可）。
+async function migrateIfNeeded(){
+  if(!NativePref)return;
+  if(nativeCache[NATIVE_MIGRATED_KEY])return; // 移行済
+  try{
+    for(const k of STORAGE_KEYS){
+      let v=null;
+      try{v=localStorage.getItem(k);}catch(e){v=null;}
+      if(v!=null){
+        nativeCache[k]=v;                       // High#2: 同一起動で復元できるようキャッシュへも反映
+        await NativePref.set({key:k,value:v});
+      }
+    }
+    nativeCache[NATIVE_MIGRATED_KEY]='1';
+    await NativePref.set({key:NATIVE_MIGRATED_KEY,value:'1'}); // 全キー複製成功後に最後に立てる
+  }catch(e){console.warn('[kizuna-baton] migrateIfNeeded failed（再試行可）:',e);}
 }
-
-// v57(APP-DATA-CORRUPT): 保存データ破損を検知した場合はユーザーへ通知（サンプル表示に戻している旨）。
-// 破損データは上書きしていない（loadPersistentState で persistState 抑止済＝安全側）。
-// 同意/オンボーディング等のモーダルが出ているときはスタック回避のため通知しない（破損はサンプル表示で安全継続のため猶予可）。
-if(corruptStateDetected && !document.querySelector('.modal-bg.open')){
-  openRestoreErrorModal(
-    '保存していたデータを読み込めなかったため、サンプル表示に戻しています。バックアップファイルがあれば「復元」からやり直せます。',
-    'localStorage の保存データを解析できませんでした（データは上書きしていません）',
-    'データを読み込めませんでした'
-  );
+async function boot(){
+  if(NativePref){
+    isPrivateMode=false;      // native は Preferences へ保存＝localStorage 検査に依存しない
+    await hydrateNativeCache();
+    await migrateIfNeeded();
+  }else{
+    detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
+  }
+  loadSortPrefs();
+  loadPersistentState();    // v20: 契約・メンバーを復元（renderAll 前）
+  initDarkMode();
+  initLargeMode();
+  updateSortBtnLabel();
+  renderAll();
+  // v22(S3): 本人向け初回起動同意を先に取得。同意済みならオンボーディングへ、未同意ならモーダル経由でチェーン
+  if(maybeShowOwnerConsent()){
+    maybeShowOnboarding();
+  }
+  // v57(APP-DATA-CORRUPT): 保存データ破損を検知した場合はユーザーへ通知（サンプル表示に戻している旨）。
+  // 破損データは上書きしていない（loadPersistentState で persistState 抑止済＝安全側）。
+  // 同意/オンボーディング等のモーダルが出ているときはスタック回避のため通知しない。
+  if(corruptStateDetected && !document.querySelector('.modal-bg.open')){
+    openRestoreErrorModal(
+      '保存していたデータを読み込めなかったため、サンプル表示に戻しています。バックアップファイルがあれば「復元」からやり直せます。',
+      '保存していたデータを解析できませんでした（データは上書きしていません）',
+      'データを読み込めませんでした'
+    );
+  }
 }
+boot();
 
 // === v52(APP-S83-3): persistState 呼び忘れ安全網 ===
 // 個別 mutation の persistState() 呼び忘れがあっても、離脱・バックグラウンド遷移時に保存を補完する。
 // pagehide は iOS Safari でも発火（beforeunload はモバイルで不確実）。persistState 内で isPrivateMode と try/catch を担保済み。
 window.addEventListener('pagehide', persistState);
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') persistState(); });
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState==='hidden'){
+    persistState();
+    if(NativePref) await flushNativeWrites(); // native: 未完了の Preferences 書込を待つ（best-effort）
+  }
+});
 
 // === PWA Service Worker registration (v21) ===
-if('serviceWorker' in navigator){
+// native(Capacitor) では SW を登録しない（webDir 同梱の index.html と precache 対象がずれ、配信に干渉し得る）。
+if(!IS_NATIVE && 'serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('./sw.js').then(reg=>{
       console.log('[SW] registered scope:', reg.scope);
