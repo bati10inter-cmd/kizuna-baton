@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きずなbaton プロトタイプ v79</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>きずなbaton プロトタイプ v81</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -24,8 +24,34 @@
   --color-border-tertiary:#DEDCD2;
   --accent-warm:#FFA875;
   --accent-warm-bg:#FFF1E6;
+  --accent-warm-strong:#A85410;
   --accent-warm-border:rgba(255,168,117,0.3);
   --accent-warm-hover:#FFE3CC;
+  --owner-husband:#185FA5;
+  --owner-wife:#D4537E;
+  --owner-child:#1D9E75;
+  --owner-parent:#B45309;
+  --owner-purple:#7C3AED;
+  --owner-cyan:#0891B2;
+  --owner-red:#DC2626;
+  --owner-green:#65A30D;
+  --owner-violet:#9333EA;
+  --owner-teal:#0D9488;
+  --owner-orange:#C2410C;
+  --owner-indigo:#4338CA;
+  --owner-neutral:#888880;
+  --owner-on-color:#FFFFFF;
+  --home-danger:#A32D2D;
+  --home-danger-bg:#FCEBEB;
+  --home-warning:#854F0B;
+  --home-warning-bg:#FAEEDA;
+  --home-info:var(--owner-husband);
+  --home-info-bg:#E6F1FB;
+  --home-active:var(--owner-child);
+  --home-active-bg:#E4F4EC;
+  --home-active-strong:#137A57;
+  --home-private-icon:var(--home-danger);
+  --home-selected-icon:var(--home-warning);
   --border-radius-md:6px;
   --border-radius-lg:10px;
   --card-shadow:0 1px 2px rgba(0,0,0,0.04);
@@ -44,8 +70,20 @@
   --color-border-tertiary:#34332E;
   --accent-warm:#FFB893;
   --accent-warm-bg:rgba(255,168,117,0.18);
+  --accent-warm-strong:#FFC8AB;
   --accent-warm-border:rgba(255,184,147,0.35);
   --accent-warm-hover:rgba(255,168,117,0.32);
+  --home-danger:#E89999;
+  --home-danger-bg:rgba(163,45,45,0.28);
+  --home-warning:#EFBA6A;
+  --home-warning-bg:rgba(239,159,39,0.22);
+  --home-info:#8FB9DD;
+  --home-info-bg:rgba(24,95,165,0.22);
+  --home-active:#7CC6A4;
+  --home-active-bg:rgba(29,158,117,0.22);
+  --home-active-strong:#A0DDC0;
+  --home-private-icon:var(--home-danger);
+  --home-selected-icon:var(--home-warning);
   --card-shadow:0 1px 2px rgba(0,0,0,0.35);
   --card-shadow-hover:0 4px 12px rgba(0,0,0,0.45);
 }
@@ -75,7 +113,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
 .user-bar{background:var(--color-background-primary);padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:6}
 .user-pill{display:flex;align-items:center;gap:6px;flex:1;background:var(--color-background-secondary);padding:6px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);cursor:pointer;min-width:0}
-.user-pill .av{width:24px;height:24px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.user-pill .av{width:24px;height:24px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
 .user-pill .info{flex:1;min-width:0}
 .user-pill .label{font-size:9px;color:var(--color-text-tertiary);line-height:1.1}
 .user-pill .name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -88,7 +126,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item:last-child{border-bottom:none}
 .switch-item:hover{background:var(--color-background-secondary)}
 .switch-item.active{background:var(--color-background-secondary)}
-.switch-item .av{width:30px;height:30px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.switch-item .av{width:30px;height:30px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
 .switch-item .info{flex:1}
 .switch-item .name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
 .switch-item .sub{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
@@ -123,16 +161,17 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .death-banner.full{background:#FCEBEB;border-color:#D4537E;color:#7A2236}
 .death-banner i{font-size:14px;margin-top:1px;flex-shrink:0}
 
-.topbar{background:var(--color-background-primary);padding:10px 16px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.home-hero{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.topbar{background:transparent;padding:12px 16px 6px;border-bottom:none}
 .topbar h1{font-size:17px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
-.topbar .baton-tag{font-size:10px;background:#FAEEDA;color:#854F0B;padding:2px 7px;border-radius:8px;font-weight:400;letter-spacing:0.5px}
+.topbar .baton-tag{font-size:10px;background:var(--home-warning-bg);color:var(--home-warning);padding:2px 7px;border-radius:8px;font-weight:400;letter-spacing:0.5px}
 .topbar p{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
 
 .back-bar{background:var(--color-background-primary);padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
 .back-btn{background:transparent;border:none;font-size:13px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;padding:0}
 
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 16px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
-.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 16px 14px;background:transparent;border-bottom:none}
+.stat{background:var(--color-background-secondary);border-radius:8px;padding:10px 11px;border:0.5px solid var(--color-border-tertiary)}
 .stat-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
 .stat-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
 .stat-sub{font-size:10px;color:var(--color-text-tertiary)}
@@ -141,9 +180,28 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .tab{font-size:11px;padding:6px 8px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
 .tab.active{color:var(--color-text-primary);border-bottom:2px solid var(--color-text-primary);font-weight:500}
 
+.home-controls{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
 .view-tabs{display:flex;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);gap:6px}
 .view-tab{flex:1;font-size:12px;padding:6px;color:var(--color-text-secondary);cursor:pointer;text-align:center;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid transparent}
 .view-tab.active{color:var(--color-text-primary);background:var(--color-background-primary);border-color:var(--color-border-secondary);font-weight:500}
+.home-controls .view-tabs,.home-controls .display-toggle,.home-controls .search-bar{padding:0;background:transparent;border-bottom:none}
+.home-controls #main-tabs .view-tab{font-size:13px;padding:9px 8px;border-color:var(--color-border-tertiary)}
+.home-controls #view-tabs .view-tab,.home-controls .dt-btn{font-size:12px;padding:7px 8px}
+/* APP-HOME-UI: 3コントロール群を「ラベル＋意味色＋区切り」で区別（種類/表示/状態） */
+.home-controls .ctrl-type,.home-controls .ctrl-display,.home-controls .ctrl-status{flex-wrap:wrap;align-items:center}
+.ctrl-label{flex:0 0 100%;font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:0.5px;margin-bottom:1px;display:flex;align-items:center;gap:4px}
+.ctrl-label::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--ctrl-accent,var(--color-border-secondary))}
+.home-controls .ctrl-display,.home-controls .ctrl-status{border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+/* ① 種類＝主役の切替（オレンジ） */
+.home-controls .ctrl-type{--ctrl-accent:var(--accent-warm)}
+.home-controls #main-tabs .view-tab.active{border-color:var(--accent-warm);background:var(--accent-warm-bg);color:var(--accent-warm-strong);font-weight:600}
+/* ② 表示＝中立な見せ方（青） */
+.home-controls .ctrl-display{--ctrl-accent:var(--home-info)}
+.home-controls #display-toggle .dt-btn.active{border-color:var(--home-info);background:var(--home-info-bg);color:var(--home-info)}
+/* ③ 状態＝利用中(緑)/解約済み(グレー) */
+.home-controls .ctrl-status{--ctrl-accent:var(--home-active)}
+.home-controls #view-tabs #vt-active.active{border-color:var(--home-active);background:var(--home-active-bg);color:var(--home-active-strong);font-weight:600}
+.home-controls #view-tabs #vt-archived.active{border-color:var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary)}
 
 /* v17: 検索バー */
 .search-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
@@ -159,13 +217,13 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .empty-state .empty-clear-btn{margin-top:10px;padding:6px 14px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-primary);cursor:pointer}
 
 .list{padding:12px;display:flex;flex-direction:column;gap:8px}
-.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:var(--card-shadow);transition:box-shadow .15s ease,transform .15s ease}
+.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-left:4px solid var(--card-owner-color,var(--color-border-tertiary));border-radius:12px;padding:12px 14px 12px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:var(--card-shadow);transition:box-shadow .15s ease,transform .15s ease}
 .card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-1px)}
-.card.urgent{border-left:3px solid #E24B4A}
+.card.urgent{box-shadow:inset 0 0 0 1px var(--home-danger-bg),var(--card-shadow)}
 .card.archived{opacity:0.7}
 .icon-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;position:relative}
 .logo-img{width:36px;height:36px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);padding:4px}
-.owner-dot{position:absolute;bottom:-2px;right:-2px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1.5px solid var(--color-background-primary);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;color:white}
+.owner-dot{position:absolute;bottom:-2px;right:-2px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1.5px solid var(--color-background-primary);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;color:var(--owner-on-color)}
 .card-body{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;line-height:1.35}
 .card-meta{font-size:11px;color:var(--color-text-secondary);margin-top:3px;line-height:1.4}
@@ -177,8 +235,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .cycle-pill{display:inline-block;font-size:10px;font-weight:500;padding:1px 6px;border-radius:4px;background:var(--color-background-secondary);color:var(--color-text-secondary);margin-left:4px;vertical-align:1px}
 .cycle-pill.yearly{background:#E6F1FB;color:#185FA5}
 .badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-top:3px}
-.badge-urgent{background:#FCEBEB;color:#A32D2D}
-.badge-soon{background:#FAEEDA;color:#854F0B}
+.badge-urgent{background:var(--home-danger-bg);color:var(--home-danger)}
+.badge-soon{background:var(--home-warning-bg);color:var(--home-warning)}
 .badge-archived{background:#F1EFE8;color:#5F5E5A}
 /* APP-N3: 表示モード切替＋支払日カレンダー */
 .display-toggle{display:flex;gap:6px;padding:8px 12px 0;background:var(--color-background-primary)}
@@ -341,12 +399,12 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .viewer-checks .vc-empty{padding:8px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center}
 
 .visibility-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-secondary);margin-left:6px;font-weight:400}
-.visibility-badge.private{background:#FCEBEB;color:#A32D2D}
-.visibility-badge.selected{background:#FAEEDA;color:#854F0B}
-.visibility-badge.all{background:#E6F1FB;color:#185FA5}
+.visibility-badge.private{background:var(--home-danger-bg);color:var(--home-danger)}
+.visibility-badge.selected{background:var(--home-warning-bg);color:var(--home-warning)}
+.visibility-badge.all{background:var(--home-info-bg);color:var(--home-info)}
 .visibility-badge.after-only{background:#EFE5F4;color:#5F2D7A}
 
-.hidden-icon{font-size:11px;color:#A32D2D;margin-left:3px}
+.hidden-icon{font-size:11px;color:var(--home-private-icon);margin-left:3px}
 
 .member-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:5px}
 .member-row .av{width:28px;height:28px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
@@ -403,17 +461,17 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 /* === v18: ダークモード時のパステル系バッジ／バナー上書き === */
 /* アクセント色（夫/妻/子のブランドカラー）は CSS 変数化せず維持。
    背景パステル系のみ rgba 透過 + 文字色を明るくして可読性確保 */
-:root.dark .visibility-badge.all{background:rgba(24,95,165,0.22);color:#8FB9DD}
-:root.dark .visibility-badge.selected{background:rgba(239,159,39,0.22);color:#EFBA6A}
-:root.dark .visibility-badge.private{background:rgba(163,45,45,0.28);color:#E89999}
+:root.dark .visibility-badge.all{background:var(--home-info-bg);color:var(--home-info)}
+:root.dark .visibility-badge.selected{background:var(--home-warning-bg);color:var(--home-warning)}
+:root.dark .visibility-badge.private{background:var(--home-danger-bg);color:var(--home-danger)}
 :root.dark .visibility-badge.after-only{background:rgba(95,45,122,0.32);color:#C4A8D8}
 :root.dark .cycle-pill.yearly{background:rgba(24,95,165,0.22);color:#8FB9DD}
-:root.dark .badge-urgent{background:rgba(163,45,45,0.28);color:#E89999}
-:root.dark .badge-soon{background:rgba(239,159,39,0.22);color:#EFBA6A}
+:root.dark .badge-urgent{background:var(--home-danger-bg);color:var(--home-danger)}
+:root.dark .badge-soon{background:var(--home-warning-bg);color:var(--home-warning)}
 :root.dark .badge-archived{background:rgba(140,138,128,0.22);color:#BFBDB3}
 :root.dark .cal-wd.sun{color:#E08B85}
 :root.dark .cal-wd.sat{color:#7FA9CE}
-:root.dark .baton-tag{background:rgba(239,159,39,0.22);color:#EFBA6A}
+:root.dark .baton-tag{background:var(--home-warning-bg);color:var(--home-warning)}
 :root.dark .masked{background:var(--color-background-secondary)}
 :root.dark .doc-tag{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 :root.dark .cancel-box{background:rgba(163,45,45,0.18);border-color:rgba(240,149,149,0.5)}
@@ -509,6 +567,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 @media (max-width:480px){
   body{padding:0;align-items:stretch}
   .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;border:none;box-shadow:none}
+  .user-bar{padding-top:calc(10px + env(safe-area-inset-top))}
+  .back-bar{padding-top:calc(12px + env(safe-area-inset-top))}
+  .switch-menu{top:calc(54px + env(safe-area-inset-top))}
+  .toast{top:calc(12px + env(safe-area-inset-top))}
 }
 </style>
 </head>
@@ -570,34 +632,41 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="pm-msg">プライベートブラウジング中：データは保存されません。<span class="pm-link">詳しく見る</span></div>
     </div>
 
-    <div class="topbar">
-      <h1><i class="ti ti-heart-handshake" style="font-size:15px"></i>きずなbaton <span class="baton-tag">家族へつなぐ</span><span class="beta-badge" onclick="openBetaInfoModal()" title="ベータ版について">β</span></h1>
-      <p id="family-count">家族 0人で共有中 · コード FAMX-2847</p>
-    </div>
-    <div class="view-tabs" id="main-tabs">
-      <div class="view-tab active" id="main-tab-contracts" onclick="setMainTab('contracts')"><i class="ti ti-file-text"></i> 契約</div>
-      <div class="view-tab" id="main-tab-assets" onclick="setMainTab('assets')"><i class="ti ti-map-pin"></i> 資産の在りか</div>
-    </div>
-    <div class="summary" id="summary-bar">
-      <div class="stat" id="stat-monthly"><div class="stat-label">ひと月あたり</div><div class="stat-val" id="total-amount">¥0</div><div class="stat-sub">年間: <span id="yearly">¥0</span></div></div>
-      <div class="stat" id="stat-count"><div class="stat-label" id="stat-count-label">登録件数</div><div class="stat-val" id="total-count">0</div><div class="stat-sub" id="stat-count-sub"><span id="urgent-count">0</span>件が30日以内</div></div>
+    <div class="home-hero">
+      <div class="topbar">
+        <h1><i class="ti ti-heart-handshake" style="font-size:15px"></i>きずなbaton <span class="baton-tag">家族へつなぐ</span><span class="beta-badge" onclick="openBetaInfoModal()" title="ベータ版について">β</span></h1>
+        <p id="family-count">家族 0人で共有中 · コード FAMX-2847</p>
+      </div>
+      <div class="summary" id="summary-bar">
+        <div class="stat" id="stat-monthly"><div class="stat-label">ひと月あたり</div><div class="stat-val" id="total-amount">¥0</div><div class="stat-sub">年間: <span id="yearly">¥0</span></div></div>
+        <div class="stat" id="stat-count"><div class="stat-label" id="stat-count-label">登録件数</div><div class="stat-val" id="total-count">0</div><div class="stat-sub" id="stat-count-sub"><span id="urgent-count">0</span>件が30日以内</div></div>
+      </div>
     </div>
 
-    <div class="display-toggle" id="display-toggle">
-      <button class="dt-btn active" id="dt-list" onclick="setDisplayMode('list')"><i class="ti ti-list"></i>リスト</button>
-      <button class="dt-btn" id="dt-calendar" onclick="setDisplayMode('calendar')"><i class="ti ti-calendar-month"></i>カレンダー</button>
-    </div>
-    <div class="view-tabs" id="view-tabs">
-      <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
-      <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
-    </div>
-    <div class="search-bar">
-      <div class="search-bar-inner">
-        <i class="ti ti-search search-icon"></i>
-        <input id="search-input" type="text" placeholder="契約名・カテゴリ・メモで検索" oninput="onSearchInput(this.value)" autocomplete="off">
-        <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none" title="検索をクリア"><i class="ti ti-x"></i></button>
+    <div class="home-controls">
+      <div class="view-tabs ctrl-type" id="main-tabs">
+        <span class="ctrl-label">種類</span>
+        <div class="view-tab active" id="main-tab-contracts" onclick="setMainTab('contracts')"><i class="ti ti-file-text"></i> 契約</div>
+        <div class="view-tab" id="main-tab-assets" onclick="setMainTab('assets')"><i class="ti ti-wallet"></i> 保有資産</div>
       </div>
-      <button class="sort-btn" id="sort-btn" onclick="openSortModal()" title="並び替え"><i class="ti ti-arrows-sort"></i><span id="sort-btn-label">支払日</span><i class="ti ti-arrow-up sort-order-arrow" id="sort-order-arrow"></i></button>
+      <div class="display-toggle ctrl-display" id="display-toggle">
+        <span class="ctrl-label">表示</span>
+        <button class="dt-btn active" id="dt-list" onclick="setDisplayMode('list')"><i class="ti ti-list"></i>リスト</button>
+        <button class="dt-btn" id="dt-calendar" onclick="setDisplayMode('calendar')"><i class="ti ti-calendar-month"></i>カレンダー</button>
+      </div>
+      <div class="view-tabs ctrl-status" id="view-tabs">
+        <span class="ctrl-label">状態</span>
+        <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
+        <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
+      </div>
+      <div class="search-bar">
+        <div class="search-bar-inner">
+          <i class="ti ti-search search-icon"></i>
+          <input id="search-input" type="text" placeholder="契約名・カテゴリ・メモで検索" oninput="onSearchInput(this.value)" autocomplete="off">
+          <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none" title="検索をクリア"><i class="ti ti-x"></i></button>
+        </div>
+        <button class="sort-btn" id="sort-btn" onclick="openSortModal()" title="並び替え"><i class="ti ti-arrows-sort"></i><span id="sort-btn-label">支払日</span><i class="ti ti-arrow-up sort-order-arrow" id="sort-order-arrow"></i></button>
+      </div>
     </div>
     <div class="tabs" id="tabs"></div>
     <div class="list" id="contract-list"></div>
@@ -768,20 +837,20 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
   <div class="modal-bg" id="asset-modal">
     <div class="modal">
       <button class="modal-close-text" onclick="closeAssetModal()" aria-label="閉じる">閉じる</button>
-      <h2 id="asset-modal-title"><i class="ti ti-map-pin"></i>資産の在りかを追加</h2>
-      <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>口座番号・カード番号・暗証番号・証券番号は書かないでください。</strong>「どこにあるか（在りか・保管場所）」と会社名・連絡先だけを残します。番号は通帳・金庫などアプリ外で保管を。</p>
+      <h2 id="asset-modal-title"><i class="ti ti-wallet"></i>保有資産を追加</h2>
+      <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>口座番号・カード番号・暗証番号・証券番号は書かないでください。</strong>「どこにあるか（保管場所）」と会社名・連絡先だけを残します。番号は通帳・金庫などアプリ外で保管を。</p>
       <div class="form-grid">
         <div class="form-row"><label>種類</label><select id="f-asset-type" onchange="onAssetTypeChange()"></select></div>
         <div class="form-row"><label>持ち主</label><select id="f-asset-owner"></select></div>
       </div>
       <div class="form-row"><label>会社名・機関名</label><input type="text" id="f-asset-name" placeholder="例: ○○銀行 / ○○証券"></div>
-      <div class="form-row"><label>在りか・保管場所</label><input type="text" id="f-asset-location" placeholder="在りか・保管場所"></div>
+      <div class="form-row"><label>保管場所</label><input type="text" id="f-asset-location" placeholder="保管場所"></div>
       <div class="form-row"><label>連絡先の電話番号</label><input type="text" id="f-asset-tel" placeholder="例: 0120-xxx-xxx"></div>
       <div class="form-row"><label>関連URL</label><input type="text" id="f-asset-url" placeholder="例: https://..."></div>
       <div class="form-row"><label>メモ</label><textarea id="f-asset-note" placeholder="例: 家族カードは妻名義 / 団信あり（番号は書かない）" rows="2" style="resize:vertical;min-height:48px"></textarea></div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
-      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この在りかを家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
+      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この保有資産を家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
       <div class="visibility-preset" id="asset-visibility-preset">
         <div class="vp-opt active" id="avp-all" onclick="setAssetVisibilityMode('all')">
           <i class="ti ti-users lead"></i>
@@ -1498,6 +1567,24 @@ const ICONS={'金融・決済':'ti-credit-card','ローン':'ti-home','通信・
 const COLORS={'金融・決済':'#B5D4F4','ローン':'#9FE1CB','通信・デジタル':'#FAC775','保険':'#F4C0D1','公共・生活':'#C0DD97','会員・SNS':'#CECBF6','その他':'#D3D1C7'};
 const TCOLORS={'金融・決済':'#0C447C','ローン':'#085041','通信・デジタル':'#633806','保険':'#72243E','公共・生活':'#27500A','会員・SNS':'#3C3489','その他':'#444441'};
 const PALETTE=['#185FA5','#D4537E','#1D9E75','#B45309','#7C3AED','#0891B2','#DC2626','#65A30D','#9333EA','#0D9488','#C2410C','#4338CA'];
+const OWNER_COLOR_VARS={
+  '#185FA5':'--owner-husband',
+  '#D4537E':'--owner-wife',
+  '#1D9E75':'--owner-child',
+  '#B45309':'--owner-parent',
+  '#7C3AED':'--owner-purple',
+  '#0891B2':'--owner-cyan',
+  '#DC2626':'--owner-red',
+  '#65A30D':'--owner-green',
+  '#9333EA':'--owner-violet',
+  '#0D9488':'--owner-teal',
+  '#C2410C':'--owner-orange',
+  '#4338CA':'--owner-indigo'
+};
+function ownerColorCss(color){
+  const key=String(color||'').toUpperCase();
+  return `var(${OWNER_COLOR_VARS[key]||'--owner-neutral'})`;
+}
 
 let categories=['金融・決済','ローン','通信・デジタル','保険','公共・生活','会員・SNS','その他'];
 
@@ -1591,10 +1678,10 @@ let editingAssetId=null;
 const ASSET_TYPES={
   bank:{label:'銀行口座',icon:'ti-building-bank',color:'#B5D4F4',tcolor:'#0C447C',locHint:'銀行名・支店名／通帳・キャッシュカードの保管場所（口座番号は書かない）'},
   securities:{label:'証券・投資',icon:'ti-chart-line',color:'#9FE1CB',tcolor:'#085041',locHint:'証券会社名／書類の保管場所（口座番号・暗号資産の秘密鍵やリカバリーフレーズは書かない）'},
-  workplace:{label:'勤務先のお金',icon:'ti-briefcase',color:'#FAC775',tcolor:'#633806',locHint:'企業年金・確定拠出年金・財形・持株会・退職金／担当窓口・書類の在りか'},
+  workplace:{label:'勤務先のお金',icon:'ti-briefcase',color:'#FAC775',tcolor:'#633806',locHint:'企業年金・確定拠出年金・財形・持株会・退職金／担当窓口・書類の保管場所'},
   card:{label:'保有クレジットカード',icon:'ti-credit-card',color:'#CECBF6',tcolor:'#3C3489',locHint:'カード会社・区分（本人/家族/2枚目）・合計枚数（番号は書かない・下4桁まで）'},
   insurance:{label:'保険',icon:'ti-shield',color:'#F4C0D1',tcolor:'#72243E',locHint:'保険会社／証券の保管場所・連絡先（証券番号は書かない）'},
-  loan:{label:'ローン・団信',icon:'ti-home',color:'#C0DD97',tcolor:'#27500A',locHint:'借入先／団体信用保険の有無／書類の在りか（契約番号は書かない）'},
+  loan:{label:'ローン・団信',icon:'ti-home',color:'#C0DD97',tcolor:'#27500A',locHint:'借入先／団体信用保険の有無／書類の保管場所（契約番号は書かない）'},
   safebox:{label:'貸金庫・大切な書類',icon:'ti-lock',color:'#D3D1C7',tcolor:'#444441',locHint:'場所・鍵の在りか・中身の概要（不動産は権利証の在りか／遺言は開封せず家庭裁判所へ）'}
 };
 const ASSET_TYPE_ORDER=['bank','securities','workplace','card','insurance','loan','safebox'];
@@ -1717,13 +1804,13 @@ function renderUserPill(){
   const label=document.getElementById('pill-label');
   const name=document.getElementById('pill-name');
   if(viewOwnerId==='all'){
-    av.textContent='👨‍👩‍👧';av.style.background='#888';av.style.fontSize='14px';
+    av.textContent='家';av.style.background='var(--owner-neutral)';av.style.fontSize='12px';
     label.textContent='表示中';name.textContent='家族全員';
   } else {
     const m=getMember(viewOwnerId);
     if(!m){viewOwnerId=MY_ID;return renderUserPill();}
     av.style.fontSize='11px';
-    av.textContent=m.name.charAt(0);av.style.background=m.color;
+    av.textContent=m.name.charAt(0);av.style.background=ownerColorCss(m.color);
     label.textContent=m.id===MY_ID?'自分の契約':m.name+'さんの契約';
     name.textContent=m.name;
   }
@@ -1787,12 +1874,12 @@ function renderSwitchMenu(){
   const myCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&canViewContract(c,viewer)).length;
   html+=`<div class="switch-section-header">契約の表示</div>`;
   html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
-    <div class="av" style="background:${esc(me.color)}">${esc(me.name.charAt(0))}</div>
+    <div class="av" style="background:${ownerColorCss(me.color)}">${esc(me.name.charAt(0))}</div>
     <div class="info"><div class="name">${esc(me.name)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
     ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
   </div>`;
   html+=`<div class="switch-item${viewOwnerId==='all'?' active':''}" onclick="selectView('all')">
-    <div class="av" style="background:#888;font-size:14px">👨‍👩‍👧</div>
+    <div class="av" style="background:var(--owner-neutral);font-size:14px">家</div>
     <div class="info"><div class="name">家族全員</div><div class="sub">合計 ${allCount}件の契約</div></div>
     ${viewOwnerId==='all'?'<i class="ti ti-check check"></i>':''}
   </div>`;
@@ -1800,7 +1887,7 @@ function renderSwitchMenu(){
     if(m.id===MY_ID)return;
     const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
     html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" data-mid="${esc(m.id)}" onclick="selectView(this.dataset.mid)">
-      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="av" style="background:${ownerColorCss(m.color)}">${esc(m.name.charAt(0))}</div>
       <div class="info"><div class="name">${esc(m.name)}</div><div class="sub">${cnt}件の契約</div></div>
       ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
     </div>`;
@@ -2105,14 +2192,15 @@ function renderList(){
     if(!isPreviewing()&&c.ownerId===MY_ID){
       const vl=visibilityLabel(c);
       if(vl.key!=='all'){
-        const color=vl.key==='private'?'#A32D2D':'#854F0B';
+        const color=vl.key==='private'?'var(--home-private-icon)':'var(--home-selected-icon)';
         visIconHtml=`<i class="ti ${vl.icon} hidden-icon" style="color:${color}" title="${esc(vl.text)}しか見られません"></i>`;
       }
     }
     const ownerName=getOwnerName(c);
     const ownerColor=getOwnerColor(c);
     const ownerInitial=ownerName.charAt(0);
-    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${esc(ownerColor)}">${esc(ownerInitial)}</div>`:'';
+    const ownerColorStyle=ownerColorCss(ownerColor);
+    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColorStyle}">${esc(ownerInitial)}</div>`:'';
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     const logoDomain=inferLogoDomain(c);
     const logoUrl=logoDomain?logoDevImageUrl(logoDomain,64):'';
@@ -2127,7 +2215,7 @@ function renderList(){
       amountMain=`¥${c.amount.toLocaleString()}`;
       amountSub='';
     }
-    return `<div class="card${d<=3&&!c.archived?' urgent':''}${c.archived?' archived':''}" onclick="showDetail(${c.id})">
+    return `<div class="card${d<=3&&!c.archived?' urgent':''}${c.archived?' archived':''}" style="--card-owner-color:${ownerColorStyle}" onclick="showDetail(${c.id})">
       <div class="icon-circle" style="background:${bg}">
         ${iconOrLogo}
         ${ownerDot}
@@ -3998,12 +4086,12 @@ function syncMainTabUI(){
   } else if(scl){scl.textContent='登録件数';}
   // 検索欄は資産タブでも残す（カテゴリタブは非表示＝検索で絞り込む）。プレースホルダを切替。
   const sb=document.querySelector('.search-bar');if(sb)sb.classList.remove('hidden');
-  const si=document.getElementById('search-input');if(si)si.placeholder=isAssets?'会社名・在りか・メモで検索':'契約名・カテゴリ・メモで検索';
+  const si=document.getElementById('search-input');if(si)si.placeholder=isAssets?'会社名・保管場所・メモで検索':'契約名・カテゴリ・メモで検索';
   // 並び替え（支払日）は契約専用。資産タブでは隠す（契約タブはカレンダー時のみ隠す既存仕様を尊重）
   const sortBtn=document.getElementById('sort-btn');if(sortBtn)sortBtn.style.display=isAssets?'none':(displayMode==='calendar'?'none':'');
   const fab=document.getElementById('add-fab');
   if(fab){
-    if(isAssets){fab.innerHTML='<i class="ti ti-plus"></i>在りかを追加';fab.onclick=openAssetModal;}
+    if(isAssets){fab.innerHTML='<i class="ti ti-plus"></i>保有資産を追加';fab.onclick=openAssetModal;}
     else{fab.innerHTML='<i class="ti ti-plus"></i>契約を追加';fab.onclick=openModal;}
   }
 }
@@ -4035,24 +4123,25 @@ function renderAssetList(){
   const list=filterAssets();
   if(!list.length){
     const who=viewOwnerId==='all'?'家族全員':(getMember(viewOwnerId)?.name||'');
-    el.innerHTML=`<div class="empty-state"><i class="ti ti-map-pin empty-icon"></i>${esc(who)}の「資産の在りか」はまだありません<br>下の「在りかを追加」から、銀行・証券・保険などの<br>会社名や保管場所を残せます（番号は書きません）</div>`;
+    el.innerHTML=`<div class="empty-state"><i class="ti ti-wallet empty-icon"></i>${esc(who)}の「保有資産」はまだありません<br>下の「保有資産を追加」から、銀行・証券・保険などの<br>会社名や保管場所を残せます（番号は書きません）</div>`;
     return;
   }
   el.innerHTML=list.map(a=>{
     const ti=assetTypeInfo(a);
     const ownerName=getOwnerName(a);
     const ownerColor=getOwnerColor(a);
-    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${esc(ownerColor)}">${esc(ownerName.charAt(0))}</div>`:'';
+    const ownerColorStyle=ownerColorCss(ownerColor);
+    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColorStyle}">${esc(ownerName.charAt(0))}</div>`:'';
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     let visIconHtml='';
     if(!isPreviewing()&&a.ownerId===MY_ID){
       const vl=visibilityLabel(a);
       if(vl.key!=='all'){
-        const color=vl.key==='private'?'#A32D2D':'#854F0B';
+        const color=vl.key==='private'?'var(--home-private-icon)':'var(--home-selected-icon)';
         visIconHtml=`<i class="ti ${vl.icon} hidden-icon" style="color:${color}" title="${esc(vl.text)}しか見られません"></i>`;
       }
     }
-    return `<div class="card" onclick="showAssetDetail(${a.id})">
+    return `<div class="card" style="--card-owner-color:${ownerColorStyle}" onclick="showAssetDetail(${a.id})">
       <div class="icon-circle" style="background:${ti.color}"><i class="ti ${ti.icon}" style="color:${ti.tcolor}"></i>${ownerDot}</div>
       <div class="card-body">
         <div class="card-name">${esc(a.name||'（名称未設定）')}${visIconHtml}</div>
@@ -4082,7 +4171,7 @@ function showAssetDetail(id){
       </div>
     </div>
     <div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary,#F4F2EC);padding:7px 10px;border-radius:6px;margin-bottom:12px"><i class="ti ${vl.icon}"></i> ${esc(vl.text)}</div>
-    ${row('在りか・保管場所',a.location)}
+    ${row('保管場所',a.location)}
     ${telRow}
     ${urlRow}
     ${row('メモ',a.note)}
@@ -4100,7 +4189,7 @@ function goBackAsset(){
   syncMainTabUI();
 }
 function deleteAsset(id){
-  if(!confirm('この「資産の在りか」を削除しますか？'))return;
+  if(!confirm('この「保有資産」を削除しますか？'))return;
   const i=assets.findIndex(a=>a.id===id);
   if(i<0)return;
   assets.splice(i,1);
@@ -4155,7 +4244,7 @@ function onAssetTypeChange(){
 function openAssetModal(){
   // APP-ASSET-BETA-CAP: 上限到達時はフォームを開かず案内（契約 openModal と同型・アンケートは契約専用のため流用しない）
   if(betaActiveAssetCount()>=ASSET_BETA_MAX){
-    alert('ベータ版で登録できる「資産の在りか」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
+    alert('ベータ版で登録できる「保有資産」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
     return;
   }
   editingAssetId=null;
@@ -4171,7 +4260,7 @@ function openAssetModal(){
     assetFormAfterViewers=assetFormAfterViewers.filter(id=>id!==ow);
     if(assetFormVisibilityMode==='selected'){renderAssetViewerChecks();renderAssetAfterViewerChecks();}
   };
-  document.getElementById('asset-modal-title').innerHTML='<i class="ti ti-map-pin"></i>資産の在りかを追加';
+  document.getElementById('asset-modal-title').innerHTML='<i class="ti ti-wallet"></i>保有資産を追加';
   document.getElementById('asset-submit-btn').textContent='追加する';
   document.getElementById('asset-submit-btn').onclick=addAsset;
   document.getElementById('asset-modal').classList.add('open');
@@ -4198,7 +4287,7 @@ function openAssetEdit(id){
     assetFormAfterViewers=assetFormAfterViewers.filter(id=>id!==ow);
     if(assetFormVisibilityMode==='selected'){renderAssetViewerChecks();renderAssetAfterViewerChecks();}
   };
-  document.getElementById('asset-modal-title').innerHTML='<i class="ti ti-edit"></i>資産の在りかを編集';
+  document.getElementById('asset-modal-title').innerHTML='<i class="ti ti-edit"></i>保有資産を編集';
   document.getElementById('asset-submit-btn').textContent='保存する';
   document.getElementById('asset-submit-btn').onclick=saveAssetEdit;
   document.getElementById('asset-modal').classList.add('open');
@@ -4224,7 +4313,7 @@ function readAssetForm(){
 // データ範囲: location/note に7桁以上連続数字（口座/カード/証券番号・暗証）を検知して保存拒否（contract の confirmSecretSafe 同型）
 function confirmAssetSafe(data){
   if(looksLikeSensitiveNumber(data.location)||looksLikeSensitiveNumber(data.note)){
-    alert('在りか・メモに口座番号・カード番号・暗証番号・証券番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管し、ここには「どこにあるか」だけを書いてください。');
+    alert('保管場所・メモに口座番号・カード番号・暗証番号・証券番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管し、ここには「どこにあるか」だけを書いてください。');
     return false;
   }
   return true;
@@ -4235,7 +4324,7 @@ function addAsset(){
   if(!confirmAssetSafe(data))return;
   // APP-ASSET-BETA-CAP: 二重防御（フォーム未経由の直接追加も上限で拒否）
   if(betaActiveAssetCount()>=ASSET_BETA_MAX){
-    alert('ベータ版で登録できる「資産の在りか」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
+    alert('ベータ版で登録できる「保有資産」は'+ASSET_BETA_MAX+'件までです。続きは、これからの製品版で。');
     return;
   }
   assets.push({id:nextAssetId++,...data,archived:false});
@@ -4281,7 +4370,7 @@ function toggleFamilyMsg(titleEl){
 const SORT_KEY='kizuna-baton:sort:v19';
 const SORT_OPTIONS={
   paymentDate:{label:'支払日',icon:'ti-calendar-event'},
-  amount:{label:'月額換算',icon:'ti-coin'},
+  amount:{label:'月にならした金額',icon:'ti-coin'},
   paymentMethod:{label:'支払い方法',icon:'ti-wallet'}
 };
 let sortKey='paymentDate';
@@ -4501,7 +4590,7 @@ function openRestoreConfirmModal(parsed){
     ? `<div>カテゴリ：<strong>${parsed.data.categories.length}件</strong></div>` : '';
   // APP-ASSET-RESTORE-SUMMARY: 復元対象に資産の在りかがあれば件数を明示（applyRestore は assets 復元済み:4392）
   const assetRow=Array.isArray(parsed.data.assets)&&parsed.data.assets.length
-    ? `<div>資産の在りか：<strong>${parsed.data.assets.length}件</strong></div>` : '';
+    ? `<div>保有資産：<strong>${parsed.data.assets.length}件</strong></div>` : '';
   const at=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString('ja-JP'):'不明';
   el.innerHTML=`<div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7">
     <div>バックアップ日時：<strong>${at}</strong></div>
