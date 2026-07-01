@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v81</title>
+<title>きずなbaton プロトタイプ v85</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -705,8 +705,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
   <div class="modal-bg center" id="beta-limit-modal">
     <div class="modal notice">
       <div class="notice-icon"><i class="ti ti-seeding"></i></div>
-      <h3>ベータ版の上限に達しました</h3>
-      <p>ベータ版でご登録いただけるのは契約5件までです。<br>続きは、これからの製品版で。<br>お試しいただきありがとうございます。</p>
+      <h3>無料プランの上限に達しました</h3>
+      <p>無料プランでご登録いただけるのは契約10件までです。<br>家族プランなら、契約を無制限にご登録いただけます。</p>
+      <button class="btn-primary" id="beta-limit-upgrade" style="width:100%;margin:2px 0 10px;display:none" onclick="openPlanFromLimit()"><i class="ti ti-cards"></i>家族プランを見る</button>
       <div class="beta-survey" id="beta-survey">
         <div class="survey-q">もしよければ、感想をひとつだけ教えてください（任意）</div>
         <div class="survey-chips">
@@ -1098,7 +1099,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- ウェルカム文言 -->
       <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
         きずなbaton をご利用いただく前に、<strong>利用規約・プライバシーポリシー</strong>への同意をお願いします。<br>
-        <span style="font-size:11px;color:var(--color-text-tertiary)">本サービスは現在 <strong>β版（無料）</strong>です。ご家族への引き継ぎにご活用ください。</span>
+        <span style="font-size:11px;color:var(--color-text-tertiary)"><strong>基本機能は無料</strong>でご利用いただけます。ご家族への引き継ぎにご活用ください。</span>
       </div>
 
       <!-- β版データ取扱いの簡潔説明 -->
@@ -1381,9 +1382,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closePlanModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-cards"></i>プラン</h2>
-      <div class="beta-info-box warn">
+      <div class="beta-info-box warn" id="plan-intro-box">
         <strong>これは表示見本です。</strong><br>
-        ベータ版はすべての機能を無料でお使いいただけます。お支払いの開始は正式版（Phase4）で予定しています。
+        アプリ内課金（家族プラン）は、今後 App Store 版アプリでご提供予定です。
       </div>
       <div class="plan-cycle-toggle">
         <div id="plan-cycle-monthly" onclick="setPlanCycle('monthly')">月額</div>
@@ -1497,11 +1498,16 @@ const FEATURES={
   extendedFamilyCategories:false, // 兄弟等の拡張区分は本番化時に検討
   operatorHeartbeat:false,        // 運営側ハートビート（将来導入予定）
   aiAssist:false,                 // ToS 3.5: AI補助はβ非提供
-  publicDocumentUpload:false      // 公的書類アップロードはβ非提供
+  publicDocumentUpload:false,     // 公的書類アップロードはβ非提供
+  // APPSTORE-IAP(v82): 家族プラン(竹)の実課金。native(StoreKit2)上でのみ実際に作動する。
+  // true でプラン画面のCTAが実購入になり、有料エンタイトルメントで上限が無制限化される。
+  // ⚠️ App Store 提出には別途「特商法表記」「FIN-TAX(消費税/インボイス)」「課金法務確認」が必須
+  //   （docs/app-store-metadata-draft.md 提出ブロッカー）。コード稼働≠提出可。
+  iap:true
 };
 
-// =========== β版: 契約件数上限 ===========
-const CONTRACT_BETA_MAX=5; // ベータ版：アクティブ契約は5件まで
+// =========== 無料プラン: 契約件数上限（APPSTORE-IAP v82: 5→10）===========
+const CONTRACT_BETA_MAX=10; // 無料(梅)プラン：アクティブ契約は10件まで。家族プラン(竹/isPaid)は無制限
 // 説明用サンプルはβ登録上限に数えない。id/name は CLAUDE.md のサンプル固定方針に合わせて判定する。
 const SAMPLE_CONTRACT_NAMES_BY_ID=Object.freeze({
   1:'Netflix',
@@ -1519,6 +1525,8 @@ const SAMPLE_CONTRACT_NAMES_BY_ID=Object.freeze({
 });
 function isBuiltInSampleContract(c){return SAMPLE_CONTRACT_NAMES_BY_ID[c.id]===c.name;}
 function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isBuiltInSampleContract(c)).length;}
+// APPSTORE-IAP(v82): 家族プラン(竹/isPaid)は無制限。無料(梅)は CONTRACT_BETA_MAX 件まで。
+function contractLimitReached(){return !isPaid && betaActiveContractCount()>=CONTRACT_BETA_MAX;}
 
 // =========== Step 6: 招待フロー（invitation-flow-design.md v3.2） ===========
 // pending+accepted 合計 5件上限 / 1日3件発行上限 / 7日有効期限
@@ -2679,9 +2687,14 @@ function showBetaLimitModal(){
   document.getElementById('beta-survey').style.display=sent?'none':'';
   document.getElementById('beta-survey-actions').style.display=sent?'none':'';
   document.getElementById('beta-survey-done').style.display=sent?'':'none';
+  // APPSTORE-IAP(v82)/v85: 課金が実稼働中（native実機・エンタイトルメント可）のみ家族プラン誘導ボタンを表示。
+  // FEATURES.iap はコード有効化フラグに過ぎずWebでも true になるため、実際に購入導線が使える IAP で判定する（v85: web誤誘導の是正）。
+  const up=document.getElementById('beta-limit-upgrade');
+  if(up)up.style.display=IAP?'':'none';
   document.getElementById('beta-limit-modal').classList.add('open');
 }
 function closeBetaLimitModal(){document.getElementById('beta-limit-modal').classList.remove('open');}
+function openPlanFromLimit(){closeBetaLimitModal();openPlanModal();} // APPSTORE-IAP(v82): 上限モーダル→プラン画面
 function submitBetaSurvey(){
   if(betaSurveySent)return; // v67 Low#3: 送信済みなら再POST不可（コンソール等からの再送も封じる）
   if(surveySubmitting)return; // v66 P2: 送信中は二重送信を拒否
@@ -2709,8 +2722,7 @@ function submitBetaSurvey(){
 }
 
 function openModal(){
-  const activeCount=betaActiveContractCount();
-  if(activeCount>=CONTRACT_BETA_MAX){
+  if(contractLimitReached()){
     showBetaLimitModal();
     return;
   }
@@ -2796,7 +2808,7 @@ function addContract(){
   const data=readForm();
   if(!data.name)return;
   if(!confirmSecretSafe(data))return;
-  if(betaActiveContractCount()>=CONTRACT_BETA_MAX){
+  if(contractLimitReached()){
     showBetaLimitModal();
     return;
   }
@@ -3037,6 +3049,15 @@ const NativePref=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacito
 //   JSラッパー側＝本構成では未ロード。internalAuthenticate は成功でresolve・失敗でthrow）。native かつ同梱時のみ非null。
 const BiometricAuth=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('BiometricAuthNative'))
   ? window.Capacitor.Plugins.BiometricAuthNative : null;
+// === APPSTORE-IAP(v82): StoreKit2 自前プラグイン(KizunaIAPPlugin.swift) を Plugins プロキシ方式で取得 ===
+// jsName='KizunaIAP'。公開メソッド: getProducts/purchase/restorePurchases/currentEntitlement/manageSubscriptions。
+// native かつ同梱時のみ非null。Web(プレビュー)では null → 従来の「正式版で提供」フォールバックを維持（後方互換）。
+const IAP=(FEATURES.iap && IS_NATIVE && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('KizunaIAP'))
+  ? window.Capacitor.Plugins.KizunaIAP : null;
+// 商品ID（App Store Connect 登録と完全一致させること・一度作ると変更不可）
+const IAP_PRODUCTS={monthly:'io.dorize.kizunabaton.take.monthly',yearly:'io.dorize.kizunabaton.take.yearly'};
+const PAID_FLAG_KEY='kizuna-baton:paid:v82'; // 端末キャッシュ('1'=有料)。起動時に currentEntitlement で上書き。backup JSON には含めない（端末固有）
+let isPaid=false; // 竹(家族プラン)エンタイトルメント。StoreKit currentEntitlements の結果を正とする
 const APP_LOCK_KEY='kizuna-baton:app-lock:v79'; // 端末ローカル設定（'1'=ロックON）。backup JSON には含めない（端末固有）
 let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
 let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
@@ -4463,9 +4484,9 @@ function openBetaInfoModal(){
 function closeBetaInfoModal(){document.getElementById('beta-info-modal').classList.remove('open');}
 function gotoBackupFromBeta(){closeBetaInfoModal();doBackup();}
 
-// --- v46: プラン選択UIモック（非機能・表示のみ。実課金は Phase4）---
+// --- v46: プラン選択UI（v82: 実課金=StoreKit2。Web/非稼働は表示のみ）---
 let planCycle='monthly'; // 表示のみ（永続化しない）
-function openPlanModal(){closeSettingsModal();planCycle='monthly';renderPlanModal();document.getElementById('plan-modal').classList.add('open');}
+function openPlanModal(){closeSettingsModal();planCycle='monthly';renderPlanModal();document.getElementById('plan-modal').classList.add('open');loadIapPrices();}
 function closePlanModal(){document.getElementById('plan-modal').classList.remove('open');}
 
 // --- v48: 商標・ライセンスについて（独立ページ・Logo.dev帰属の正式化）---
@@ -4485,19 +4506,84 @@ function submitFeedbackMock(){
   closeFeedbackModal();
 }
 function setPlanCycle(c){planCycle=c;renderPlanModal();}
-function planCtaNotice(){showToast('お支払いは正式版（Phase4）で提供予定です','info');}
+
+// === APPSTORE-IAP(v82): 実課金（StoreKit2）===
+let planBusy=false;            // 購入/復元中の二重操作防止
+let iapPriceText={};           // {monthly,yearly} ストアから取得したローカライズ価格表示（任意・取得失敗時は規定文言）
+// IAP 非稼働（Web/プレビュー or FEATURES.iap=false）時の共通フォールバック
+function planCtaNotice(){showToast('お支払いは正式版で提供予定です','');}
+// プラン画面を開いたら（稼働時のみ）ストアから実価格を取得して再描画
+async function loadIapPrices(){
+  if(!IAP)return;
+  try{
+    const r=await IAP.getProducts({productIds:[IAP_PRODUCTS.monthly,IAP_PRODUCTS.yearly]});
+    const list=(r&&r.products)||[];
+    list.forEach(p=>{
+      if(p.id===IAP_PRODUCTS.monthly)iapPriceText.monthly=p.price;
+      if(p.id===IAP_PRODUCTS.yearly)iapPriceText.yearly=p.price;
+    });
+    renderPlanModal();
+  }catch(e){/* 取得失敗時は規定文言のまま */}
+}
+async function planPurchase(cycle){
+  if(planBusy)return;
+  if(!IAP){planCtaNotice();return;} // Web/非稼働: 従来の案内のみ
+  planBusy=true;renderPlanModal();
+  try{
+    const r=await IAP.purchase({productId:IAP_PRODUCTS[cycle]});
+    if(r&&r.status==='purchased'){
+      showToast('家族プランをご利用いただけます。ありがとうございます','success');
+    }else if(r&&r.status==='pending'){
+      showToast('購入の承認をお待ちしています','');
+    }
+  }catch(e){
+    showToast('購入を完了できませんでした。時間をおいてお試しください','warn');
+  }finally{
+    await refreshEntitlement(); // StoreKit を正に取り直す
+    planBusy=false;renderPlanModal();renderAll();
+  }
+}
+async function planRestore(){
+  if(planBusy)return;
+  if(!IAP){showToast('購入の復元は正式版で提供予定です','');return;}
+  planBusy=true;renderPlanModal();
+  try{
+    const r=await IAP.restorePurchases();
+    isPaid=!!(r&&r.active);lsSet(PAID_FLAG_KEY,isPaid?'1':'0');
+    showToast(isPaid?'購入を復元しました':'復元できる購入が見つかりませんでした',isPaid?'success':'');
+  }catch(e){
+    showToast('購入の復元に失敗しました','warn');
+  }finally{
+    planBusy=false;renderPlanModal();renderAll();
+  }
+}
+// アプリ内 解約導線（消費者法対応）。App Store のサブスク管理シートを開く
+async function planManage(){
+  if(!IAP){showToast('解約手続きは正式版で提供予定です','');return;}
+  try{await IAP.manageSubscriptions();}
+  catch(e){showToast('解約画面を開けませんでした','warn');}
+}
 function renderPlanModal(){
+  // 課金稼働(native)時は「表示見本」案内を隠す。Web/非稼働は従来の案内を残す（後方互換）
+  const intro=document.getElementById('plan-intro-box');
+  if(intro)intro.style.display=IAP?'none':'';
   document.getElementById('plan-cycle-monthly').className=planCycle==='monthly'?'active':'';
   document.getElementById('plan-cycle-yearly').className=planCycle==='yearly'?'active':'';
   const takePrice=planCycle==='yearly'
-    ? `<strong>¥5,000</strong> /年<span class="yearly-note">月あたり約¥417（月額より約17%おトク）</span>`
-    : `<strong>¥500</strong> /月`;
+    ? `<strong>${esc(iapPriceText.yearly||'¥5,000')}</strong> /年<span class="yearly-note">月あたり約¥417（月額より約17%おトク）</span>`
+    : `<strong>${esc(iapPriceText.monthly||'¥500')}</strong> /月`;
+  // 家族プランのCTA: 加入済み=利用中表示 / 処理中=disabled / 未加入=購入
+  const takeCta = isPaid
+    ? `<button class="plan-cta" disabled>ご利用中のプラン</button>`
+    : `<button class="plan-cta primary" onclick="planPurchase('${planCycle}')" ${planBusy?'disabled':''}>${planBusy?'処理中…':'このプランを選ぶ'}</button>`;
+  const freeBadge = isPaid ? '' : `<span class="plan-card-badge current">現在ご利用中</span>`;
+  const takeBadge = isPaid ? `<span class="plan-card-badge current">現在ご利用中</span>` : `<span class="plan-card-badge reco">おすすめ</span>`;
   const el=document.getElementById('plan-cards');
   el.innerHTML=`
     <div class="plan-card">
       <div class="plan-card-head">
         <span class="plan-card-name">無料プラン</span>
-        <span class="plan-card-badge current">現在ご利用中</span>
+        ${freeBadge}
       </div>
       <div class="plan-card-price"><strong>¥0</strong></div>
       <ul class="plan-feat">
@@ -4505,12 +4591,12 @@ function renderPlanModal(){
         <li><i class="ti ti-check"></i>ご家族との共有 1名（お試し）</li>
         <li><i class="ti ti-check"></i>印刷・JSON書き出し</li>
       </ul>
-      <button class="plan-cta" disabled>ご利用中のプラン</button>
+      <button class="plan-cta" disabled>${isPaid?'無料プラン':'ご利用中のプラン'}</button>
     </div>
     <div class="plan-card recommend">
       <div class="plan-card-head">
         <span class="plan-card-name">家族プラン</span>
-        <span class="plan-card-badge reco">おすすめ</span>
+        ${takeBadge}
       </div>
       <div style="font-size:11.5px;color:var(--accent-warm);line-height:1.5;margin:0 0 6px">もしもの時も、ご家族が迷わないように。</div>
       <div class="plan-card-price">${takePrice}</div>
@@ -4520,10 +4606,18 @@ function renderPlanModal(){
         <li><i class="ti ti-check"></i>ご家族への一言 無制限</li>
         <li><i class="ti ti-check"></i>お支払い日のリマインダー</li>
       </ul>
-      <button class="plan-cta primary" onclick="planCtaNotice()">このプランを選ぶ</button>
+      ${takeCta}
     </div>
-    <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.6;margin-top:2px">
-      ※ 価格はストア手数料・消費税込みの予定額です。実際のお支払いは正式版で開始します。
+    <div class="plan-actions-row" style="display:flex;gap:10px;justify-content:center;margin:6px 0 2px">
+      <a onclick="planRestore()" style="font-size:12px;color:#185FA5;text-decoration:underline;cursor:pointer">購入を復元</a>
+      ${isPaid?`<a onclick="planManage()" style="font-size:12px;color:#185FA5;text-decoration:underline;cursor:pointer">サブスクの管理・解約</a>`:''}
+    </div>
+    <div style="font-size:12px;color:var(--color-text-tertiary);line-height:1.6;margin-top:6px">
+      ※ 価格はストア手数料・消費税込みの表示価格です。<br>
+      ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「サブスクの管理・解約」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
+    </div>
+    <div style="font-size:13px;line-height:1.6;margin-top:8px;text-align:center">
+      <a href="docs/terms-of-service.md" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">利用規約</a>　・　<a href="docs/privacy-policy.md" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">プライバシーポリシー</a>
     </div>`;
 }
 
@@ -4687,6 +4781,20 @@ async function checkAppLockSupport(){
   }catch(e){appLockSupported=false;}
 }
 
+// APPSTORE-IAP(v82): 家族プラン(竹)の有効状態を StoreKit currentEntitlements を正として更新。
+// native+プラグイン同梱時のみ問い合わせ、結果を端末キャッシュに保存。Web/非nativeは常に無料(isPaid=false)。
+async function refreshEntitlement(){
+  if(!IAP){isPaid=false;return;}
+  try{
+    const r=await IAP.currentEntitlement();
+    isPaid=!!(r&&r.active);
+    lsSet(PAID_FLAG_KEY,isPaid?'1':'0');
+  }catch(e){
+    // 問い合わせ失敗時は直近キャッシュにフォールバック（オフライン等）
+    isPaid=(lsGet(PAID_FLAG_KEY)==='1');
+  }
+}
+
 // 実際の生体認証呼び出し。成功時 true。allowPasscode=true で端末パスコードのみ許容。
 async function authenticateBiometric(){
   if(!BiometricAuth)return false;
@@ -4771,6 +4879,7 @@ async function boot(){
     await hydrateNativeCache();
     await migrateIfNeeded();
     await checkAppLockSupport(); // APPSTORE-NATIVE-LOCK(v79): 生体利用可否を判定（hydrate 後＝APP_LOCK_KEY 参照可）
+    await refreshEntitlement();  // APPSTORE-IAP(v82): 有料エンタイトルメントを判定（renderAll の上限表示前）
   }else{
     detectPrivateMode();      // v20: persistState の isPrivateMode 判定に必要なため先頭で実行
   }
@@ -4818,6 +4927,8 @@ document.addEventListener('visibilitychange', async ()=>{
       showAppLockAuth();
       runAppUnlock();
     }
+    // APPSTORE-IAP(v82): フォア復帰時にエンタイトルメントを再判定（アプリ外での更新/失効を反映）
+    if(IAP){ refreshEntitlement().then(()=>{ if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal(); }); }
   }
 });
 
