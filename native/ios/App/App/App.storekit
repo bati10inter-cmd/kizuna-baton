@@ -1,0 +1,83 @@
+{
+  "identifier" : "8E1B3A52-1F0C-4B6E-9C1D-7A2E5D4F6B08",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja_JP",
+    "_storefront" : "JPN"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "A6F2C9D4-3B71-4E85-8D20-5C9E1F7A3B64",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "家族プラン",
+          "locale" : "ja_JP"
+        }
+      ],
+      "name" : "take",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "500",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "C3D8E1F5-6A92-4B07-9E48-2F5D7C1A8B93",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "契約・保有資産の登録が無制限になります",
+              "displayName" : "家族プラン（月額）",
+              "locale" : "ja_JP"
+            }
+          ],
+          "productID" : "io.dorize.kizunabaton.take.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "take monthly",
+          "subscriptionGroupID" : "A6F2C9D4-3B71-4E85-8D20-5C9E1F7A3B64",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "5000",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "D9E2F6A1-7B03-4C58-8F19-3A6E0D2B5C74",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "契約・保有資産の登録が無制限になります（年額）",
+              "displayName" : "家族プラン（年額）",
+              "locale" : "ja_JP"
+            }
+          ],
+          "productID" : "io.dorize.kizunabaton.take.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "take yearly",
+          "subscriptionGroupID" : "A6F2C9D4-3B71-4E85-8D20-5C9E1F7A3B64",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

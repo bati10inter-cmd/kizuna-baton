@@ -179,7 +179,7 @@
 3. 🔲 各商品の **ローカリゼーション（日本語）**＝表示名・説明（`tokushoho.html`／`renderPlanModal` の文言と一致させる）。
 4. 🔲 **App内課金の審査用情報**＝レビュー用スクショ（プラン画面）＋必要なら審査メモ。
 5. 🔲 **Small Business Program**（手数料15%）に未登録なら申請（売上規模が小さい個人開発は対象）。
-6. 🔲 **StoreKit Configuration ファイル**（Xcode）＝シミュレータ/実機で購入・復元・解約・更新失効をテスト（APPSTORE-XCODE 後）。
+6. ✅ **StoreKit Configuration ファイル**（Xcode）＝**2026-07-03 完了**（`native/ios/App/App/App.storekit` 作成＋シミュレータで購入・復元・失効テスト全成功＝TASKS.md APPSTORE-IAP 行参照）。残＝署名実機での再確認（DEV後）。
 7. 🔲 動作確認後、**App Privacy** は純正StoreKit前提で **Data Not Collected 維持**（§5・RevenueCat等を入れない限り「購入」申告不要）。
 
 > ⚠️ 価格はコード側で **`AppStore` から実価格を取得して表示**（`loadIapPrices`／`renderPlanModal` の `iapPriceText`）＝ASC価格を正に表示。説明文・特商法ページの直書き額（¥500/¥5,000）は ASC 設定額と一致を保つ（不一致は審査/表示リスク）。
