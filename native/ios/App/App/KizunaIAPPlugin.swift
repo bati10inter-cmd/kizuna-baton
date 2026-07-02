@@ -125,7 +125,7 @@ public class KizunaIAPPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
             } else if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
                 // フォールバック: App Store のサブスク管理ページを開く
-                UIApplication.shared.open(url)
+                await UIApplication.shared.open(url)
                 call.resolve(["status": "fallback"])
             } else {
                 call.reject("manageSubscriptions: no scene")
