@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v85</title>
+<title>きずなbaton プロトタイプ v87</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -104,7 +104,11 @@
 :root.large .info-val{font-size:20px}
 :root.large .family-message-box{font-size:20px}
 :root.large .form-row label{font-size:15px}
-:root.large .form-row input,:root.large .form-row select,:root.large .form-row textarea{font-size:17px}
+:root.large .form-row input,:root.large .form-row select,:root.large .form-row textarea{font-size:19px}
+:root.large .user-pill .name{font-size:17px}
+:root.large .user-pill .label{font-size:12px}
+:root.large .badge{font-size:13px;padding:3px 8px}
+:root.large .form-section-title{font-size:13px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -118,7 +122,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .user-pill .label{font-size:9px;color:var(--color-text-tertiary);line-height:1.1}
 .user-pill .name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-pill .arrow{font-size:14px;color:var(--color-text-tertiary)}
-.member-mgmt-icon{padding:6px;border-radius:50%;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center}
+.member-mgmt-icon{min-width:44px;min-height:44px;border-radius:50%;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center}
 
 .switch-menu{position:absolute;top:54px;left:12px;right:12px;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:30;display:none;overflow:hidden}
 .switch-menu.open{display:block}
@@ -162,16 +166,16 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .death-banner i{font-size:14px;margin-top:1px;flex-shrink:0}
 
 .home-hero{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
-.topbar{background:transparent;padding:12px 16px 6px;border-bottom:none}
+.topbar{background:transparent;padding:8px 16px 4px;border-bottom:none}
 .topbar h1{font-size:17px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:6px}
 .topbar .baton-tag{font-size:10px;background:var(--home-warning-bg);color:var(--home-warning);padding:2px 7px;border-radius:8px;font-weight:400;letter-spacing:0.5px}
-.topbar p{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.topbar p{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
 
-.back-bar{background:var(--color-background-primary);padding:12px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
-.back-btn{background:transparent;border:none;font-size:13px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;padding:0}
+.back-bar{background:var(--color-background-primary);padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
+.back-btn{background:transparent;border:none;font-size:13px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;padding:0 6px;min-height:44px}
 
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 16px 14px;background:transparent;border-bottom:none}
-.stat{background:var(--color-background-secondary);border-radius:8px;padding:10px 11px;border:0.5px solid var(--color-border-tertiary)}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 16px 8px;background:transparent;border-bottom:none}
+.stat{background:var(--color-background-secondary);border-radius:8px;padding:7px 10px;border:0.5px solid var(--color-border-tertiary)}
 .stat-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
 .stat-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
 .stat-sub{font-size:10px;color:var(--color-text-tertiary)}
@@ -180,18 +184,24 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .tab{font-size:11px;padding:6px 8px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
 .tab.active{color:var(--color-text-primary);border-bottom:2px solid var(--color-text-primary);font-weight:500}
 
-.home-controls{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.home-controls{display:flex;flex-direction:column;gap:5px;padding:6px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
 .view-tabs{display:flex;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);gap:6px}
-.view-tab{flex:1;font-size:12px;padding:6px;color:var(--color-text-secondary);cursor:pointer;text-align:center;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid transparent}
+.view-tab{flex:1;min-height:40px;font-size:12px;padding:6px;color:var(--color-text-secondary);cursor:pointer;text-align:center;border-radius:var(--border-radius-md);background:var(--color-background-secondary);border:0.5px solid transparent;display:flex;align-items:center;justify-content:center}
 .view-tab.active{color:var(--color-text-primary);background:var(--color-background-primary);border-color:var(--color-border-secondary);font-weight:500}
 .home-controls .view-tabs,.home-controls .display-toggle,.home-controls .search-bar{padding:0;background:transparent;border-bottom:none}
 .home-controls #main-tabs .view-tab{font-size:13px;padding:9px 8px;border-color:var(--color-border-tertiary)}
-.home-controls #view-tabs .view-tab,.home-controls .dt-btn{font-size:12px;padding:7px 8px}
+.home-controls #view-tabs .view-tab,.home-controls .dt-btn{font-size:12px;padding:7px 4px}
+.home-controls .ctrl-row2{align-items:flex-start}
+.home-controls .ctrl-row2 .ctrl-label{width:2.7em}
+.home-controls .ctrl-row2 .view-tabs,.home-controls .ctrl-row2 .display-toggle{gap:2px}
+.home-controls .ctrl-row2 .dt-btn,.home-controls .ctrl-row2 .view-tab{font-size:10.5px;padding:7px 1px;gap:2px;white-space:nowrap}
+.home-controls .ctrl-row2 .dt-btn i{font-size:12px}
 /* APP-HOME-UI: 3コントロール群を「ラベル＋意味色＋区切り」で区別（種類/表示/状態） */
-.home-controls .ctrl-type,.home-controls .ctrl-display,.home-controls .ctrl-status{flex-wrap:wrap;align-items:center}
-.ctrl-label{flex:0 0 100%;font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:0.5px;margin-bottom:1px;display:flex;align-items:center;gap:4px}
-.ctrl-label::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--ctrl-accent,var(--color-border-secondary))}
-.home-controls .ctrl-display,.home-controls .ctrl-status{border-top:0.5px solid var(--color-border-tertiary);padding-top:8px}
+.home-controls .ctrl-type,.home-controls .ctrl-display,.home-controls .ctrl-status{flex-wrap:nowrap;align-items:center}
+.ctrl-label{flex:0 0 auto;width:3.4em;font-size:11px;font-weight:600;color:var(--color-text-secondary);letter-spacing:0.3px;display:flex;align-items:center;gap:4px}
+.ctrl-label::before{content:"";width:3px;height:11px;border-radius:2px;background:var(--ctrl-accent,var(--color-border-secondary));flex-shrink:0}
+.home-controls .ctrl-row2{display:flex;gap:8px;border-top:0.5px solid var(--color-border-tertiary);padding-top:6px}
+.home-controls .ctrl-row2>.ctrl-display,.home-controls .ctrl-row2>.ctrl-status{flex:1;min-width:0}
 /* ① 種類＝主役の切替（オレンジ） */
 .home-controls .ctrl-type{--ctrl-accent:var(--accent-warm)}
 .home-controls #main-tabs .view-tab.active{border-color:var(--accent-warm);background:var(--accent-warm-bg);color:var(--accent-warm-strong);font-weight:600}
@@ -208,15 +218,15 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .search-bar-inner{flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md)}
 .search-bar-inner:focus-within{border-color:var(--accent-warm)}
 .search-icon{color:var(--color-text-tertiary);font-size:14px;flex-shrink:0}
-.search-bar input{flex:1;border:none;outline:none;background:transparent;font-size:13px;color:var(--color-text-primary);min-width:0}
+.search-bar input{flex:1;border:none;outline:none;background:transparent;font-size:16px;color:var(--color-text-primary);min-width:0}
 .search-bar input::placeholder{color:var(--color-text-tertiary)}
-.search-clear{border:none;background:transparent;color:var(--color-text-tertiary);cursor:pointer;padding:2px;display:flex;align-items:center;font-size:14px}
+.search-clear{border:none;background:transparent;color:var(--color-text-tertiary);cursor:pointer;padding:6px;display:flex;align-items:center;font-size:14px}
 .search-clear:hover{color:var(--color-text-primary)}
 .empty-state{text-align:center;padding:20px;color:var(--color-text-tertiary);font-size:12px;line-height:1.7}
 .empty-state .empty-icon{font-size:24px;color:var(--color-text-tertiary);display:block;margin-bottom:6px}
 .empty-state .empty-clear-btn{margin-top:10px;padding:6px 14px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-primary);cursor:pointer}
 
-.list{padding:12px;display:flex;flex-direction:column;gap:8px}
+.list{padding:12px;padding-bottom:88px;display:flex;flex-direction:column;gap:8px}
 .card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-left:4px solid var(--card-owner-color,var(--color-border-tertiary));border-radius:12px;padding:12px 14px 12px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:var(--card-shadow);transition:box-shadow .15s ease,transform .15s ease}
 .card:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-1px)}
 .card.urgent{box-shadow:inset 0 0 0 1px var(--home-danger-bg),var(--card-shadow)}
@@ -240,10 +250,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .badge-archived{background:#F1EFE8;color:#5F5E5A}
 /* APP-N3: 表示モード切替＋支払日カレンダー */
 .display-toggle{display:flex;gap:6px;padding:8px 12px 0;background:var(--color-background-primary)}
-.dt-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;padding:6px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid transparent;cursor:pointer}
+.dt-btn{flex:1;min-height:40px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;padding:6px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid transparent;cursor:pointer}
 .dt-btn.active{color:var(--color-text-primary);background:var(--color-background-primary);border-color:var(--color-border-secondary);font-weight:500}
 .dt-btn i{font-size:14px}
-.calendar{padding:12px}
+.calendar{padding:12px;padding-bottom:88px}
 .calendar.hidden,.list.hidden{display:none}
 .summary.hidden,.view-tabs.hidden,.display-toggle.hidden,.tabs.hidden,.search-bar.hidden{display:none}
 .stat.hidden,.stat-sub.hidden{display:none}
@@ -263,8 +273,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .cal-cell.today{border-color:var(--color-text-primary)}
 .cal-daynum{font-size:11px;color:var(--color-text-secondary)}
 .cal-cell.today .cal-daynum{font-weight:600;color:var(--color-text-primary)}
-.cal-markers{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:center}
-.cal-marker{width:14px;height:14px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary)}
+.cal-markers{display:flex;flex-wrap:wrap;gap:1px;justify-content:center;align-items:center}
+.cal-marker{width:18px;height:18px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary)}
 .cal-marker.dot{border:none;background:#D3D1C7}
 .cal-more{font-size:9px;color:var(--color-text-tertiary)}
 .cal-footer{margin-top:12px;font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px;justify-content:center}
@@ -342,12 +352,21 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
-.modal-close-text{position:absolute;top:10px;right:10px;background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:6px 8px;line-height:1;z-index:2}
+.modal-close-text{position:absolute;top:2px;right:2px;background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:14px 12px;min-height:44px;line-height:1;z-index:2}
 .modal-close-text:active{opacity:0.5}
+/* P3: 契約追加フォームの任意項目折りたたみ */
+.collapse-toggle{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:8px 4px;margin:4px 0;background:transparent;border:none;border-top:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;text-align:left}
+.collapse-toggle .collapse-chevron{font-size:14px;flex-shrink:0;transition:transform .15s ease}
+.collapse-toggle[aria-expanded="true"] .collapse-chevron{transform:rotate(90deg)}
+.collapse-section{padding-top:6px}
+.collapse-section[hidden]{display:none}
 .form-row{margin-bottom:8px}
 .form-row label{font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px}
-.form-row input,.form-row select,.form-row textarea{width:100%;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit}
+.form-row label .req{color:var(--home-danger);font-size:9px;font-weight:600;margin-left:4px}
+.form-row input,.form-row select,.form-row textarea{width:100%;font-size:16px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit}
 .form-row textarea{resize:none;height:60px;line-height:1.5}
+.form-row.error input,.form-row.error select,.form-row.error textarea{border-color:var(--home-danger);background:var(--home-danger-bg)}
+.form-row .field-error{font-size:11px;color:var(--home-danger);margin-top:4px;line-height:1.4;display:flex;align-items:center;gap:3px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .form-section-title{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .checkbox-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-text-secondary);margin-bottom:8px}
@@ -514,7 +533,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 :root.dark .private-mode-warning{background:rgba(163,45,45,0.22);border-color:rgba(240,149,149,0.5);color:#F2C7C7}
 :root.dark .private-mode-warning .pm-link{color:#E89999}
 
-.sort-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 9px;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;white-space:nowrap}
+.sort-btn{flex-shrink:0;min-height:40px;display:flex;align-items:center;gap:4px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 9px;font-size:11px;color:var(--color-text-secondary);cursor:pointer;font-family:inherit;white-space:nowrap}
 .sort-btn:hover{background:var(--color-background-primary)}
 .sort-btn i{font-size:14px;color:var(--color-text-tertiary)}
 .sort-btn .sort-order-arrow{font-size:11px;color:var(--color-text-tertiary)}
@@ -649,15 +668,17 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <div class="view-tab active" id="main-tab-contracts" onclick="setMainTab('contracts')"><i class="ti ti-file-text"></i> 契約</div>
         <div class="view-tab" id="main-tab-assets" onclick="setMainTab('assets')"><i class="ti ti-wallet"></i> 保有資産</div>
       </div>
-      <div class="display-toggle ctrl-display" id="display-toggle">
-        <span class="ctrl-label">表示</span>
-        <button class="dt-btn active" id="dt-list" onclick="setDisplayMode('list')"><i class="ti ti-list"></i>リスト</button>
-        <button class="dt-btn" id="dt-calendar" onclick="setDisplayMode('calendar')"><i class="ti ti-calendar-month"></i>カレンダー</button>
-      </div>
-      <div class="view-tabs ctrl-status" id="view-tabs">
-        <span class="ctrl-label">状態</span>
-        <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
-        <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
+      <div class="ctrl-row2">
+        <div class="display-toggle ctrl-display" id="display-toggle">
+          <span class="ctrl-label">表示</span>
+          <button class="dt-btn active" id="dt-list" onclick="setDisplayMode('list')"><i class="ti ti-list"></i>リスト</button>
+          <button class="dt-btn" id="dt-calendar" onclick="setDisplayMode('calendar')"><i class="ti ti-calendar-month"></i>カレンダー</button>
+        </div>
+        <div class="view-tabs ctrl-status" id="view-tabs">
+          <span class="ctrl-label">状態</span>
+          <div class="view-tab active" id="vt-active" onclick="setView('active')">利用中</div>
+          <div class="view-tab" id="vt-archived" onclick="setView('archived')">解約済み</div>
+        </div>
       </div>
       <div class="search-bar">
         <div class="search-bar-inner">
@@ -736,7 +757,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeModal()" aria-label="閉じる">閉じる</button>
       <h2 id="modal-title"><i class="ti ti-plus"></i>契約を追加</h2>
-      <div class="form-row"><label>契約名</label><input type="text" id="f-name" placeholder="例: Netflix"></div>
+      <div class="form-row"><label>契約名<span class="req">必須</span></label><input type="text" id="f-name" placeholder="例: Netflix"></div>
       <div class="form-grid">
         <div class="form-row"><label>カテゴリ</label><select id="f-cat"></select></div>
         <div class="form-row"><label>契約者</label><select id="f-owner"></select></div>
@@ -761,40 +782,46 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
 
       <div class="form-row">
-        <label id="amount-label">金額 (円/月)</label>
+        <label id="amount-label"><span id="amount-label-text">金額 (円/月)</span><span class="req">必須</span></label>
         <input type="number" id="f-amount" placeholder="1000">
         <div class="amount-helper" id="amount-helper"></div>
       </div>
 
       <div id="monthly-date">
-        <div class="form-row"><label>支払日（毎月）</label><input type="number" id="f-day" placeholder="1〜31" min="1" max="31"></div>
+        <div class="form-row"><label>支払日（毎月）<span class="req">必須</span></label><input type="number" id="f-day" placeholder="1〜31" min="1" max="31"></div>
       </div>
       <div id="yearly-date" style="display:none">
         <div class="form-grid">
           <div class="form-row"><label>支払月（毎年）</label><select id="f-month"></select></div>
-          <div class="form-row"><label>支払日</label><input type="number" id="f-day-yearly" placeholder="1〜31" min="1" max="31"></div>
+          <div class="form-row"><label>支払日<span class="req">必須</span></label><input type="number" id="f-day-yearly" placeholder="1〜31" min="1" max="31"></div>
         </div>
       </div>
 
-      <div class="form-row"><label>契約先の電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
-      <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."></div>
-      <div class="form-row"><label>解約方法</label><textarea id="f-cancel" placeholder="例: マイページ → 解約手続き"></textarea></div>
-      <div class="form-row"><label>必要書類（カンマ区切り）</label><input type="text" id="f-docs" placeholder="例: 保険証, 印鑑"></div>
-      <div class="form-row"><label>メモ</label><input type="text" id="f-memo" placeholder="例: 家族プラン"></div>
+      <button type="button" class="collapse-toggle" id="opt1-toggle" aria-expanded="false" aria-controls="opt1-section" onclick="toggleFormSection('opt1')"><i class="ti ti-chevron-right collapse-chevron"></i>連絡先・解約の情報を追加（任意）</button>
+      <div class="collapse-section" id="opt1-section" hidden>
+        <div class="form-row"><label>契約先の電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
+        <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."></div>
+        <div class="form-row"><label>解約方法</label><textarea id="f-cancel" placeholder="例: マイページ → 解約手続き"></textarea></div>
+        <div class="form-row"><label>必要書類（カンマ区切り）</label><input type="text" id="f-docs" placeholder="例: 保険証, 印鑑"></div>
+        <div class="form-row"><label>メモ</label><input type="text" id="f-memo" placeholder="例: 家族プラン"></div>
+      </div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0;color:#A04B6E"><i class="ti ti-message-heart"></i> 家族への一言メッセージ（任意）</div>
       <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約に関する家族へのメモや想いを残せます。公開範囲（下記）に従って表示されます。</p>
       <div class="form-row"><textarea id="f-family-message" placeholder="例: 楽しい時間をありがとう。解約手続きはよろしくね。" rows="2" style="resize:vertical;min-height:48px"></textarea></div>
 
-      <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 機密情報（本人以外には非表示）</div>
-      <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
-      <div id="secret-card-fields">
-        <div class="form-grid">
-          <div class="form-row"><label>カード会社</label><input type="text" id="f-card-brand" placeholder="例: 三井住友VISA"></div>
-          <div class="form-row"><label>カード下4桁</label><input type="text" id="f-card-last4" placeholder="例: 1234" maxlength="4"></div>
+      <button type="button" class="collapse-toggle" id="opt2-toggle" aria-expanded="false" aria-controls="opt2-section" onclick="toggleFormSection('opt2')"><i class="ti ti-chevron-right collapse-chevron"></i>機密情報を追加（任意・本人以外には非表示）</button>
+      <div class="collapse-section" id="opt2-section" hidden>
+        <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 機密情報（本人以外には非表示）</div>
+        <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
+        <div id="secret-card-fields">
+          <div class="form-grid">
+            <div class="form-row"><label>カード会社</label><input type="text" id="f-card-brand" placeholder="例: 三井住友VISA"></div>
+            <div class="form-row"><label>カード下4桁</label><input type="text" id="f-card-last4" placeholder="例: 1234" maxlength="4"></div>
+          </div>
         </div>
+        <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
       </div>
-      <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
       <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
@@ -844,7 +871,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <div class="form-row"><label>種類</label><select id="f-asset-type" onchange="onAssetTypeChange()"></select></div>
         <div class="form-row"><label>持ち主</label><select id="f-asset-owner"></select></div>
       </div>
-      <div class="form-row"><label>会社名・機関名</label><input type="text" id="f-asset-name" placeholder="例: ○○銀行 / ○○証券"></div>
+      <div class="form-row"><label>会社名・機関名<span class="req">必須</span></label><input type="text" id="f-asset-name" placeholder="例: ○○銀行 / ○○証券"></div>
       <div class="form-row"><label>保管場所</label><input type="text" id="f-asset-location" placeholder="保管場所"></div>
       <div class="form-row"><label>連絡先の電話番号</label><input type="text" id="f-asset-tel" placeholder="例: 0120-xxx-xxx"></div>
       <div class="form-row"><label>関連URL</label><input type="text" id="f-asset-url" placeholder="例: https://..."></div>
@@ -2512,7 +2539,7 @@ function goBack(){
 }
 
 function deleteContract(id){
-  if(!confirm('この契約を完全に削除しますか？'))return;
+  if(!confirm('完全に削除すると元に戻せません。まずは『解約済みにする』を選ぶと記録を残せます。それでも削除しますか？'))return;
   const i=contracts.findIndex(c=>c.id===id);
   if(i<0)return;
   contracts.splice(i,1);
@@ -2563,7 +2590,7 @@ function setCycle(c){
   document.getElementById('cyc-yearly').classList.toggle('active',c==='yearly');
   document.getElementById('monthly-date').style.display=c==='monthly'?'':'none';
   document.getElementById('yearly-date').style.display=c==='yearly'?'':'none';
-  document.getElementById('amount-label').textContent=c==='monthly'?'金額 (円/月)':'金額 (円/年)';
+  document.getElementById('amount-label-text').textContent=c==='monthly'?'金額 (円/月)':'金額 (円/年)';
   updateAmountHelper();
 }
 
@@ -2729,7 +2756,9 @@ function openModal(){
   document.getElementById('f-cat').innerHTML=categories.map(c=>`<option>${esc(c)}</option>`).join('');
   setupOwnerSelect(document.getElementById('f-owner'),MY_ID);
   setupMonthSelect(document.getElementById('f-month'),todayMonth);
-  ['f-name','f-amount','f-day','f-day-yearly','f-tel','f-url','f-cancel','f-docs','f-memo','f-family-message','f-card-brand','f-card-last4','f-secret'].forEach(id=>document.getElementById(id).value='');
+  ['f-name','f-amount','f-day','f-day-yearly','f-tel','f-url','f-cancel','f-docs','f-memo','f-family-message','f-card-brand','f-card-last4','f-secret'].forEach(id=>{document.getElementById(id).value='';clearFieldError(id);});
+  closeFormSection('opt1');
+  closeFormSection('opt2');
   formLiveViewers=[];
   formAfterViewers=[];
   setCycle('monthly');
@@ -2804,9 +2833,63 @@ function confirmSecretSafe(data){
   return false;
 }
 
+// P1-1: 必須項目未入力時にエラーを可視化し、該当欄までスクロール＋フォーカスする（追加/編集・契約/資産で共通利用）
+function showFieldError(inputId,msg){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  const row=input.closest('.form-row');
+  if(row){
+    row.classList.add('error');
+    let msgEl=row.querySelector('.field-error');
+    if(!msgEl){
+      msgEl=document.createElement('div');
+      msgEl.className='field-error';
+      row.appendChild(msgEl);
+    }
+    msgEl.innerHTML=`<i class="ti ti-alert-circle"></i>${esc(msg)}`;
+    const clearOnInput=()=>{clearFieldError(inputId);input.removeEventListener('input',clearOnInput);};
+    input.addEventListener('input',clearOnInput);
+  }
+  input.focus();
+  setTimeout(()=>input.scrollIntoView({block:'center',behavior:'smooth'}),50);
+}
+function clearFieldError(inputId){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  const row=input.closest('.form-row');
+  if(!row)return;
+  row.classList.remove('error');
+  const msgEl=row.querySelector('.field-error');
+  if(msgEl)msgEl.remove();
+}
+
+// P3: 契約追加フォームの任意項目折りたたみ（connキー: 'opt1'=連絡先・解約情報, 'opt2'=機密情報）
+function toggleFormSection(key){
+  const btn=document.getElementById(key+'-toggle');
+  const sec=document.getElementById(key+'-section');
+  if(!btn||!sec)return;
+  const open=sec.hidden;
+  sec.hidden=!open;
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
+function openFormSection(key){
+  const btn=document.getElementById(key+'-toggle');
+  const sec=document.getElementById(key+'-section');
+  if(!btn||!sec)return;
+  sec.hidden=false;
+  btn.setAttribute('aria-expanded','true');
+}
+function closeFormSection(key){
+  const btn=document.getElementById(key+'-toggle');
+  const sec=document.getElementById(key+'-section');
+  if(!btn||!sec)return;
+  sec.hidden=true;
+  btn.setAttribute('aria-expanded','false');
+}
+
 function addContract(){
   const data=readForm();
-  if(!data.name)return;
+  if(!data.name){showFieldError('f-name','契約名を入力してください');return;}
   if(!confirmSecretSafe(data))return;
   if(contractLimitReached()){
     showBetaLimitModal();
@@ -2821,6 +2904,7 @@ function openEditModal(){
   if(selectedId===null)return;
   const c=contracts.find(x=>x.id===selectedId);
   if(!c||!isOwner(c)||isPreviewing())return;
+  ['f-name','f-amount','f-day','f-day-yearly'].forEach(clearFieldError);
   document.getElementById('f-cat').innerHTML=categories.map(cat=>`<option${cat===c.cat?' selected':''}>${esc(cat)}</option>`).join('');
   setupOwnerSelect(document.getElementById('f-owner'),c.ownerId);
   setupMonthSelect(document.getElementById('f-month'),c.month||todayMonth);
@@ -2842,6 +2926,11 @@ function openEditModal(){
   document.getElementById('f-card-brand').value=c.cardBrand||'';
   document.getElementById('f-card-last4').value=c.cardLast4||'';
   document.getElementById('f-secret').value=c.secret||'';
+  // P3: 既存データがある折りたたみ項目は開いた状態で表示
+  const hasOpt1=c.tel||c.url||c.cancel||(c.docs&&c.docs.length)||c.memo;
+  hasOpt1?openFormSection('opt1'):closeFormSection('opt1');
+  const hasOpt2=c.cardBrand||c.cardLast4||c.secret;
+  hasOpt2?openFormSection('opt2'):closeFormSection('opt2');
   // 公開範囲の状態をフォームに復元
   const cv=getVisibility(c);
   formLiveViewers=[...(cv.liveViewers||[])];
@@ -2866,6 +2955,7 @@ function saveEdit(){
   const c=contracts.find(x=>x.id===selectedId);
   if(!c)return;
   const data=readForm();
+  if(!data.name){showFieldError('f-name','契約名を入力してください');return;}
   if(!confirmSecretSafe(data))return;
   Object.assign(c,data);
   persistState();
@@ -4210,7 +4300,7 @@ function goBackAsset(){
   syncMainTabUI();
 }
 function deleteAsset(id){
-  if(!confirm('この「保有資産」を削除しますか？'))return;
+  if(!confirm('完全に削除すると元に戻せません。この「保有資産」を削除しますか？'))return;
   const i=assets.findIndex(a=>a.id===id);
   if(i<0)return;
   assets.splice(i,1);
@@ -4271,7 +4361,7 @@ function openAssetModal(){
   editingAssetId=null;
   fillAssetTypeSelect('bank');
   setupOwnerSelect(document.getElementById('f-asset-owner'),MY_ID);
-  ['f-asset-name','f-asset-location','f-asset-tel','f-asset-url','f-asset-note'].forEach(id=>document.getElementById(id).value='');
+  ['f-asset-name','f-asset-location','f-asset-tel','f-asset-url','f-asset-note'].forEach(id=>{document.getElementById(id).value='';clearFieldError(id);});
   assetFormLiveViewers=[];assetFormAfterViewers=[];
   setAssetVisibilityMode('all');
   onAssetTypeChange();
@@ -4290,6 +4380,7 @@ function openAssetEdit(id){
   const a=assets.find(x=>x.id===id);
   if(!a)return;
   editingAssetId=id;
+  clearFieldError('f-asset-name');
   fillAssetTypeSelect(a.type||'bank');
   setupOwnerSelect(document.getElementById('f-asset-owner'),a.ownerId||MY_ID);
   document.getElementById('f-asset-name').value=a.name||'';
@@ -4341,7 +4432,7 @@ function confirmAssetSafe(data){
 }
 function addAsset(){
   const data=readAssetForm();
-  if(!data.name){alert('会社名・機関名を入力してください。');return;}
+  if(!data.name){showFieldError('f-asset-name','会社名・機関名を入力してください');return;}
   if(!confirmAssetSafe(data))return;
   // APP-ASSET-BETA-CAP: 二重防御（フォーム未経由の直接追加も上限で拒否）
   if(betaActiveAssetCount()>=ASSET_BETA_MAX){
@@ -4356,7 +4447,7 @@ function saveAssetEdit(){
   const a=assets.find(x=>x.id===editingAssetId);
   if(!a)return;
   const data=readAssetForm();
-  if(!data.name){alert('会社名・機関名を入力してください。');return;}
+  if(!data.name){showFieldError('f-asset-name','会社名・機関名を入力してください');return;}
   if(!confirmAssetSafe(data))return;
   Object.assign(a,data);
   persistState();
@@ -4930,6 +5021,15 @@ document.addEventListener('visibilitychange', async ()=>{
     // APPSTORE-IAP(v82): フォア復帰時にエンタイトルメントを再判定（アプリ外での更新/失効を反映）
     if(IAP){ refreshEntitlement().then(()=>{ if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal(); }); }
   }
+});
+
+// P4-pre A: iOSキーボード表示時に下部シート入力欄が隠れないよう、フォーカス時にモーダル内で自動スクロール
+document.addEventListener('focusin',(e)=>{
+  const el=e.target;
+  if(!el.matches('input,select,textarea'))return;
+  const modal=el.closest('.modal-bg.open .modal');
+  if(!modal)return;
+  setTimeout(()=>el.scrollIntoView({block:'center',behavior:'smooth'}),300);
 });
 
 // === PWA Service Worker registration (v21) ===
