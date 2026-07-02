@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v87</title>
+<title>きずなbaton プロトタイプ v88</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -4884,6 +4884,19 @@ async function refreshEntitlement(){
     // 問い合わせ失敗時は直近キャッシュにフォールバック（オフライン等）
     isPaid=(lsGet(PAID_FLAG_KEY)==='1');
   }
+}
+
+// APPSTORE-IAP(v88): アプリ起動中の返金・失効・自動更新をリアルタイム反映。
+// Swift(KizunaIAPPlugin)は Transaction.updates 購読で notifyListeners("entitlementChanged",{active}) を発火するが、
+// v82〜87 はJS側リスナー未実装＝次回起動時反映だった（2026-07-03 シミュレータ失効テストで発見）。
+// addListener は native 注入ブリッジ(Pluginsプロキシ)の機能＝バンドラ不要。Web/非IAP時は IAP=null で非登録（後方互換）。
+if(IAP && typeof IAP.addListener==='function'){
+  IAP.addListener('entitlementChanged',(d)=>{
+    isPaid=!!(d&&d.active);
+    lsSet(PAID_FLAG_KEY,isPaid?'1':'0');
+    if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal();
+    renderAll(); // 上限ゲート/上限モーダル誘導を即時更新
+  });
 }
 
 // 実際の生体認証呼び出し。成功時 true。allowPasscode=true で端末パスコードのみ許容。
