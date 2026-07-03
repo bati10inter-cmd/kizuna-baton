@@ -2372,29 +2372,21 @@ function updateSummary(){
   document.getElementById('family-count').innerHTML=`家族 ${members.length}人で共有中 · コード FAMX-2847`;
 }
 
-function showDetail(id){
-  selectedId=id;
-  const c=contracts.find(x=>x.id===id);
-  if(!c)return;
-  const owner=isOwner(c)&&!isDeathMode();
-  const seeSecret=canSeeSecret(c);
-  const bg=COLORS[c.cat]||'#D3D1C7';
-  const tc=TCOLORS[c.cat]||'#444441';
-  const icon=ICONS[c.cat]||'ti-file';
-  const d=daysUntilNext(c);
-  const ownerName=getOwnerName(c);
-  const ownerColor=getOwnerColor(c);
-  const ownerInitial=ownerName.charAt(0);
-
+function detailUrgentBadgeHtml(c,d){
   let urgentBadge='';
   if(c.archived)urgentBadge=`<span class="badge badge-archived" style="margin-left:6px">${c.archivedDate||'解約済'}</span>`;
   else if(d<=3)urgentBadge=`<span class="badge badge-urgent" style="margin-left:6px">${d}日後</span>`;
   else if(d<=30)urgentBadge=`<span class="badge badge-soon" style="margin-left:6px">${d}日後</span>`;
+  return urgentBadge;
+}
 
-  let docsHtml=c.docs&&c.docs.length
+function detailDocsHtml(c){
+  return c.docs&&c.docs.length
     ?c.docs.map(d=>`<span class="doc-tag"><i class="ti ti-file" style="font-size:10px;margin-right:3px"></i>${esc(d)}</span>`).join('')
     :'<span style="font-size:12px;color:var(--color-text-tertiary)">なし</span>';
+}
 
+function detailAmountSectionHtml(c){
   let amountSection='';
   if(c.cycle==='yearly'){
     amountSection=`<div class="info-row"><i class="ti ti-receipt info-icon"></i><div>
@@ -2409,7 +2401,10 @@ function showDetail(id){
       <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px">年換算: ¥${yearlyAmount(c).toLocaleString()} / 年</div>
     </div></div>`;
   }
+  return amountSection;
+}
 
+function detailSecretHtml(c,owner,seeSecret,ownerName){
   let secretHtml='';
   const pm=payMethodOf(c);
   const isCardPayment=pm==='credit_card';
@@ -2467,7 +2462,10 @@ function showDetail(id){
         </div>`;
     }
   }
+  return secretHtml;
+}
 
+function detailActionsHtml(c,owner,ownerName){
   let actionsHtml='';
   if(owner&&!c.archived&&!isPreviewing()){
     actionsHtml=`<div class="detail-actions"><button onclick="openEditModal()"><i class="ti ti-edit"></i>編集</button><button class="btn-archive" onclick="openArchiveModal()"><i class="ti ti-archive"></i>解約済みに</button><button class="btn-danger" onclick="deleteContract(${c.id})"><i class="ti ti-trash"></i>削除</button></div>`;
@@ -2476,9 +2474,32 @@ function showDetail(id){
   } else {
     actionsHtml=`<div style="padding:12px 16px;font-size:11px;color:var(--color-text-tertiary);text-align:center"><i class="ti ti-eye"></i> 閲覧のみ（${esc(ownerName)}の契約）</div>`;
   }
+  return actionsHtml;
+}
+
+function showDetail(id){
+  selectedId=id;
+  const c=contracts.find(x=>x.id===id);
+  if(!c)return;
+  const owner=isOwner(c)&&!isDeathMode();
+  const seeSecret=canSeeSecret(c);
+  const bg=COLORS[c.cat]||'#D3D1C7';
+  const tc=TCOLORS[c.cat]||'#444441';
+  const icon=ICONS[c.cat]||'ti-file';
+  const d=daysUntilNext(c);
+  const ownerName=getOwnerName(c);
+  const ownerColor=getOwnerColor(c);
+  const ownerInitial=ownerName.charAt(0);
+
+  const urgentBadge=detailUrgentBadgeHtml(c,d);
+  const docsHtml=detailDocsHtml(c);
+  const amountSection=detailAmountSectionHtml(c);
+  const secretHtml=detailSecretHtml(c,owner,seeSecret,ownerName);
+  const actionsHtml=detailActionsHtml(c,owner,ownerName);
   document.getElementById('edit-btn-top').style.display=owner&&!c.archived&&!isPreviewing()?'':'none';
 
   const cycleLabel=c.cycle==='yearly'?'<span class="cycle-pill yearly" style="margin-left:6px">年払い</span>':'<span class="cycle-pill" style="margin-left:6px">月払い</span>';
+  const vl=visibilityLabel(c);
 
   // 本人視点でのみ公開範囲バッジを表示
   const headerVisBadge=(!isPreviewing()&&c.ownerId===MY_ID)
