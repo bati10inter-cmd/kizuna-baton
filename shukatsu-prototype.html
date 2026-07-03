@@ -1514,7 +1514,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 </div>
 
 <script>
-// =========== Feature Flags ===========
+// ==================== JS目次 ====================
+// Feature Flags・β上限 / 招待サンプルデータ / 定数・表示状態 / サンプル契約・資産
+// 純関数ヘルパー / ヘッダー・プレビュー・切替 / 一覧・検索・カレンダー / サマリー・詳細・CRUD
+// 契約フォーム / メンバー・同意モーダル / 永続化レイヤー / 招待・メンバー管理
+// エクスポート・カテゴリ / 旧「もしもの時」ワークフロー / 資産タブ / 並び替え・プライベートモード検出
+// β案内・プラン(IAP) / バックアップ・復元・移行 / アプリロック（生体認証） / 起動・グローバルリスナー
+
+// ==================== Feature Flags・β上限 ====================
 // 規約 v3.2 と実装の整合のためのフィーチャーフラグ。
 // β公開時は全て false（規約 ToS 7.1 で emergencyMode 不提供を宣言済み）。
 // 本番化時に true に切り替えることで対応機能が復活する。
@@ -1555,6 +1562,7 @@ function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isBu
 // APPSTORE-IAP(v82): 家族プラン(竹/isPaid)は無制限。無料(梅)は CONTRACT_BETA_MAX 件まで。
 function contractLimitReached(){return !isPaid && betaActiveContractCount()>=CONTRACT_BETA_MAX;}
 
+// ==================== 招待サンプルデータ ====================
 // =========== Step 6: 招待フロー（invitation-flow-design.md v3.2） ===========
 // pending+accepted 合計 5件上限 / 1日3件発行上限 / 7日有効期限
 const INVITE_MAX_PENDING_ACCEPTED=5;
@@ -1598,6 +1606,7 @@ let invitations=[
   }
 ];
 
+// ==================== 定数・表示状態 ====================
 const ICONS={'金融・決済':'ti-credit-card','ローン':'ti-home','通信・デジタル':'ti-wifi','保険':'ti-shield','公共・生活':'ti-bolt','会員・SNS':'ti-star','その他':'ti-dots'};
 const COLORS={'金融・決済':'#B5D4F4','ローン':'#9FE1CB','通信・デジタル':'#FAC775','保険':'#F4C0D1','公共・生活':'#C0DD97','会員・SNS':'#CECBF6','その他':'#D3D1C7'};
 const TCOLORS={'金融・決済':'#0C447C','ローン':'#085041','通信・デジタル':'#633806','保険':'#72243E','公共・生活':'#27500A','会員・SNS':'#3C3489','その他':'#444441'};
@@ -1655,6 +1664,7 @@ let deathWorkflow={
   simulatedNow:null        // シミュレート用「現在時刻」（null=実時刻）
 };
 
+// ==================== サンプル契約・資産 ====================
 let contracts=[
   {id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'https://www.netflix.com/cancelplan',logoDomain:'netflix.com',cancel:'マイページ → アカウント → メンバーシップのキャンセル',docs:[],memo:'家族プラン',familyMessage:'週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。',cardBrand:'三井住友VISA',cardLast4:'1234',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false},
   {id:2,name:'生命保険（〇〇生命）',cat:'保険',ownerId:'m1',cycle:'monthly',amount:18000,month:null,day:27,paymentMethod:'bank_debit',tel:'0120-111-222',url:'',cancel:'電話または書面で手続き。解約返戻金あり。',docs:['保険証券','本人確認書類','印鑑','振込先口座番号'],memo:'',familyMessage:'花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。',cardBrand:'',cardLast4:'',secret:'証券番号は通帳ケース内 / 引落口座は通帳に記載',visibility:{mode:'selected',liveViewers:['m2'],afterViewers:[]},archived:false},
@@ -1738,6 +1748,7 @@ function betaActiveAssetCount(){return assets.filter(a=>!a.archived).length;}
 // テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
 // ユーザー入力（契約名・メモ・url・メンバー名・カテゴリ・import復元データ等）を
 // 出力する箇所では必ず通すこと。JS文字列in属性のonclickは data属性+dataset で回避する。
+// ==================== 純関数ヘルパー ====================
 function openModalById(id){document.getElementById(id).classList.add('open');}
 function closeModalById(id){document.getElementById(id).classList.remove('open');}
 function esc(v){return String(v==null?'':v)
@@ -1834,6 +1845,7 @@ function yearlyAmount(c){return c.cycle==='yearly'?c.amount:c.amount*12;}
 function paymentDateText(c){return c.cycle==='monthly'?`毎月${c.day}日`:`毎年${c.month}月${c.day}日`;}
 function paymentDateTextShort(c){return c.cycle==='monthly'?`毎月${c.day}日`:`${c.month}/${c.day}`;}
 
+// ==================== ヘッダー・プレビュー・切替 ====================
 function renderUserPill(){
   const av=document.getElementById('pill-av');
   const label=document.getElementById('pill-label');
@@ -2083,6 +2095,7 @@ function setView(m){
   if(mainTab==='assets'){renderAssetList();syncMainTabUI();}else{renderMain();updateSummary();}
 }
 
+// ==================== 一覧・検索・カレンダー ====================
 // APP-N3: 表示モード（リスト⇄カレンダー）切替
 function renderMain(){displayMode==='calendar'?renderCalendar():renderList();}
 function setDisplayMode(m){
@@ -2358,6 +2371,7 @@ function openDayDetail(d){
 function closeDayDetail(){closeModalById('day-detail-modal');}
 function goToContract(id){closeDayDetail();showDetail(id);}
 
+// ==================== サマリー・詳細・CRUD ====================
 function updateSummary(){
   const viewer=currentViewerId();
   const visible=contracts.filter(c=>!c.archived&&(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer));
@@ -2605,6 +2619,7 @@ function setupMonthSelect(sel,val){
   sel.innerHTML=html;
 }
 
+// ==================== 契約フォーム ====================
 function setCycle(c){
   formCycle=c;
   document.getElementById('cyc-monthly').classList.toggle('active',c==='monthly');
@@ -2988,6 +3003,7 @@ function onAccountDeleteConfirmInput(){
 // Step 6.4: 居住地・年齢確認チェックを追加し計4件すべて ON で活性化
 // pendingInviteId はフロー経由時のみセット。プレビューボタン直起動時は null
 let pendingInviteId=null;
+// ==================== メンバー・同意モーダル ====================
 function openConsentModal(inviterName,inviteeLabel,inviteId){
   if(inviterName)document.getElementById('consent-inviter-name').textContent=inviterName;
   if(inviteeLabel)document.getElementById('consent-invitee-label').textContent=inviteeLabel;
@@ -3114,6 +3130,7 @@ function maybeShowOwnerConsent(){
 
 let onboardingStep=1;
 let forceShowOnboarding=false;
+// ==================== 永続化レイヤー ====================
 // === APPSTORE-PERSIST: localStorage / Capacitor Preferences 抽象化 ===
 // iOS WKWebView の localStorage はストレージ逼迫時にOSがパージし得るため、native では
 // Capacitor Preferences(UserDefaults バッキング・パージ対象外)へ永続化する。同期APIの
@@ -3384,6 +3401,7 @@ function closeWelcomeAfterAccept(){
   closeModalById('welcome-after-accept-modal');
 }
 
+// ==================== 招待・メンバー管理 ====================
 // === Step 6: 招待フロー（invitation-flow-design.md v3.2） ===
 function genInviteToken(){
   const bytes=new Uint8Array(16);
@@ -3663,6 +3681,7 @@ function openColorModal(id){
 function closeColorModal(){closeModalById('color-modal');}
 function pickColor(c){const m=getMember(colorTargetId);if(!m)return;m.color=c;persistState();closeColorModal();renderMemberList();renderAll();}
 
+// ==================== エクスポート・カテゴリ ====================
 function selectExport(m){
   exportMode=m;
   document.getElementById('opt-self').classList.toggle('selected',m==='self');
@@ -3940,6 +3959,7 @@ function addCategory(){
   renderCatList();
 }
 
+// ==================== 旧「もしもの時」ワークフロー ====================
 // =========== 「もしもの時」発動ワークフロー（プロトタイプ用シミュレーション） ===========
 function workflowNow(){return deathWorkflow.simulatedNow?new Date(deathWorkflow.simulatedNow):new Date();}
 function workflowSetNow(d){deathWorkflow.simulatedNow=d.toISOString();}
@@ -4183,6 +4203,7 @@ function renderWorkflowModal(){
   document.getElementById('wf-go-stage2').disabled=stage!=='stage2_active';
 }
 
+// ==================== 資産タブ ====================
 function renderAll(){renderUserPill();renderPreviewBar();renderCatTabs();renderMain();updateSummary();renderAssetList();syncMainTabUI();}
 
 // === APP-ASSET-INV: 資産・在りか棚卸し（Design B） ===
@@ -4476,6 +4497,7 @@ function toggleFamilyMsg(titleEl){
   }
 }
 
+// ==================== 並び替え・プライベートモード検出 ====================
 // === v19: S1 β前最小整備 ===
 
 // --- 並び替え ---
@@ -4566,6 +4588,7 @@ function detectPrivateMode(){
   if(w)w.classList.toggle('show',isPrivateMode);
 }
 
+// ==================== β案内・プラン(IAP) ====================
 // --- β情報モーダル ---
 function openBetaInfoModal(){
   document.getElementById('switch-menu').classList.remove('open');
@@ -4711,6 +4734,7 @@ function renderPlanModal(){
     </div>`;
 }
 
+// ==================== バックアップ・復元・移行 ====================
 // --- バックアップ（エクスポート）---
 function doBackup(){
   document.getElementById('switch-menu').classList.remove('open');
@@ -4853,6 +4877,7 @@ async function migrateIfNeeded(){
   }catch(e){console.warn('[kizuna-baton] migrateIfNeeded failed（再試行可）:',e);}
 }
 
+// ==================== アプリロック（生体認証） ====================
 // === APPSTORE-NATIVE-LOCK(v79): 生体認証アプリロック ===
 // Web(非native)・プラグイン未同梱では一切作動しない（appLockSupported=false のまま＝従来挙動）。
 // 秘密情報は保存しない＝端末の LocalAuthentication で「閲覧ゲート」を提供するのみ（CLAUDE.md データ範囲/セキュリティ方針）。
@@ -4972,6 +4997,7 @@ async function toggleAppLock(){
   renderSettingsModal();
 }
 
+// ==================== 起動・グローバルリスナー ====================
 async function boot(){
   if(NativePref){
     isPrivateMode=false;      // native は Preferences へ保存＝localStorage 検査に依存しない
