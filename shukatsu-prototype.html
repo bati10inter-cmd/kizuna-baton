@@ -2649,18 +2649,14 @@ function renderAfterViewerChecks(){
   renderViewerCheckList('after-viewer-checks','f-owner',formAfterViewers,'toggleAfterViewer');
 }
 
-function toggleAfterViewer(id,checked){
-  if(checked){if(!formAfterViewers.includes(id))formAfterViewers.push(id);}
-  else {formAfterViewers=formAfterViewers.filter(x=>x!==id);}
+function toggledIdList(list,id,checked){
+  if(checked)return list.includes(id)?list:[...list,id];
+  return list.filter(x=>x!==id);
 }
 
-function toggleLiveViewer(id,checked){
-  if(checked){
-    if(!formLiveViewers.includes(id))formLiveViewers.push(id);
-  } else {
-    formLiveViewers=formLiveViewers.filter(x=>x!==id);
-  }
-}
+function toggleAfterViewer(id,checked){formAfterViewers=toggledIdList(formAfterViewers,id,checked);}
+
+function toggleLiveViewer(id,checked){formLiveViewers=toggledIdList(formLiveViewers,id,checked);}
 
 function updateAmountHelper(){
   const amount=parseInt(document.getElementById('f-amount').value)||0;
@@ -4308,8 +4304,8 @@ function renderAssetViewerChecks(){
 function renderAssetAfterViewerChecks(){
   renderViewerCheckList('asset-after-viewer-checks','f-asset-owner',assetFormAfterViewers,'toggleAssetAfterViewer');
 }
-function toggleAssetLiveViewer(id,checked){if(checked){if(!assetFormLiveViewers.includes(id))assetFormLiveViewers.push(id);}else{assetFormLiveViewers=assetFormLiveViewers.filter(x=>x!==id);}}
-function toggleAssetAfterViewer(id,checked){if(checked){if(!assetFormAfterViewers.includes(id))assetFormAfterViewers.push(id);}else{assetFormAfterViewers=assetFormAfterViewers.filter(x=>x!==id);}}
+function toggleAssetLiveViewer(id,checked){assetFormLiveViewers=toggledIdList(assetFormLiveViewers,id,checked);}
+function toggleAssetAfterViewer(id,checked){assetFormAfterViewers=toggledIdList(assetFormAfterViewers,id,checked);}
 
 function fillAssetTypeSelect(val){
   const sel=document.getElementById('f-asset-type');
