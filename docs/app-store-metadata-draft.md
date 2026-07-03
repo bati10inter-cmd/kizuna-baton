@@ -146,11 +146,11 @@
 | 年齢レーティング | **4+** | 不適切表現なし |
 | サポートURL | **`https://bati10inter-cmd.github.io/kizuna-baton/support.html`**（✅ 2026-06-30 公開・HTTPS 200） | 公開HTTPS必須。疎通確認済 |
 | マーケティングURL（任意） | `https://bati10inter-cmd.github.io/kizuna-baton/lp.html` | — |
-| プライバシーポリシーURL | 当面 `https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.md`（生md・提出可）。**生md改善は案A（Jekyll front matter で `.html`化）推奨**＝`finance/fin-tax-iap-worksheet.md §5.5` | 提出に公開URL必須 |
-| 利用規約（EULA） | `https://bati10inter-cmd.github.io/kizuna-baton/docs/terms-of-service.md`（アプリ内リンク=v83 で購入画面にも掲示） | App内課金の3.1.2要件＝v83 で `renderPlanModal` にリンク追加済 |
+| プライバシーポリシーURL | **`https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.html`**（✅ 2026-07-03 確認＝Pages 既定 Jekyll〔`jekyll-optional-front-matter`＋primer〕が front matter 無しでも `.html` を自動生成済・HTTPS 200・整形表示。生 `.md` も並存配信＝旧リンク404なし） | 提出に公開URL必須。案A は「リンク差替のみ」で完了（v89） |
+| 利用規約（EULA） | `https://bati10inter-cmd.github.io/kizuna-baton/docs/terms-of-service.html`（✅ HTTPS 200・アプリ内リンク=v89 で `.html` 化・購入画面にも掲示） | App内課金の3.1.2要件＝v83 で `renderPlanModal` にリンク追加済 |
 | 特商法に基づく表記 | **`https://bati10inter-cmd.github.io/kizuna-baton/tokushoho.html`**（✅ 2026-06-30 公開・HTTPS 200・運営統括責任者=Dorize代表＋請求時開示） | 課金開始で必須。`finance/fin-tax-iap-worksheet.md §1,§5.5` |
 
-> ✅ **公開済み（2026-06-30 `55f01d8`・本番Pages live・HTTPS 200 確認済）**：`support.html`／`tokushoho.html`。PP/ToS は生md直リンクで提出可（見栄え改善＝案A は任意・`fin-tax-iap-worksheet.md §5.5`）。**残＝下記 §6.1 の ASC URL欄登録（owner）。**
+> ✅ **公開済み（2026-06-30 `55f01d8`・本番Pages live・HTTPS 200 確認済）**：`support.html`／`tokushoho.html`。**PP/ToS の見栄え改善（案A）＝2026-07-03 完了**＝Pages 既定 Jekyll が `.html` を自動生成済と発見・アプリ内/support/lp のリンクを `.md`→`.html` へ差替（v89）。**残＝下記 §6.1 の ASC URL欄登録（owner）。**
 
 ---
 
@@ -162,8 +162,8 @@
 |---|---|---|---|
 | サポートURL（Support URL） | `https://bati10inter-cmd.github.io/kizuna-baton/support.html` | バージョン情報 | 🔲 未登録 |
 | マーケティングURL（Marketing URL・任意） | `https://bati10inter-cmd.github.io/kizuna-baton/lp.html` | バージョン情報 | 🔲 未登録 |
-| プライバシーポリシーURL（Privacy Policy URL） | `https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.md` | App情報 | 🔲 未登録 |
-| 利用規約（License Agreement／EULA） | Apple標準EULA を使う or カスタムに `terms-of-service.md` の内容。**App内・購入画面リンクは v83 実装済** | App情報＞使用許諾契約 | 🔲 未登録 |
+| プライバシーポリシーURL（Privacy Policy URL） | `https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.html`（2026-07-03 `.html` へ確定＝整形表示・HTTPS 200） | App情報 | 🔲 未登録 |
+| 利用規約（License Agreement／EULA） | Apple標準EULA を使う or カスタムに `terms-of-service.html` の内容。**App内・購入画面リンクは v83 実装済（v89 で `.html` 化）** | App情報＞使用許諾契約 | 🔲 未登録 |
 | 特商法に基づく表記 | アプリ内・公開ページで掲示済（ASC に専用欄なし）。説明文 or サポートページから到達 | — | ✅ 公開で充足 |
 
 > 📌 特商法は ASC に専用フィールドが無い＝`support.html` / `tokushoho.html` 経由の到達で要件充足（`tokushoho.html` は `support.html` フッターからリンク済）。
@@ -192,7 +192,7 @@
 1. ✅ スクショ 6.9"(1320×2868) を5枚（§4）— **2026-07-02 シミュレータ取得完了**（`marketing/app-store-screenshots-6.9/`）
 2. ✅ メタデータ文言の**オーナー最終確認**（§1〜§3）— **2026-07-02 完了**（サブタイトル/プロモ/説明文をv0.8で確定反映・改訂履歴 v0.8 参照）
 3. 🔲 App Privacy ラベル回答（§5）を App Store Connect に登録（提出時・IAPはStoreKit純正前提）
-4. 🟡 プライバシーポリシー/サポートURL の公開URL化（§6・オーナー）→ **2026-06-30 `support.html`＋`tokushoho.html` 本番Pages公開済（`55f01d8`・HTTPS 200）**。残＝**ASC URL欄登録（§6.1・owner）**、PP生md改善（案A・任意）＝`finance/fin-tax-iap-worksheet.md §5.5`
+4. ✅ プライバシーポリシー/サポートURL の公開URL化（§6）→ **2026-06-30 `support.html`＋`tokushoho.html` 公開済（`55f01d8`）／2026-07-03 PP/ToS `.html` 化完了（案A＝リンク差替のみ・v89）**。残＝**ASC URL欄登録（§6.1・owner）のみ**
 5. ✅ アイコン1024・PrivacyInfo.xcprivacy・NSFaceIDUsageDescription（完了済）
 6. 🔲 **ASC 各URL欄の登録（§6.1）＋サブスク商品登録（§6.2）**＝owner作業の段取りをチェックリスト化（2026-07-01）
 

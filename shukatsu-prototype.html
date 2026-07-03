@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v88</title>
+<title>きずなbaton プロトタイプ v89</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1096,11 +1096,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.5）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.5）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1137,11 +1137,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.md" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.2.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.md" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.5）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v3.2.5）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -4708,7 +4708,7 @@ function renderPlanModal(){
       ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「サブスクの管理・解約」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
     </div>
     <div style="font-size:13px;line-height:1.6;margin-top:8px;text-align:center">
-      <a href="docs/terms-of-service.md" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">利用規約</a>　・　<a href="docs/privacy-policy.md" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">プライバシーポリシー</a>
+      <a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">利用規約</a>　・　<a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">プライバシーポリシー</a>
     </div>`;
 }
 
