@@ -1,0 +1,455 @@
+{
+  "S01": "<div class=\"card urgent\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(1)\">\n      <div class=\"icon-circle\" style=\"background:#FAC775\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/netflix.com?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"Netflix logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">Netflix</div>\n        <div class=\"card-meta\">通信・デジタル · 家族プラン<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-urgent\">0日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥1,490</div>\n        \n        <div class=\"card-day\">毎月15日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(2)\">\n      <div class=\"icon-circle\" style=\"background:#F4C0D1\">\n        <i class=\"ti ti-shield\" style=\"color:#72243E\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">生命保険（〇〇生命）<i class=\"ti ti-user-check hidden-icon\" style=\"color:var(--home-selected-icon)\" title=\"花子のみしか見られません\"></i></div>\n        <div class=\"card-meta\">保険<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        <span class=\"badge badge-soon\">12日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥18,000</div>\n        \n        <div class=\"card-day\">毎月27日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(3)\">\n      <div class=\"icon-circle\" style=\"background:#9FE1CB\">\n        <i class=\"ti ti-home\" style=\"color:#085041\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">住宅ローン<i class=\"ti ti-user-check hidden-icon\" style=\"color:var(--home-selected-icon)\" title=\"花子のみしか見られません\"></i></div>\n        <div class=\"card-meta\">ローン · 〇〇銀行 / 2043年完済<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        <span class=\"badge badge-soon\">12日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥85,000</div>\n        \n        <div class=\"card-day\">毎月27日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(4)\">\n      <div class=\"icon-circle\" style=\"background:#C0DD97\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/tepco.co.jp?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"電気（東京電力） logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">電気（東京電力）</div>\n        <div class=\"card-meta\">公共・生活<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-soon\">13日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥8,500</div>\n        \n        <div class=\"card-day\">毎月28日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(9)\">\n      <div class=\"icon-circle\" style=\"background:#CECBF6\">\n        <i class=\"ti ti-star\" style=\"color:#3C3489\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">趣味のサブスク<i class=\"ti ti-eye-off hidden-icon\" style=\"color:var(--home-private-icon)\" title=\"本人のみ（もしもの時も非開示）しか見られません\"></i></div>\n        <div class=\"card-meta\">会員・SNS · 個人で利用<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-soon\">21日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥1,200</div>\n        \n        <div class=\"card-day\">毎月5日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(10)\">\n      <div class=\"icon-circle\" style=\"background:#CECBF6\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/example.org?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"個人寄付（〇〇基金） logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">個人寄付（〇〇基金）<i class=\"ti ti-clock-heart hidden-icon\" style=\"color:var(--home-selected-icon)\" title=\"もしもの時に家族全員へしか見られません\"></i></div>\n        <div class=\"card-meta\">会員・SNS · 長年応援している基金<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-soon\">26日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥3,000</div>\n        \n        <div class=\"card-day\">毎月10日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(6)\">\n      <div class=\"icon-circle\" style=\"background:#F4C0D1\">\n        <i class=\"ti ti-shield\" style=\"color:#72243E\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">自動車保険<span class=\"cycle-pill yearly\">年</span></div>\n        <div class=\"card-meta\">保険 · 年払い<span class=\"pay-icon\" title=\"銀行振込\"><i class=\"ti ti-arrows-exchange\"></i>振込</span></div>\n        \n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥48,000</div>\n        <div class=\"card-amount-sub\">月換算 ¥4,000</div>\n        <div class=\"card-day\">4/1</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(7)\">\n      <div class=\"icon-circle\" style=\"background:#C0DD97\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/nhk.or.jp?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"NHK受信料 logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">NHK受信料<span class=\"cycle-pill yearly\">年</span></div>\n        <div class=\"card-meta\">公共・生活 · 12ヶ月前払い<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        \n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥24,185</div>\n        <div class=\"card-amount-sub\">月換算 ¥2,015</div>\n        <div class=\"card-day\">5/10</div>\n      </div>\n    </div>",
+  "S02": {
+    "totalAmount": "¥123,205",
+    "yearly": "¥1,478,465",
+    "totalCount": "8",
+    "urgentCount": "6"
+  },
+  "S03": "\n    <div class=\"detail-hero\">\n      <div class=\"detail-icon\" style=\"background:#F4C0D1\"><i class=\"ti ti-shield\" style=\"color:#72243E;font-size:20px\"></i></div>\n      <div>\n        <div class=\"detail-name\">生命保険（〇〇生命）<span class=\"cycle-pill\" style=\"margin-left:6px\">月払い</span></div>\n        <div class=\"detail-cat\">保険 <span class=\"owner-pill\"><span class=\"av\" style=\"background:#185FA5\">太</span>太郎</span><span class=\"visibility-badge selected\"><i class=\"ti ti-user-check\" style=\"font-size:10px\"></i>花子のみに表示</span></div>\n      </div>\n    </div>\n\n    \n\n    <div class=\"section\"><div class=\"section-title family-msg-toggle\" onclick=\"toggleFamilyMsg(this)\" style=\"cursor:pointer;user-select:none\"><span><i class=\"ti ti-message-heart\" style=\"font-size:11px;margin-right:4px;color:#A04B6E\"></i>家族への一言</span><span class=\"fm-hint\" style=\"font-size:10px;color:#A04B6E;letter-spacing:0;text-transform:none;font-weight:400;display:flex;align-items:center;gap:2px\">非表示にする<i class=\"ti ti-chevron-up\" style=\"font-size:12px\"></i></span></div><div class=\"family-message-box\" style=\"display:block\">花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。</div></div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">支払い情報</div>\n      <div class=\"info-row\"><i class=\"ti ti-calendar info-icon\"></i><div><div class=\"info-label\">支払日</div><div class=\"info-val\">毎月27日<span class=\"badge badge-soon\" style=\"margin-left:6px\">12日後</span></div></div></div>\n      <div class=\"info-row\"><i class=\"ti ti-receipt info-icon\"></i><div>\n      <div class=\"info-label\">金額（月払い）</div>\n      <div class=\"info-val\" style=\"font-size:16px;font-weight:500\">¥18,000 <span style=\"font-size:12px;font-weight:400;color:var(--color-text-secondary)\">/ 月</span></div>\n      <div style=\"font-size:11px;color:var(--color-text-tertiary);margin-top:2px\">年換算: ¥216,000 / 年</div>\n    </div></div>\n      <div class=\"info-row\"><i class=\"ti ti-building-bank info-icon\"></i><div><div class=\"info-label\">支払方法</div><div class=\"info-val\">銀行引き落とし</div></div></div>\n      \n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">連絡先</div>\n      <div class=\"info-row\"><i class=\"ti ti-phone info-icon\"></i><div><div class=\"info-label\">契約先の電話番号</div><div class=\"info-val\">0120-111-222</div></div></div>\n      \n      \n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">解約方法</div>\n      <div class=\"cancel-box\"><p>電話または書面で手続き。解約返戻金あり。</p></div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">必要書類</div>\n      <div><span class=\"doc-tag\"><i class=\"ti ti-file\" style=\"font-size:10px;margin-right:3px\"></i>保険証券</span><span class=\"doc-tag\"><i class=\"ti ti-file\" style=\"font-size:10px;margin-right:3px\"></i>本人確認書類</span><span class=\"doc-tag\"><i class=\"ti ti-file\" style=\"font-size:10px;margin-right:3px\"></i>印鑑</span><span class=\"doc-tag\"><i class=\"ti ti-file\" style=\"font-size:10px;margin-right:3px\"></i>振込先口座番号</span></div>\n    </div>\n\n    \n        <div class=\"section\">\n          <div class=\"section-title\">\n            <span><i class=\"ti ti-building-bank\" style=\"font-size:10px;margin-right:3px\"></i>引落口座の所在メモ（本人のみ）</span>\n          </div>\n          \n          \n          <div class=\"info-row\"><i class=\"ti ti-key info-icon\"></i><div><div class=\"info-label\">引落口座の所在メモ</div><div class=\"info-val\">証券番号は通帳ケース内 / 引落口座は通帳に記載</div></div></div>\n        </div>\n    <div class=\"detail-actions\"><button onclick=\"openEditModal()\"><i class=\"ti ti-edit\"></i>編集</button><button class=\"btn-archive\" onclick=\"openArchiveModal()\"><i class=\"ti ti-archive\"></i>解約済みに</button><button class=\"btn-danger\" onclick=\"deleteContract(2)\"><i class=\"ti ti-trash\"></i>削除</button></div>\n    <div style=\"height:14px\"></div>\n  ",
+  "S04": "\n    <div class=\"detail-hero\">\n      <div class=\"detail-icon\" style=\"background:#FAC775\"><i class=\"ti ti-wifi\" style=\"color:#633806;font-size:20px\"></i></div>\n      <div>\n        <div class=\"detail-name\">動画配信サービス（旧）<span class=\"cycle-pill\" style=\"margin-left:6px\">月払い</span></div>\n        <div class=\"detail-cat\">通信・デジタル <span class=\"owner-pill\"><span class=\"av\" style=\"background:#185FA5\">太</span>太郎</span><span class=\"visibility-badge all\"><i class=\"ti ti-users\" style=\"font-size:10px\"></i>家族全員に表示</span></div>\n      </div>\n    </div>\n\n    <div class=\"section\"><div class=\"section-title\">解約記録</div><div class=\"archived-box\"><p><strong style=\"font-weight:500\">解約日:</strong> 2025-08-15</p><p style=\"margin-top:4px\"><strong style=\"font-weight:500\">備考:</strong> Netflixと統合のため解約</p></div></div>\n\n    \n\n    <div class=\"section\">\n      <div class=\"section-title\">支払い情報</div>\n      <div class=\"info-row\"><i class=\"ti ti-calendar info-icon\"></i><div><div class=\"info-label\">支払日</div><div class=\"info-val\">毎月1日<span class=\"badge badge-archived\" style=\"margin-left:6px\">2025-08-15</span></div></div></div>\n      <div class=\"info-row\"><i class=\"ti ti-receipt info-icon\"></i><div>\n      <div class=\"info-label\">金額（月払い）</div>\n      <div class=\"info-val\" style=\"font-size:16px;font-weight:500\">¥980 <span style=\"font-size:12px;font-weight:400;color:var(--color-text-secondary)\">/ 月</span></div>\n      <div style=\"font-size:11px;color:var(--color-text-tertiary);margin-top:2px\">年換算: ¥11,760 / 年</div>\n    </div></div>\n      <div class=\"info-row\"><i class=\"ti ti-credit-card info-icon\"></i><div><div class=\"info-label\">支払方法</div><div class=\"info-val\">クレジットカード</div></div></div>\n      \n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">連絡先</div>\n      \n      \n      <span style=\"font-size:12px;color:var(--color-text-tertiary)\">未登録</span>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">解約方法</div>\n      <div class=\"cancel-box\"><p>未登録</p></div>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">必要書類</div>\n      <div><span style=\"font-size:12px;color:var(--color-text-tertiary)\">なし</span></div>\n    </div>\n\n    \n    <div class=\"detail-actions\"><button onclick=\"restoreContract(8)\"><i class=\"ti ti-arrow-back-up\"></i>復元する</button><button class=\"btn-danger\" onclick=\"deleteContract(8)\"><i class=\"ti ti-trash\"></i>削除</button></div>\n    <div style=\"height:14px\"></div>\n  ",
+  "S07": "<div class=\"card urgent\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(1)\">\n      <div class=\"icon-circle\" style=\"background:#FAC775\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/netflix.com?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"Netflix logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">Netflix<i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">通信・デジタル · 家族プラン<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-urgent\">0日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥1,490</div>\n        \n        <div class=\"card-day\">毎月15日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(2)\">\n      <div class=\"icon-circle\" style=\"background:#F4C0D1\">\n        <i class=\"ti ti-shield\" style=\"color:#72243E\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">生命保険（〇〇生命）<i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">保険<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        <span class=\"badge badge-soon\">12日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥18,000</div>\n        \n        <div class=\"card-day\">毎月27日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(3)\">\n      <div class=\"icon-circle\" style=\"background:#9FE1CB\">\n        <i class=\"ti ti-home\" style=\"color:#085041\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">住宅ローン<i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">ローン · 〇〇銀行 / 2043年完済<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        <span class=\"badge badge-soon\">12日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥85,000</div>\n        \n        <div class=\"card-day\">毎月27日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(4)\">\n      <div class=\"icon-circle\" style=\"background:#C0DD97\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/tepco.co.jp?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"電気（東京電力） logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">電気（東京電力）<i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">公共・生活<span class=\"pay-icon\" title=\"クレジットカード\"><i class=\"ti ti-credit-card\"></i>クレカ</span></div>\n        <span class=\"badge badge-soon\">13日後</span>\n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥8,500</div>\n        \n        <div class=\"card-day\">毎月28日</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(6)\">\n      <div class=\"icon-circle\" style=\"background:#F4C0D1\">\n        <i class=\"ti ti-shield\" style=\"color:#72243E\"></i>\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">自動車保険<span class=\"cycle-pill yearly\">年</span><i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">保険 · 年払い<span class=\"pay-icon\" title=\"銀行振込\"><i class=\"ti ti-arrows-exchange\"></i>振込</span></div>\n        \n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥48,000</div>\n        <div class=\"card-amount-sub\">月換算 ¥4,000</div>\n        <div class=\"card-day\">4/1</div>\n      </div>\n    </div><div class=\"card\" style=\"--card-owner-color:var(--owner-husband)\" onclick=\"showDetail(7)\">\n      <div class=\"icon-circle\" style=\"background:#C0DD97\">\n        <img class=\"logo-img\" src=\"https://img.logo.dev/nhk.or.jp?token=pk_bgptBZ2iQy-c04YjQnSTwg&amp;size=64&amp;format=png&amp;fallback=404&amp;theme=auto\" alt=\"NHK受信料 logo\" loading=\"lazy\" decoding=\"async\" onerror=\"this.onerror=null;this.style.display='none';\">\n        \n      </div>\n      <div class=\"card-body\">\n        <div class=\"card-name\">NHK受信料<span class=\"cycle-pill yearly\">年</span><i class=\"ti ti-lock lock-icon\"></i></div>\n        <div class=\"card-meta\">公共・生活 · 12ヶ月前払い<span class=\"pay-icon\" title=\"銀行引き落とし\"><i class=\"ti ti-building-bank\"></i>引き落とし</span></div>\n        \n      </div>\n      <div class=\"card-right\">\n        <div class=\"card-amount\">¥24,185</div>\n        <div class=\"card-amount-sub\">月換算 ¥2,015</div>\n        <div class=\"card-day\">5/10</div>\n      </div>\n    </div>",
+  "S05": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>きずなbaton 2026/7/15</title>\n<style>\nbody{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;padding:30px;color:#222;line-height:1.6;max-width:780px;margin:0 auto}\nh1{font-size:22px;border-bottom:2px solid #222;padding-bottom:8px;margin-bottom:6px}\n.brand{font-size:11px;color:#888;letter-spacing:1px;margin-bottom:8px}\n.meta{font-size:12px;color:#666;margin-bottom:20px}\n.mode-tag{display:inline-block;background:#e3f2fd;color:#0d47a1;padding:3px 10px;border-radius:4px;font-size:11px;margin-left:8px}\nh2{font-size:15px;background:#f5f5f5;padding:8px 12px;border-left:4px solid #555;margin:24px 0 12px}\n.contract{border:1px solid #ddd;border-radius:6px;padding:12px 14px;margin-bottom:10px;page-break-inside:avoid}\n.c-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}\n.c-name{font-size:15px;font-weight:600}\n.c-amount{font-size:14px;font-weight:600;color:#1565c0}\n.c-sub-amount{font-size:11px;color:#888;font-weight:400}\n.c-cat{font-size:11px;color:#888;background:#f5f5f5;padding:1px 6px;border-radius:3px;display:inline-block}\n.c-cycle{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;background:#fff3e0;color:#bf360c}\n.c-row{font-size:12px;color:#444;margin:3px 0}\n.c-row strong{font-weight:600;color:#222;display:inline-block;min-width:65px}\n.summary{background:#f9f9f9;border-radius:6px;padding:12px 16px;margin-bottom:20px;display:flex;gap:24px}\n.summary div{font-size:12px;color:#555}\n.summary strong{display:block;font-size:18px;color:#222;margin-top:2px}\n.archived .contract{background:#fafafa;border-color:#eee}\n.archived .c-name{color:#777}\n.footer{margin-top:30px;padding-top:14px;border-top:1px solid #ddd;font-size:11px;color:#999;text-align:center}\n@media print{body{padding:15px}}\n</style></head><body>\n<div class=\"brand\">きずなbaton</div>\n<h1>契約管理 一覧<span class=\"mode-tag\">通常版（自分用）</span></h1>\n<div class=\"meta\">出力日: 2026/7/15 / 対象: 太郎 / 出力者: 太郎</div>\n<div class=\"summary\">\n  <div>利用中契約<strong>8 件</strong></div>\n  <div>月額換算合計<strong>¥123,205</strong></div>\n  <div>年間合計<strong>¥1,478,465</strong></div>\n  <div>解約済<strong>1 件</strong></div>\n</div>\n\n<h2>■ 利用中の契約（8件）</h2>\n\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">Netflix</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">通信・デジタル / 太郎</span></div>\n    <div><div class=\"c-amount\">¥1,490 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月15日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> クレジットカード</div>\n  \n  <div class=\"c-row\"><strong>URL:</strong> https://www.netflix.com/cancelplan</div>\n  <div class=\"c-row\"><strong>解約方法:</strong> マイページ → アカウント → メンバーシップのキャンセル</div>\n  \n  <div class=\"c-row\"><strong>メモ:</strong> 家族プラン</div>\n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> 週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: クレジットカード / カード会社: 三井住友VISA / 下4桁: ****1234</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">生命保険（〇〇生命）</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">保険 / 太郎</span></div>\n    <div><div class=\"c-amount\">¥18,000 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月27日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> 銀行引き落とし</div>\n  <div class=\"c-row\"><strong>電話:</strong> 0120-111-222</div>\n  \n  <div class=\"c-row\"><strong>解約方法:</strong> 電話または書面で手続き。解約返戻金あり。</div>\n  <div class=\"c-row\"><strong>必要書類:</strong> 保険証券 / 本人確認書類 / 印鑑 / 振込先口座番号</div>\n  \n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> 花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: 銀行引き落とし / 機密: 証券番号は通帳ケース内 / 引落口座は通帳に記載</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">住宅ローン</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">ローン / 太郎</span></div>\n    <div><div class=\"c-amount\">¥85,000 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月27日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> 銀行引き落とし</div>\n  <div class=\"c-row\"><strong>電話:</strong> 03-xxxx-xxxx</div>\n  \n  <div class=\"c-row\"><strong>解約方法:</strong> 銀行窓口。</div>\n  <div class=\"c-row\"><strong>必要書類:</strong> 戸籍謄本 / 相続関係説明図 / 遺産分割協議書 / 印鑑証明</div>\n  <div class=\"c-row\"><strong>メモ:</strong> 〇〇銀行 / 2043年完済</div>\n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> 団信に加入しているので、もしもの時は残債が免除されます。銀行に連絡を。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: 銀行引き落とし / 機密: 引落口座は通帳に記載</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">電気（東京電力）</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">公共・生活 / 太郎</span></div>\n    <div><div class=\"c-amount\">¥8,500 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月28日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> クレジットカード</div>\n  <div class=\"c-row\"><strong>電話:</strong> 0120-995-005</div>\n  <div class=\"c-row\"><strong>URL:</strong> https://www.tepco.co.jp/ep/private/contact/</div>\n  <div class=\"c-row\"><strong>解約方法:</strong> 電話またはウェブから解約</div>\n  \n  \n  \n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: クレジットカード / カード会社: 三井住友VISA / 下4桁: ****1234</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">自動車保険</span><span class=\"c-cycle\">年払い</span> <span class=\"c-cat\">保険 / 太郎</span></div>\n    <div><div class=\"c-amount\">¥48,000 / 年</div><div class=\"c-sub-amount\">月換算 ¥4,000</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎年4月1日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> 銀行振込</div>\n  <div class=\"c-row\"><strong>電話:</strong> 0120-xxx-xxx</div>\n  \n  <div class=\"c-row\"><strong>解約方法:</strong> 代理店に連絡</div>\n  <div class=\"c-row\"><strong>必要書類:</strong> 保険証券 / 車検証</div>\n  <div class=\"c-row\"><strong>メモ:</strong> 年払い</div>\n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> 車を譲渡・売却するときは保険の名義変更か解約を忘れずに。代理店は山田さん（連絡先は別紙）。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: 銀行振込 / 機密: 振込先口座は保険証券に記載</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">NHK受信料</span><span class=\"c-cycle\">年払い</span> <span class=\"c-cat\">公共・生活 / 太郎</span></div>\n    <div><div class=\"c-amount\">¥24,185 / 年</div><div class=\"c-sub-amount\">月換算 ¥2,015</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎年5月10日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> 銀行引き落とし</div>\n  <div class=\"c-row\"><strong>電話:</strong> 0120-151-515</div>\n  \n  <div class=\"c-row\"><strong>解約方法:</strong> 解約には引越し等の理由が必要。書面提出。</div>\n  <div class=\"c-row\"><strong>必要書類:</strong> 本人確認書類</div>\n  <div class=\"c-row\"><strong>メモ:</strong> 12ヶ月前払い</div>\n  \n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: 銀行引き落とし / 機密: 引落口座は通帳に記載</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">趣味のサブスク</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">会員・SNS / 太郎</span></div>\n    <div><div class=\"c-amount\">¥1,200 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月5日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> クレジットカード</div>\n  \n  \n  \n  \n  <div class=\"c-row\"><strong>メモ:</strong> 個人で利用</div>\n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> これは私だけの楽しみだったので、見つけたらそっと解約してもらえると嬉しいです。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: クレジットカード / カード会社: 三井住友VISA / 下4桁: ****1234</div>\n  \n</div>\n<div class=\"contract\">\n  <div class=\"c-head\">\n    <div><span class=\"c-name\">個人寄付（〇〇基金）</span><span class=\"c-cycle\" style=\"background:#f5f5f5;color:#555\">月払い</span> <span class=\"c-cat\">会員・SNS / 太郎</span></div>\n    <div><div class=\"c-amount\">¥3,000 / 月</div></div>\n  </div>\n  <div class=\"c-row\"><strong>支払日:</strong> 毎月10日</div>\n  <div class=\"c-row\"><strong>支払方法:</strong> クレジットカード</div>\n  <div class=\"c-row\"><strong>電話:</strong> 03-xxxx-xxxx</div>\n  <div class=\"c-row\"><strong>URL:</strong> https://example.org</div>\n  <div class=\"c-row\"><strong>解約方法:</strong> メールで停止依頼</div>\n  \n  <div class=\"c-row\"><strong>メモ:</strong> 長年応援している基金</div>\n  <div style=\"margin-top:6px;padding:6px 9px;background:#FFF5F8;border-left:3px solid #C97694;border-radius:3px;font-size:12px;color:#5A2638;line-height:1.5;white-space:pre-wrap\"><strong style=\"color:#A04B6E;font-weight:600\">家族への一言:</strong> 毎月の寄付を続けてきました。続けるか停止するかは家族で決めてください。</div>\n  <div style=\"font-size:11px;color:#666;margin-top:4px;padding:4px 6px;background:#fff8e1;border-radius:3px\">支払方法: クレジットカード / カード会社: 三井住友VISA / 下4桁: ****1234</div>\n  \n</div>\n\n<h2>■ 解約済みアーカイブ（1件）</h2><div class=\"archived\">\n<div class=\"contract\">\n  <div class=\"c-head\"><div><span class=\"c-name\">動画配信サービス（旧）</span> <span class=\"c-cat\">通信・デジタル / 太郎</span></div><div class=\"c-amount\" style=\"color:#888\">解約済</div></div>\n  <div class=\"c-row\"><strong>解約日:</strong> 2025-08-15</div>\n  <div class=\"c-row\"><strong>備考:</strong> Netflixと統合のため解約</div>\n</div></div>\n\n<div class=\"footer\">きずなbaton より出力 / 2026/7/15</div>\n<script>window.onload=()=>setTimeout(()=>window.print(),500);</script>\n</body></html>",
+  "S06": {
+    "version": "v20",
+    "contracts": [
+      {
+        "id": 1,
+        "name": "Netflix",
+        "cat": "通信・デジタル",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 1490,
+        "month": null,
+        "day": 15,
+        "paymentMethod": "credit_card",
+        "tel": "",
+        "url": "https://www.netflix.com/cancelplan",
+        "logoDomain": "netflix.com",
+        "cancel": "マイページ → アカウント → メンバーシップのキャンセル",
+        "docs": [],
+        "memo": "家族プラン",
+        "familyMessage": "週末の映画タイム、家族で楽しめたね。もう見る人がいなければ解約してね。",
+        "cardBrand": "三井住友VISA",
+        "cardLast4": "1234",
+        "secret": "",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 2,
+        "name": "生命保険（〇〇生命）",
+        "cat": "保険",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 18000,
+        "month": null,
+        "day": 27,
+        "paymentMethod": "bank_debit",
+        "tel": "0120-111-222",
+        "url": "",
+        "cancel": "電話または書面で手続き。解約返戻金あり。",
+        "docs": [
+          "保険証券",
+          "本人確認書類",
+          "印鑑",
+          "振込先口座番号"
+        ],
+        "memo": "",
+        "familyMessage": "花子へ。受取人はあなたにしてあります。手続きは代理店の鈴木さんに相談してください。",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "証券番号は通帳ケース内 / 引落口座は通帳に記載",
+        "visibility": {
+          "mode": "selected",
+          "liveViewers": [
+            "m2"
+          ],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 3,
+        "name": "住宅ローン",
+        "cat": "ローン",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 85000,
+        "month": null,
+        "day": 27,
+        "paymentMethod": "bank_debit",
+        "tel": "03-xxxx-xxxx",
+        "url": "",
+        "cancel": "銀行窓口。",
+        "docs": [
+          "戸籍謄本",
+          "相続関係説明図",
+          "遺産分割協議書",
+          "印鑑証明"
+        ],
+        "memo": "〇〇銀行 / 2043年完済",
+        "familyMessage": "団信に加入しているので、もしもの時は残債が免除されます。銀行に連絡を。",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "引落口座は通帳に記載",
+        "visibility": {
+          "mode": "selected",
+          "liveViewers": [
+            "m2"
+          ],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 4,
+        "name": "電気（東京電力）",
+        "cat": "公共・生活",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 8500,
+        "month": null,
+        "day": 28,
+        "paymentMethod": "credit_card",
+        "tel": "0120-995-005",
+        "url": "https://www.tepco.co.jp/ep/private/contact/",
+        "logoDomain": "tepco.co.jp",
+        "cancel": "電話またはウェブから解約",
+        "docs": [],
+        "memo": "",
+        "familyMessage": "",
+        "cardBrand": "三井住友VISA",
+        "cardLast4": "1234",
+        "secret": "",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 5,
+        "name": "Amazon Prime",
+        "cat": "通信・デジタル",
+        "ownerId": "m2",
+        "cycle": "yearly",
+        "amount": 5900,
+        "month": 6,
+        "day": 1,
+        "paymentMethod": "credit_card",
+        "tel": "",
+        "url": "https://www.amazon.co.jp/mc/pipelines/cancellation",
+        "logoDomain": "amazon.co.jp",
+        "cancel": "Amazonアカウント → Prime会員情報 → 会員資格を終了",
+        "docs": [],
+        "memo": "年払いに変更",
+        "familyMessage": "",
+        "cardBrand": "楽天カード",
+        "cardLast4": "8821",
+        "secret": "",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 6,
+        "name": "自動車保険",
+        "cat": "保険",
+        "ownerId": "m1",
+        "cycle": "yearly",
+        "amount": 48000,
+        "month": 4,
+        "day": 1,
+        "paymentMethod": "bank_transfer",
+        "tel": "0120-xxx-xxx",
+        "url": "",
+        "cancel": "代理店に連絡",
+        "docs": [
+          "保険証券",
+          "車検証"
+        ],
+        "memo": "年払い",
+        "familyMessage": "車を譲渡・売却するときは保険の名義変更か解約を忘れずに。代理店は山田さん（連絡先は別紙）。",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "振込先口座は保険証券に記載",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 7,
+        "name": "NHK受信料",
+        "cat": "公共・生活",
+        "ownerId": "m1",
+        "cycle": "yearly",
+        "amount": 24185,
+        "month": 5,
+        "day": 10,
+        "paymentMethod": "bank_debit",
+        "tel": "0120-151-515",
+        "url": "",
+        "logoDomain": "nhk.or.jp",
+        "cancel": "解約には引越し等の理由が必要。書面提出。",
+        "docs": [
+          "本人確認書類"
+        ],
+        "memo": "12ヶ月前払い",
+        "familyMessage": "",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "引落口座は通帳に記載",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 8,
+        "name": "動画配信サービス（旧）",
+        "cat": "通信・デジタル",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 980,
+        "month": null,
+        "day": 1,
+        "paymentMethod": "credit_card",
+        "tel": "",
+        "url": "",
+        "cancel": "",
+        "docs": [],
+        "memo": "",
+        "familyMessage": "",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": true,
+        "archivedDate": "2025-08-15",
+        "archivedNote": "Netflixと統合のため解約"
+      },
+      {
+        "id": 9,
+        "name": "趣味のサブスク",
+        "cat": "会員・SNS",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 1200,
+        "month": null,
+        "day": 5,
+        "paymentMethod": "credit_card",
+        "tel": "",
+        "url": "",
+        "cancel": "",
+        "docs": [],
+        "memo": "個人で利用",
+        "familyMessage": "これは私だけの楽しみだったので、見つけたらそっと解約してもらえると嬉しいです。",
+        "cardBrand": "三井住友VISA",
+        "cardLast4": "1234",
+        "secret": "",
+        "visibility": {
+          "mode": "private",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 10,
+        "name": "個人寄付（〇〇基金）",
+        "cat": "会員・SNS",
+        "ownerId": "m1",
+        "cycle": "monthly",
+        "amount": 3000,
+        "month": null,
+        "day": 10,
+        "paymentMethod": "credit_card",
+        "tel": "03-xxxx-xxxx",
+        "url": "https://example.org",
+        "logoDomain": "example.org",
+        "cancel": "メールで停止依頼",
+        "docs": [],
+        "memo": "長年応援している基金",
+        "familyMessage": "毎月の寄付を続けてきました。続けるか停止するかは家族で決めてください。",
+        "cardBrand": "三井住友VISA",
+        "cardLast4": "1234",
+        "secret": "",
+        "visibility": {
+          "mode": "after_only",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 11,
+        "name": "新聞購読（〇〇新聞）",
+        "cat": "その他",
+        "ownerId": "m4",
+        "cycle": "monthly",
+        "amount": 4400,
+        "month": null,
+        "day": 25,
+        "paymentMethod": "bank_debit",
+        "tel": "0120-xxx-xxx",
+        "url": "",
+        "cancel": "販売店に電話で停止依頼",
+        "docs": [],
+        "memo": "母が長年購読",
+        "familyMessage": "毎朝の楽しみだった新聞です。もう読む人がいなければ、販売店に連絡して止めてください。",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "引落口座は母の通帳に記載",
+        "visibility": {
+          "mode": "all",
+          "liveViewers": [],
+          "afterViewers": []
+        },
+        "archived": false
+      },
+      {
+        "id": 12,
+        "name": "携帯電話（らくらくホン）",
+        "cat": "通信・デジタル",
+        "ownerId": "m4",
+        "cycle": "monthly",
+        "amount": 2980,
+        "month": null,
+        "day": 10,
+        "paymentMethod": "bank_debit",
+        "tel": "",
+        "url": "",
+        "cancel": "各キャリアショップで解約手続き（本人確認書類が必要）",
+        "docs": [
+          "本人確認書類"
+        ],
+        "memo": "母の連絡用",
+        "familyMessage": "緊急の連絡はこの番号に。解約は急がなくて大丈夫です。",
+        "cardBrand": "",
+        "cardLast4": "",
+        "secret": "契約者情報は母の保管ファイルに",
+        "visibility": {
+          "mode": "selected",
+          "liveViewers": [
+            "m1"
+          ],
+          "afterViewers": [
+            "m1"
+          ]
+        },
+        "archived": false
+      }
+    ],
+    "members": [
+      {
+        "id": "m1",
+        "name": "太郎",
+        "color": "#185FA5",
+        "invitedVia": null,
+        "joinedAt": null,
+        "termsAcceptedVersion": null,
+        "privacyAcceptedVersion": null
+      },
+      {
+        "id": "m2",
+        "name": "花子",
+        "color": "#D4537E",
+        "invitedVia": "inv_sample_accepted",
+        "joinedAt": "2026-05-20T11:23:00Z",
+        "termsAcceptedVersion": "v3.2",
+        "privacyAcceptedVersion": "v3.2"
+      },
+      {
+        "id": "m3",
+        "name": "健太",
+        "color": "#1D9E75",
+        "invitedVia": null,
+        "joinedAt": null,
+        "termsAcceptedVersion": null,
+        "privacyAcceptedVersion": null
+      },
+      {
+        "id": "m4",
+        "name": "母（よし子）",
+        "color": "#B45309",
+        "invitedVia": null,
+        "joinedAt": null,
+        "termsAcceptedVersion": null,
+        "privacyAcceptedVersion": null
+      }
+    ],
+    "invitations": [
+      {
+        "id": "inv_sample_pending",
+        "token": "a8f3k2nx9p4q1ms7v2c5d8e6f1g4h7j0",
+        "invitedBy": "m1",
+        "suggestedName": "美咲",
+        "suggestedRelation": "子",
+        "otp": "482917",
+        "status": "pending",
+        "createdAt": "2026-05-21T10:00:00Z",
+        "expiresAt": "2026-05-28T10:00:00Z",
+        "acceptedAt": null,
+        "revokedAt": null,
+        "acceptedAsMemberId": null,
+        "consentLog": {
+          "termsAcceptedAt": null,
+          "privacyAcceptedAt": null,
+          "termsVersion": null,
+          "privacyVersion": null
+        }
+      },
+      {
+        "id": "inv_sample_accepted",
+        "token": "b7e2j1mw8o3p0lr6u1b4c7d5e0f3g6h9",
+        "invitedBy": "m1",
+        "suggestedName": "花子",
+        "suggestedRelation": "配偶者",
+        "otp": "193847",
+        "status": "accepted",
+        "createdAt": "2026-05-19T09:00:00Z",
+        "expiresAt": "2026-05-26T09:00:00Z",
+        "acceptedAt": "2026-05-20T11:23:00Z",
+        "revokedAt": null,
+        "acceptedAsMemberId": "m2",
+        "consentLog": {
+          "termsAcceptedAt": "2026-05-20T11:23:00Z",
+          "privacyAcceptedAt": "2026-05-20T11:23:00Z",
+          "termsVersion": "v3.2",
+          "privacyVersion": "v3.2"
+        }
+      }
+    ],
+    "categories": [
+      "金融・決済",
+      "ローン",
+      "通信・デジタル",
+      "保険",
+      "公共・生活",
+      "会員・SNS",
+      "その他"
+    ],
+    "assets": [],
+    "nextId": 13,
+    "nextMemberId": 5,
+    "nextAssetId": 1
+  }
+}

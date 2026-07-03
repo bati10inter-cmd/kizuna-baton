@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>きずなbaton characterization</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:24px;background:#f7f7f8;color:#222}
+    h1{font-size:20px;margin:0 0 16px}
+    #result{font-weight:700;margin:16px 0;padding:12px;border-radius:8px;background:#fff}
+    .pass{color:#137333}
+    .fail{color:#b3261e}
+    table{border-collapse:collapse;background:#fff;width:100%;max-width:960px}
+    th,td{border:1px solid #ddd;padding:6px 8px;text-align:left;vertical-align:top;font-size:13px}
+    pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #ddd;padding:12px;max-height:520px;overflow:auto}
+    iframe{width:1px;height:1px;position:absolute;left:-9999px;top:-9999px}
+  </style>
+</head>
+<body>
+  <h1>きずなbaton characterization</h1>
+  <div id="result">RUNNING</div>
+  <table>
+    <thead><tr><th>ID</th><th>Result</th><th>Detail</th></tr></thead>
+    <tbody id="log"></tbody>
+  </table>
+  <pre id="capture"></pre>
+  <iframe id="app"></iframe>
+  <script>
+    const SHIM = `<script>
+    (function(){
+      const R = Date, FIXED = new R(2026, 6, 15, 9, 0, 0);
+      window.Date = class extends R {
+        constructor(...a){ super(...(a.length ? a : [FIXED.getTime()])); }
+        static now(){ return FIXED.getTime(); }
+      };
+    })();
+    <\/script>
+    `;
+
+    const tests = [];
+    const snapshots = {};
+    const captureMode = new URLSearchParams(location.search).has('capture');
+
+    function add(id, fn){tests.push({id, fn});}
+    function deepEqual(a, b){return JSON.stringify(a) === JSON.stringify(b);}
+    function normalizeStoredState(json){
+      const data = JSON.parse(json);
+      delete data.savedAt;
+      return data;
+    }
+    function log(id, ok, detail){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${id}</td><td class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}</td><td>${String(detail || '')}</td>`;
+      document.getElementById('log').appendChild(tr);
+    }
+    function assertEqual(actual, expected){
+      if(actual !== expected) throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    }
+    function assertDeepEqual(actual, expected){
+      if(!deepEqual(actual, expected)) throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    }
+    function waitFor(fn, timeout = 5000){
+      const start = performance.now();
+      return new Promise((resolve, reject) => {
+        function tick(){
+          try{
+            const v = fn();
+            if(v) return resolve(v);
+          }catch(e){}
+          if(performance.now() - start > timeout) return reject(new Error('timeout'));
+          setTimeout(tick, 50);
+        }
+        tick();
+      });
+    }
+
+    async function loadApp(){
+      localStorage.clear();
+      const html = await fetch('/shukatsu-prototype.html').then(r => r.text());
+      const iframe = document.getElementById('app');
+      iframe.srcdoc = html.replace('<script>', SHIM + '<script>');
+      await new Promise(resolve => iframe.onload = resolve);
+      const W = iframe.contentWindow;
+      await waitFor(() => W.document.querySelector('#contract-list') && W.document.querySelector('#contract-list').children.length);
+      return W;
+    }
+
+    async function run(){
+      const W = await loadApp();
+
+      add('T01', () => assertEqual(W.esc('<a b="c">&\''), '&lt;a b=&quot;c&quot;&gt;&amp;&#39;'));
+      add('T02', () => assertEqual(W.esc(null), ''));
+      add('T03', () => assertDeepEqual(W.getVisibility({}), {mode:'all',liveViewers:[],afterViewers:[]}));
+      add('T04', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'private'}},'m1','live'), true));
+      add('T05', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'private'}},'m2','live'), false));
+      add('T06', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'all'}},'m2','live'), true));
+      add('T07', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'after_only'}},'m2','live'), false));
+      add('T08', () => {
+        const c = {ownerId:'m1',visibility:{mode:'selected',liveViewers:['m2']}};
+        assertDeepEqual([W.canViewContract(c,'m2','live'), W.canViewContract(c,'m3','live')], [true, false]);
+      });
+      add('T09', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'private'}},'m2','inheritance'), false));
+      add('T10', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'after_only'}},'m2','inheritance'), true));
+      add('T11', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'selected',afterViewers:[]}},'m2','full'), true));
+      add('T12', () => {
+        const c = {ownerId:'m1',visibility:{mode:'selected',afterViewers:['m3']}};
+        assertDeepEqual([W.canViewContract(c,'m2','full'), W.canViewContract(c,'m3','full')], [false, true]);
+      });
+      add('T13', () => assertEqual(W.canViewContract({ownerId:'m1',visibility:{mode:'???'}},'m2','live'), false));
+      add('T14', () => assertEqual(W.visibilityLabel({visibility:{mode:'private'}}).key, 'private'));
+      add('T15', () => assertEqual(W.monthlyEquivalent({cycle:'yearly',amount:12000}), 1000));
+      add('T16', () => assertEqual(W.yearlyAmount({cycle:'monthly',amount:100}), 1200));
+      add('T17', () => assertDeepEqual([W.paymentDateText({cycle:'monthly',day:15}), W.paymentDateText({cycle:'yearly',month:6,day:1})], ['毎月15日', '毎年6月1日']));
+      add('T18', () => assertDeepEqual([W.daysInMonth(2024,2), W.daysInMonth(2026,2), W.clampDay(31,2026,4)], [29, 28, 30]));
+      add('T19', () => assertDeepEqual([
+        W.looksLikeSensitiveNumber('1234567'),
+        W.looksLikeSensitiveNumber('123456'),
+        W.looksLikeSensitiveNumber('1234-5678-9012-3456'),
+        W.looksLikeSensitiveNumber('１２３４５６７'),
+        W.looksLikeSensitiveNumber('通帳は金庫')
+      ], [true, false, true, true, false]));
+      add('T20', () => assertDeepEqual([W.isBuiltInSampleContract({id:1,name:'Netflix'}), W.isBuiltInSampleContract({id:1,name:'改名'})], [true, false]));
+      add('T21', () => assertEqual(W.payMethodOf({}), 'credit_card'));
+      add('T22', () => assertDeepEqual([W.daysUntilNext({cycle:'monthly',day:15}), W.daysUntilNext({cycle:'monthly',day:16})], [0, 1]));
+
+      snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
+      snapshots.S02 = {
+        totalAmount: W.document.querySelector('#total-amount').textContent,
+        yearly: W.document.querySelector('#yearly').textContent,
+        totalCount: W.document.querySelector('#total-count').textContent,
+        urgentCount: W.document.querySelector('#urgent-count').textContent
+      };
+      W.showDetail(2);
+      snapshots.S03 = W.document.querySelector('#detail-content').innerHTML;
+      W.showDetail(8);
+      snapshots.S04 = W.document.querySelector('#detail-content').innerHTML;
+      W.startPreview('m2');
+      snapshots.S07 = W.document.querySelector('#contract-list').innerHTML;
+      W.exitPreview();
+      let captured = '';
+      const fake = {document:{write:h => captured = h, close(){}}};
+      W.open = () => fake;
+      W.doExport();
+      snapshots.S05 = captured;
+      W.persistState();
+      snapshots.S06 = normalizeStoredState(localStorage.getItem('kizuna-baton:data:v20'));
+
+      if(captureMode){
+        document.getElementById('capture').textContent = JSON.stringify(snapshots, null, 2);
+      }else{
+        const goldens = await fetch('/tests/goldens.json').then(r => r.json());
+        add('S01', () => assertEqual(snapshots.S01, goldens.S01));
+        add('S02', () => assertDeepEqual(snapshots.S02, goldens.S02));
+        add('S03', () => assertEqual(snapshots.S03, goldens.S03));
+        add('S04', () => assertEqual(snapshots.S04, goldens.S04));
+        add('S05', () => assertEqual(snapshots.S05, goldens.S05));
+        add('S06', () => assertDeepEqual(snapshots.S06, goldens.S06));
+        add('S07', () => assertEqual(snapshots.S07, goldens.S07));
+      }
+
+      let pass = 0;
+      for(const t of tests){
+        try{
+          await t.fn();
+          pass++;
+          log(t.id, true, '');
+        }catch(e){
+          log(t.id, false, e.message);
+        }
+      }
+      const ok = pass === tests.length;
+      document.getElementById('result').className = ok ? 'pass' : 'fail';
+      document.getElementById('result').textContent = captureMode ? `CAPTURE READY (${tests.length} tests defined)` : (ok ? `ALL PASS (${pass}/${tests.length})` : `FAIL (${pass}/${tests.length})`);
+    }
+
+    run().catch(e => {
+      document.getElementById('result').className = 'fail';
+      document.getElementById('result').textContent = 'FAIL';
+      log('BOOT', false, e.stack || e.message);
+    });
+  </script>
+</body>
+</html>
