@@ -18,7 +18,7 @@
 | サブ項目 | 状態 | 備考 |
 |---|---|---|
 | アイコン1024×1024（不透明） | ✅ 完了 | `native/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`＝1024×1024・hasAlpha:no・`Contents.json` 紐付け済 |
-| PrivacyInfo.xcprivacy | ✅ 完了 | APPSTORE-META-PRIVACY（`e2e63aa`）。Xcodeで Copy Bundle Resources 追加が残（APPSTORE-XCODE後） |
+| PrivacyInfo.xcprivacy | ✅ 完了 | APPSTORE-META-PRIVACY（`e2e63aa`）。**2026-07-03 pbxproj Resources 登録＋ビルドでバンドル同梱を実証（残フォロー解消）** |
 | NSFaceIDUsageDescription | ✅ 完了 | APPSTORE-META-FACEID |
 | スクリーンショット 6.9"(1320×2868) | ✅ 完了 | **2026-07-02** iPhone 17 Pro Max シミュレータで5枚取得（`marketing/app-store-screenshots-6.9/`・全件1320×2868実測確認）＝①ホーム(契約一覧)②契約詳細(家族への一言・私的/非開示)③契約詳細(Netflix・家族への一言＋解約方法＋家族全員に表示)④カレンダー(月次支払合計)⑤生体ロック(Face ID/Touch ID)。下§4にキャプション計画 |
 | メタデータ文言（本書 §1〜§3） | ✅ 確定 | **2026-07-02 オーナー最終確認済**（App名/サブタイトル/プロモ/説明文）。改訂履歴 v0.8 参照 |
