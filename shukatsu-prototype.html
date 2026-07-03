@@ -2630,41 +2630,23 @@ function setVisibilityMode(mode){
   if(mode==='selected'){renderViewerChecks();renderAfterViewerChecks();}
 }
 
-function renderViewerChecks(){
-  // 自分（所有者）以外のメンバーをチェックボックス一覧で
-  const ownerId=document.getElementById('f-owner').value||MY_ID;
+function renderViewerCheckList(containerId, ownerSelectId, selectedIds, toggleFnName){
+  const ownerId=document.getElementById(ownerSelectId).value||MY_ID;
   const others=members.filter(m=>m.id!==ownerId);
-  const el=document.getElementById('viewer-checks');
-  if(!others.length){
-    el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';
-    return;
-  }
+  const el=document.getElementById(containerId);
+  if(!others.length){el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';return;}
   el.innerHTML=others.map(m=>{
-    const checked=formLiveViewers.includes(m.id)?'checked':'';
-    return `<label class="vc-row">
-      <input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleLiveViewer(this.dataset.mid,this.checked)">
-      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
-      <div class="nm">${esc(m.name)}</div>
-    </label>`;
+    const checked=selectedIds.includes(m.id)?'checked':'';
+    return `<label class="vc-row"><input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="${toggleFnName}(this.dataset.mid,this.checked)"><div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div><div class="nm">${esc(m.name)}</div></label>`;
   }).join('');
 }
 
+function renderViewerChecks(){
+  renderViewerCheckList('viewer-checks','f-owner',formLiveViewers,'toggleLiveViewer');
+}
+
 function renderAfterViewerChecks(){
-  const ownerId=document.getElementById('f-owner').value||MY_ID;
-  const others=members.filter(m=>m.id!==ownerId);
-  const el=document.getElementById('after-viewer-checks');
-  if(!others.length){
-    el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';
-    return;
-  }
-  el.innerHTML=others.map(m=>{
-    const checked=formAfterViewers.includes(m.id)?'checked':'';
-    return `<label class="vc-row">
-      <input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleAfterViewer(this.dataset.mid,this.checked)">
-      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
-      <div class="nm">${esc(m.name)}</div>
-    </label>`;
-  }).join('');
+  renderViewerCheckList('after-viewer-checks','f-owner',formAfterViewers,'toggleAfterViewer');
 }
 
 function toggleAfterViewer(id,checked){
@@ -4321,24 +4303,10 @@ function setAssetVisibilityMode(mode){
   if(mode==='selected'){renderAssetViewerChecks();renderAssetAfterViewerChecks();}
 }
 function renderAssetViewerChecks(){
-  const ownerId=document.getElementById('f-asset-owner').value||MY_ID;
-  const others=members.filter(m=>m.id!==ownerId);
-  const el=document.getElementById('asset-viewer-checks');
-  if(!others.length){el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';return;}
-  el.innerHTML=others.map(m=>{
-    const checked=assetFormLiveViewers.includes(m.id)?'checked':'';
-    return `<label class="vc-row"><input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleAssetLiveViewer(this.dataset.mid,this.checked)"><div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div><div class="nm">${esc(m.name)}</div></label>`;
-  }).join('');
+  renderViewerCheckList('asset-viewer-checks','f-asset-owner',assetFormLiveViewers,'toggleAssetLiveViewer');
 }
 function renderAssetAfterViewerChecks(){
-  const ownerId=document.getElementById('f-asset-owner').value||MY_ID;
-  const others=members.filter(m=>m.id!==ownerId);
-  const el=document.getElementById('asset-after-viewer-checks');
-  if(!others.length){el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';return;}
-  el.innerHTML=others.map(m=>{
-    const checked=assetFormAfterViewers.includes(m.id)?'checked':'';
-    return `<label class="vc-row"><input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="toggleAssetAfterViewer(this.dataset.mid,this.checked)"><div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div><div class="nm">${esc(m.name)}</div></label>`;
-  }).join('');
+  renderViewerCheckList('asset-after-viewer-checks','f-asset-owner',assetFormAfterViewers,'toggleAssetAfterViewer');
 }
 function toggleAssetLiveViewer(id,checked){if(checked){if(!assetFormLiveViewers.includes(id))assetFormLiveViewers.push(id);}else{assetFormLiveViewers=assetFormLiveViewers.filter(x=>x!==id);}}
 function toggleAssetAfterViewer(id,checked){if(checked){if(!assetFormAfterViewers.includes(id))assetFormAfterViewers.push(id);}else{assetFormAfterViewers=assetFormAfterViewers.filter(x=>x!==id);}}
