@@ -30,6 +30,9 @@ native/www/
 /docs/emergency-mode-requirements.md
 /docs/dorize-kaigyou-todoke-worksheet.md
 /docs/dorize-aoiro-shinsei-worksheet.md
+# 内部作業文書（リファクタ計画・外部AI引き継ぎプロンプト。2026-07-03 追加）
+/docs/refactoring-plan.md
+/docs/codex-refactor-exec-prompt-paste.md
 node_modules/
 
 # 引き継ぎドキュメント（ブラウザ用・各種派生も含め内部扱い）
