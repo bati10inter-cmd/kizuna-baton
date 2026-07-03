@@ -1635,8 +1635,6 @@ let members=[
 const MY_ID='m1';
 const TERMS_VERSION='v3.2.2';
 const PRIVACY_VERSION='v3.2.5';
-// Logo.dev（Publishable Key は端末内に保存・未設定時はβ版デフォルトpk_を使用）
-const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: β版公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
@@ -3062,9 +3060,6 @@ function acceptConsent(){
   showToast('同意を受け付けました（プロトタイプ動作）','success');
 }
 
-// === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
-const CONSENT_KEY='kizuna-baton:consent-shown:v25';
-const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
 function openOwnerConsentModal(){
   // 事前チェック禁止: 開く度に毎回クリア
   document.getElementById('owner-consent-tos').checked=false;
@@ -3117,8 +3112,6 @@ function maybeShowOwnerConsent(){
   return true; // 同意済み: 通常フロー継続
 }
 
-// === v16: オンボーディング画面 ===
-const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
 let onboardingStep=1;
 let forceShowOnboarding=false;
 // === APPSTORE-PERSIST: localStorage / Capacitor Preferences 抽象化 ===
@@ -3147,6 +3140,21 @@ const IAP=(FEATURES.iap && IS_NATIVE && window.Capacitor.isPluginAvailable && wi
   ? window.Capacitor.Plugins.KizunaIAP : null;
 // 商品ID（App Store Connect 登録と完全一致させること・一度作ると変更不可）
 const IAP_PRODUCTS={monthly:'io.dorize.kizunabaton.take.monthly',yearly:'io.dorize.kizunabaton.take.yearly'};
+const DATA_KEY='kizuna-baton:data:v20';
+// Logo.dev（Publishable Key は端末内に保存・未設定時はβ版デフォルトpk_を使用）
+const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
+// === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
+const CONSENT_KEY='kizuna-baton:consent-shown:v25';
+const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
+// === v16: オンボーディング画面 ===
+const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
+// === v18: ダークモード ===
+const DARK_MODE_KEY='kizuna-baton:dark-mode:v18';
+// === v43: 老眼モード(U1) 文字拡大 ===
+const LARGE_MODE_KEY='kizuna-baton:large-mode:v42';
+// v71: オンボ初回完了直後に1回だけ「家族からの見え方」プレビューへ誘導（導線追加のみ・新機能なし）
+const PREVIEW_NUDGE_KEY='kizuna-baton:preview-nudge-shown:v71';
+const SORT_KEY='kizuna-baton:sort:v19';
 const PAID_FLAG_KEY='kizuna-baton:paid:v82'; // 端末キャッシュ('1'=有料)。起動時に currentEntitlement で上書き。backup JSON には含めない（端末固有）
 let isPaid=false; // 竹(家族プラン)エンタイトルメント。StoreKit currentEntitlements の結果を正とする
 const APP_LOCK_KEY='kizuna-baton:app-lock:v79'; // 端末ローカル設定（'1'=ロックON）。backup JSON には含めない（端末固有）
@@ -3155,6 +3163,10 @@ let appUnlocked=false;       // 当該起動でロック解除済みか（自動
 const nativeCache={};                 // native: Preferences の同期ミラー
 const pendingWrites=new Set();        // native: 未完了の Preferences.set/remove Promise 群
 const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
+// 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
+// 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
+// NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -3197,7 +3209,6 @@ async function flushNativeWrites(){
 }
 
 // === v20: 契約・メンバーの localStorage 永続化 ===
-const DATA_KEY='kizuna-baton:data:v20';
 function persistState(){
   if(isPrivateMode)return;
   lsSet(DATA_KEY,JSON.stringify({
@@ -3288,8 +3299,6 @@ function startFresh(){
   showToast('自分のデータで始めます');
 }
 
-// === v18: ダークモード ===
-const DARK_MODE_KEY='kizuna-baton:dark-mode:v18';
 function isDarkMode(){return document.documentElement.classList.contains('dark');}
 function initDarkMode(){
   if(lsGet(DARK_MODE_KEY)==='1'){document.documentElement.classList.add('dark');}
@@ -3302,8 +3311,6 @@ function toggleDarkMode(){
   renderSwitchMenu();
 }
 
-// === v43: 老眼モード(U1) 文字拡大 ===
-const LARGE_MODE_KEY='kizuna-baton:large-mode:v42';
 function isLargeMode(){return document.documentElement.classList.contains('large');}
 function initLargeMode(){
   if(lsGet(LARGE_MODE_KEY)==='1'){document.documentElement.classList.add('large');}
@@ -3358,8 +3365,6 @@ function closeOnboarding(){
   forceShowOnboarding=false;
   if(wasFirstTime) maybeShowPreviewNudge();
 }
-// v71: オンボ初回完了直後に1回だけ「家族からの見え方」プレビューへ誘導（導線追加のみ・新機能なし）
-const PREVIEW_NUDGE_KEY='kizuna-baton:preview-nudge-shown:v71';
 function maybeShowPreviewNudge(){
   if(lsGet(PREVIEW_NUDGE_KEY)) return;       // 既出なら出さない
   if(members.length<=1) return;              // プレビュー対象（他の家族）がいなければ出さない
@@ -4474,7 +4479,6 @@ function toggleFamilyMsg(titleEl){
 // === v19: S1 β前最小整備 ===
 
 // --- 並び替え ---
-const SORT_KEY='kizuna-baton:sort:v19';
 const SORT_OPTIONS={
   paymentDate:{label:'支払日',icon:'ti-calendar-event'},
   amount:{label:'月にならした金額',icon:'ti-coin'},
@@ -4831,10 +4835,6 @@ function openRestoreErrorModal(msg,detail,title){
 }
 function closeRestoreErrorModal(){closeModalById('restore-error-modal');}
 
-// === APPSTORE-PERSIST: init wiring（native は Preferences 先読み→移行を待ってから初期化）===
-// 既知の永続化キー（マイグレーション対象）。永続化キーを追加したら必ずここへ足すこと
-// （各キーの定数が上で定義済みのためこの位置で参照する。:vNN を bump したらこの配列も自動追従）。
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY];
 // 初回 native 起動時のみ: localStorage の既存値を Preferences へ複製しキャッシュへ反映（冪等・途中失敗で再試行可）。
 async function migrateIfNeeded(){
   if(!NativePref)return;
