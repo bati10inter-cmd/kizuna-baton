@@ -6,19 +6,75 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    /// APP-LOCK-REGAP(v91): アプリロックの目隠し・再ロックを JS へ通知するヘルパー。
+    /// visibilitychange('hidden') は素早いアプリ切替・App Switcher 覗き見では発火しないため、
+    /// UIKit のライフサイクルを正として window イベントを発火する（Web 側は未発火＝後方互換）。
+    private func triggerKizunaEvent(_ name: String) {
+        (window?.rootViewController as? CAPBridgeViewController)?.bridge?.triggerWindowJSEvent(eventName: name)
+    }
+
+    // APP-LOCK-REGAP(v92): JS 側マスクは WKWebView の描画タイミング次第で App Switcher
+    // スナップショットに反映されないことがある（別アプリ起動後にマスク欠落の実機報告）。
+    // UIKit で同期的に不透明カバービューを重ね、スナップショットの目隠しを確実にする。
+    // ロックONかは Capacitor Preferences（UserDefaults "CapacitorStorage.<key>"）を直接参照。
+    private var privacyMaskView: UIView?
+
+    private var isAppLockEnabled: Bool {
+        UserDefaults.standard.string(forKey: "CapacitorStorage.kizuna-baton:app-lock:v79") == "1"
+    }
+
+    private func showPrivacyMask() {
+        guard isAppLockEnabled, privacyMaskView == nil, let window = window else { return }
+        let mask = UIView(frame: window.bounds)
+        mask.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        mask.backgroundColor = UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.12, green: 0.12, blue: 0.11, alpha: 1)  // ≒ #1F1E1B
+                : .white
+        }
+        let icon = UIImageView(image: UIImage(systemName: "lock.shield"))
+        icon.tintColor = .systemGray2
+        icon.contentMode = .scaleAspectFit
+        icon.translatesAutoresizingMaskIntoConstraints = false
+        let label = UILabel()
+        label.text = "きずなbaton"
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        mask.addSubview(icon)
+        mask.addSubview(label)
+        NSLayoutConstraint.activate([
+            icon.centerXAnchor.constraint(equalTo: mask.centerXAnchor),
+            icon.centerYAnchor.constraint(equalTo: mask.centerYAnchor, constant: -20),
+            icon.widthAnchor.constraint(equalToConstant: 48),
+            icon.heightAnchor.constraint(equalToConstant: 48),
+            label.centerXAnchor.constraint(equalTo: mask.centerXAnchor),
+            label.topAnchor.constraint(equalTo: icon.bottomAnchor, constant: 10)
+        ])
+        window.addSubview(mask)
+        privacyMaskView = mask
+    }
+
+    private func hidePrivacyMask() {
+        privacyMaskView?.removeFromSuperview()
+        privacyMaskView = nil
+    }
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         return true
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+        // APP-LOCK-REGAP(v91): 切替アニメ開始の瞬間に目隠しマスク（再認証はまだ要求しない）。
+        triggerKizunaEvent("kizunaResign")
+        // APP-LOCK-REGAP(v92): スナップショット目隠しはネイティブビューで確実に行う。
+        showPrivacyMask()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        // APP-LOCK-REGAP(v91): 本当にアプリを離れた＝ここで再ロック（復帰時に再認証）。
+        triggerKizunaEvent("kizunaBackground")
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -26,7 +82,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // APP-LOCK-REGAP(v91): 未解錠なら再認証ゲート、解錠済みならマスク解除（JS 側で判定）。
+        triggerKizunaEvent("kizunaActive")
+        // APP-LOCK-REGAP(v92): ネイティブ目隠しを外す（未解錠時は JS 側ゲートが下に表示済み）。
+        hidePrivacyMask()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

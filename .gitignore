@@ -33,6 +33,8 @@ native/www/
 # 内部作業文書（リファクタ計画・外部AI引き継ぎプロンプト。2026-07-03 追加）
 /docs/refactoring-plan.md
 /docs/codex-refactor-exec-prompt-paste.md
+# 事業戦略レビュー（内部・2026-07-03 追加）
+/docs/biz-strategy-review-2026-07-03.md
 node_modules/
 
 # 引き継ぎドキュメント（ブラウザ用・各種派生も含め内部扱い）
