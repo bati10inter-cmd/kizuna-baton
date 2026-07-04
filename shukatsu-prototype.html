@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v90</title>
+<title>きずなbaton プロトタイプ v92</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -581,7 +581,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .plan-cta:disabled{opacity:0.6;cursor:default}
 .ob-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-border-secondary)}
 .ob-dot.active{background:var(--accent-warm)}
-.ob-sample-note{background:var(--color-background-secondary);border-left:3px solid var(--accent-warm);padding:8px 12px;border-radius:6px;font-size:11px;color:var(--color-text-secondary);margin-top:12px;line-height:1.6}
+.ob-sample-note{background:var(--color-background-secondary);border-left:3px solid var(--accent-warm);padding:8px 12px;border-radius:6px;font-size:13px;color:var(--color-text-secondary);margin-top:12px;line-height:1.6}
 /* v45: 実機（スマホ幅）ではPWAとして全画面化。bodyスクロールを排し、絶対配置のFAB（契約を追加）を実画面右下に常時固定。PC/タブレットは380×780の枠を維持。 */
 @media (max-width:480px){
   body{padding:0;align-items:stretch}
@@ -952,7 +952,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-warm);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-heart-handshake"></i></div>
         </div>
         <h2 style="text-align:center"><i class="ti ti-sparkles" style="color:#E0B43D"></i> きずなbaton へようこそ</h2>
-        <div style="font-size:13px;line-height:1.9;color:var(--color-text-secondary);margin:12px 0 8px">
+        <div style="font-size:15px;line-height:1.9;color:var(--color-text-secondary);margin:12px 0 8px">
           あなたが続けてきた毎月の支払いや契約を、いつか<strong>ご家族がそっと引き継げるように</strong>。<br>そのための「ひとこと」と手順を、ここに残しておけます。
         </div>
         <p class="ob-sample-note" id="ob-sample-note">※ 最初はサンプルデータが入っています。自由に触って試してください。ご自身のデータで始めるときは、上部の「サンプルを消して入力する」を押してください。</p>
@@ -964,19 +964,19 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         </div>
         <h2 style="text-align:center">保存するもの・しないもの</h2>
         <div style="display:flex;gap:8px;margin:12px 0 6px">
-          <div style="flex:1;background:#E8F5E9;border-radius:var(--border-radius-md);padding:10px;font-size:11px;line-height:1.7">
+          <div style="flex:1;background:#E8F5E9;border-radius:var(--border-radius-md);padding:10px;font-size:13px;line-height:1.7">
             <div style="font-weight:600;color:#0F6E56;margin-bottom:4px"><i class="ti ti-check"></i> 保存OK</div>
             カード会社名・下4桁<br>連絡先・URL<br>解約手順<br>保管場所のメモ
           </div>
-          <div style="flex:1;background:#FFEBEE;border-radius:var(--border-radius-md);padding:10px;font-size:11px;line-height:1.7">
+          <div style="flex:1;background:#FFEBEE;border-radius:var(--border-radius-md);padding:10px;font-size:13px;line-height:1.7">
             <div style="font-weight:600;color:#C62828;margin-bottom:4px"><i class="ti ti-x"></i> 保存しない</div>
             カード番号フル<br>口座番号<br>暗証番号・パスワード<br>マイナンバー
           </div>
         </div>
-        <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">
+        <div style="font-size:13px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">
           ※ 機密メモ欄には番号類は書かず、「証券番号は金庫内」のような<strong>所在メモ</strong>として使ってください。
         </div>
-        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.8;color:var(--color-text-secondary);margin-top:10px">
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;line-height:1.8;color:var(--color-text-secondary);margin-top:10px">
           きずなbaton は、情報そのものを預かる金庫ではありません。<strong>「どんな契約があるか」と「解約のしかた」を、ご家族に伝えておく</strong>ためのものです（Apple の「Legacy Contact（故人アカウント管理連絡先）」と同じ設計思想です）。番号やパスワードは、金庫やパスワード管理アプリで別に保管してください。
         </div>
       </div>
@@ -986,15 +986,15 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <div style="width:64px;height:64px;border-radius:50%;background:#D4537E;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-users"></i></div>
         </div>
         <h2 style="text-align:center">家族との共有</h2>
-        <div style="font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
+        <div style="font-size:15px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
           契約ごとに <strong>「誰に見せるか」</strong> を選べます。
         </div>
-        <div style="font-size:12px;line-height:1.9;color:var(--color-text-secondary);margin-bottom:8px">
-          ・<span style="background:#E8F5E9;color:#0F6E56;padding:1px 6px;border-radius:3px;font-size:10px">全員</span> 家族全員に表示<br>
-          ・<span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:3px;font-size:10px">一部</span> 指定した家族のみ表示<br>
-          ・<span style="background:#FFEBEE;color:#C62828;padding:1px 6px;border-radius:3px;font-size:10px">本人のみ</span> 家族には表示されない
+        <div style="font-size:14px;line-height:1.9;color:var(--color-text-secondary);margin-bottom:8px">
+          ・<span style="background:#E8F5E9;color:#0F6E56;padding:1px 6px;border-radius:3px;font-size:11px">全員</span> 家族全員に表示<br>
+          ・<span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:3px;font-size:11px">一部</span> 指定した家族のみ表示<br>
+          ・<span style="background:#FFEBEE;color:#C62828;padding:1px 6px;border-radius:3px;font-size:11px">本人のみ</span> 家族には表示されない
         </div>
-        <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:11px;color:#754C00;line-height:1.7;margin-top:8px">
+        <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:13px;color:#754C00;line-height:1.7;margin-top:8px">
           「家族メンバー」は本アプリ上の表示区分です。<strong>法定相続人の指定や代理権の付与ではありません</strong>。
         </div>
       </div>
@@ -1004,14 +1004,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-warm);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:32px"><i class="ti ti-mail"></i></div>
         </div>
         <h2 style="text-align:center">家族を招待</h2>
-        <div style="font-size:12px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
+        <div style="font-size:15px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
           家族メンバー管理画面の「<strong>招待で追加</strong>」から、招待リンク + OTP を発行できます。受諾者が利用規約・プライバシーポリシーに同意した上で参加します。
         </div>
-        <div style="background:#FFEBEE;border-left:3px solid #C62828;padding:9px 11px;border-radius:3px;font-size:11px;color:#7B1F1F;line-height:1.7;margin-top:8px">
+        <div style="background:#FFEBEE;border-left:3px solid #C62828;padding:9px 11px;border-radius:3px;font-size:13px;color:#7B1F1F;line-height:1.7;margin-top:8px">
           <strong>β版での重要なお知らせ:</strong><br>
           本人の応答途絶を契機とする <strong>「もしもの時」の自動開示は提供されません</strong>。家族メンバーへの開示は、本人が公開範囲設定で手動共有した契約に限ります。
         </div>
-        <div style="text-align:center;font-size:12px;line-height:1.8;color:var(--color-text-secondary);margin-top:12px">
+        <div style="text-align:center;font-size:14px;line-height:1.8;color:var(--color-text-secondary);margin-top:12px">
           いつか手渡す、その日まで。<br>あなたのペースで、少しずつ整えていきましょう。
         </div>
       </div>
@@ -1025,7 +1025,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
 
       <div class="btn-row" style="margin-top:10px">
-        <button onclick="skipOnboarding()" style="font-size:11px;color:var(--color-text-tertiary)">スキップ</button>
+        <button onclick="skipOnboarding()" style="font-size:13px;color:var(--color-text-tertiary)">スキップ</button>
         <button id="ob-next-btn" class="btn-primary" onclick="onboardingNext()"><i class="ti ti-arrow-right"></i> 次へ</button>
       </div>
     </div>
@@ -2027,13 +2027,23 @@ function renderSettingsModal(){
     <div class="info"><div class="name">データを復元</div><div class="sub">${IS_NATIVE?'Web版で書き出したファイルからも読込（上書き）':'バックアップファイルから読込（上書き）'}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
-  // プラン（v46: 非機能の表示見本）
+  // プラン（v46: 表示見本 → v91 APP-IAP-UX: 現在プランを明示＋加入者には解約導線を設定直下に独立表示）
   html+=`<div class="switch-section-header">プラン</div>`;
   html+=`<div class="switch-item" onclick="openPlanModal()">
     <div class="av" style="background:var(--accent-warm)"><i class="ti ti-cards" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">プランを見る</div><div class="sub">無料／有料プランの内容（正式版で提供予定）</div></div>
+    <div class="info"><div class="name">プランを見る・変える</div><div class="sub">${IAP
+      ? (isPaid?'現在: 家族プラン ご利用中':'現在: 無料プラン（家族プランの内容もこちら）')
+      : '無料／有料プランの内容（正式版で提供予定）'}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
+  // 解約導線は隠さない（プラン画面を開かなくても直行できる）＝「解約こそわかりやすく」
+  if(IAP && isPaid){
+    html+=`<div class="switch-item" onclick="planManage()">
+      <div class="av" style="background:#555"><i class="ti ti-door-exit" style="font-size:14px"></i></div>
+      <div class="info"><div class="name">きずなbaton の解約・プラン変更</div><div class="sub">このアプリ自体の解約です（記録した契約の解約ではありません）</div></div>
+      <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+    </div>`;
+  }
   // カテゴリ管理（既存 cat-modal を開く）
   html+=`<div class="switch-section-header">カテゴリ</div>`;
   html+=`<div class="switch-item" onclick="openCatModal()">
@@ -3352,6 +3362,7 @@ function openOnboarding(){
 }
 function reopenOnboarding(){
   document.getElementById('switch-menu').classList.remove('open');
+  closeModalById('settings-modal'); // v92: 設定モーダルはDOM順でオンボーディングより上に重なるため先に閉じる
   forceShowOnboarding=true;
   openOnboarding();
 }
@@ -4721,13 +4732,13 @@ function renderPlanModal(){
       </ul>
       ${takeCta}
     </div>
+    ${isPaid?`<button class="plan-cta" onclick="planManage()" style="width:100%;margin:8px 0 2px"><i class="ti ti-door-exit"></i> きずなbaton の解約・プラン変更</button>`:''}
     <div class="plan-actions-row" style="display:flex;gap:10px;justify-content:center;margin:6px 0 2px">
       <a onclick="planRestore()" style="font-size:12px;color:#185FA5;text-decoration:underline;cursor:pointer">購入を復元</a>
-      ${isPaid?`<a onclick="planManage()" style="font-size:12px;color:#185FA5;text-decoration:underline;cursor:pointer">サブスクの管理・解約</a>`:''}
     </div>
     <div style="font-size:12px;color:var(--color-text-tertiary);line-height:1.6;margin-top:6px">
       ※ 価格はストア手数料・消費税込みの表示価格です。<br>
-      ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「サブスクの管理・解約」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
+      ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「きずなbaton の解約・プラン変更」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
     </div>
     <div style="font-size:13px;line-height:1.6;margin-top:8px;text-align:center">
       <a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">利用規約</a>　・　<a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">プライバシーポリシー</a>
@@ -4920,8 +4931,12 @@ if(IAP && typeof IAP.addListener==='function'){
 }
 
 // 実際の生体認証呼び出し。成功時 true。allowPasscode=true で端末パスコードのみ許容。
+// APP-LOCK-REGAP(v91): Face ID/パスコードのシステムプロンプト自体が willResignActive(kizunaResign) を
+// 発火させるため、認証中フラグでライフサイクル系ハンドラの誤マスク・二重プロンプトを抑止する。
+let biometricPromptActive=false;
 async function authenticateBiometric(){
   if(!BiometricAuth)return false;
+  biometricPromptActive=true;
   try{
     // 生proxyのため friendly authenticate() ではなく internalAuthenticate() を直接呼ぶ（成功=resolve / 失敗=throw）。
     await BiometricAuth.internalAuthenticate({
@@ -4932,10 +4947,12 @@ async function authenticateBiometric(){
     });
     return true;
   }catch(e){return false;}
+  finally{biometricPromptActive=false;}
 }
 
 // 解錠ボタン押下時。成功でオーバーレイを閉じ、未完了だった起動チェーンを継続。
 async function runAppUnlock(){
+  if(biometricPromptActive)return; // APP-LOCK-REGAP(v91): visibilitychange と kizunaActive の二重発火でプロンプトが重複しないよう抑止
   const ok=await authenticateBiometric();
   if(ok){
     appUnlocked=true;
@@ -5054,6 +5071,35 @@ document.addEventListener('visibilitychange', async ()=>{
     }
     // APPSTORE-IAP(v82): フォア復帰時にエンタイトルメントを再判定（アプリ外での更新/失効を反映）
     if(IAP){ refreshEntitlement().then(()=>{ if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal(); }); }
+  }
+});
+
+// === APP-LOCK-REGAP(v91): native ライフサイクル連動の2段階ロック ===
+// visibilitychange('hidden') は素早いアプリ切替・App Switcher 覗き見では発火しない（実機 iOS26.5 で確認）。
+// AppDelegate.swift が bridge.triggerWindowJSEvent で発火する window イベントを受けて確実に目隠し・再ロックする。
+// Web では3イベントとも発火しない＝完全に従来挙動（後方互換）。既存 visibilitychange ハンドラは Web 用に維持（処理は冪等）。
+function appLockActive(){return !!(BiometricAuth && appLockSupported && lsGet(APP_LOCK_KEY)==='1');}
+// willResignActive: 切替アニメ開始の瞬間。マスクのみ（appUnlocked は落とさない）＝
+// 通知センター/コントロールセンター/Face IDプロンプト程度では再認証を要求しない（高齢者に優しく・スナップショットは隠す）。
+window.addEventListener('kizunaResign', ()=>{
+  if(biometricPromptActive)return; // 認証プロンプト自身の resign で解錠UIを潰さない
+  if(appLockActive())showAppLockMask();
+  persistState(); // 離脱の最速フックでもあるため保存も補完
+});
+// didEnterBackground: 本当にアプリを離れた。ここで初めて再認証を要求する。
+window.addEventListener('kizunaBackground', async ()=>{
+  if(appLockActive()){appUnlocked=false;showAppLockMask();}
+  persistState();
+  if(NativePref)await flushNativeWrites();
+});
+// didBecomeActive: 未解錠なら再認証ゲート、解錠済みのまま（Switcher覗き見から復帰等）ならマスクだけ外す。
+window.addEventListener('kizunaActive', ()=>{
+  if(!appLockActive())return;
+  if(!appUnlocked){
+    showAppLockAuth();
+    runAppUnlock(); // biometricPromptActive ガードで visibilitychange 側との二重プロンプトは起きない
+  }else if(!biometricPromptActive){
+    hideAppLock();
   }
 });
 
