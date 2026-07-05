@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v92</title>
+<title>きずなbaton プロトタイプ v93</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -109,6 +109,11 @@
 :root.large .user-pill .label{font-size:12px}
 :root.large .badge{font-size:13px;padding:3px 8px}
 :root.large .form-section-title{font-size:13px}
+:root.large .collapse-toggle{font-size:16px}
+:root.large .amount-hint{font-size:15px}
+:root.large .amount-helper{font-size:14px}
+:root.large .visibility-preset .vp-opt .vp-title{font-size:16px}
+:root.large .visibility-preset .vp-opt .vp-sub{font-size:13px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -355,20 +360,20 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .modal-close-text{position:absolute;top:2px;right:2px;background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:14px 12px;min-height:44px;line-height:1;z-index:2}
 .modal-close-text:active{opacity:0.5}
 /* P3: 契約追加フォームの任意項目折りたたみ */
-.collapse-toggle{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:8px 4px;margin:4px 0;background:transparent;border:none;border-top:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;text-align:left}
-.collapse-toggle .collapse-chevron{font-size:14px;flex-shrink:0;transition:transform .15s ease}
+.collapse-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:10px 12px;margin:10px 0;background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:var(--border-radius-md);font-size:13px;font-weight:600;color:var(--color-text-primary);cursor:pointer;text-align:left}
+.collapse-toggle .collapse-chevron{font-size:16px;color:var(--accent-warm-strong);flex-shrink:0;transition:transform .15s ease}
 .collapse-toggle[aria-expanded="true"] .collapse-chevron{transform:rotate(90deg)}
 .collapse-section{padding-top:6px}
 .collapse-section[hidden]{display:none}
 .form-row{margin-bottom:8px}
-.form-row label{font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px}
-.form-row label .req{color:var(--home-danger);font-size:9px;font-weight:600;margin-left:4px}
+.form-row label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:3px}
+.form-row label .req{color:var(--home-danger);font-size:10px;font-weight:600;margin-left:4px}
 .form-row input,.form-row select,.form-row textarea{width:100%;font-size:16px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:inherit}
 .form-row textarea{resize:none;height:60px;line-height:1.5}
 .form-row.error input,.form-row.error select,.form-row.error textarea{border-color:var(--home-danger);background:var(--home-danger-bg)}
-.form-row .field-error{font-size:11px;color:var(--home-danger);margin-top:4px;line-height:1.4;display:flex;align-items:center;gap:3px}
+.form-row .field-error{font-size:12px;color:var(--home-danger);margin-top:4px;line-height:1.4;display:flex;align-items:center;gap:3px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.form-section-title{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
+.form-section-title{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .checkbox-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-text-secondary);margin-bottom:8px}
 .checkbox-row input{width:auto}
 .btn-row{display:flex;gap:8px;margin-top:12px}
@@ -385,7 +390,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .cycle-toggle{display:flex;gap:6px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);margin-bottom:8px}
 .cycle-toggle div{flex:1;padding:6px;text-align:center;font-size:12px;cursor:pointer;color:var(--color-text-secondary);border-radius:4px}
 .cycle-toggle div.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
-.amount-helper{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;text-align:right}
+.amount-helper{font-size:12px;color:var(--color-text-tertiary);margin-top:3px;text-align:right}
+/* v93: 変動金額のアドバイス（案B・常時表示） */
+.amount-hint{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.6;color:var(--color-text-secondary);background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:var(--border-radius-md);padding:8px 10px;margin-top:6px}
+.amount-hint i{font-size:14px;color:var(--accent-warm-strong);flex-shrink:0;margin-top:2px}
 
 /* v65: β上限到達時の任意アンケート（notice モーダル内・左寄せ） */
 .beta-survey{margin:4px 0 14px;text-align:left;border-top:0.5px solid var(--color-border-tertiary);padding-top:14px}
@@ -404,8 +412,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .visibility-preset .vp-opt i.lead{font-size:15px;color:var(--color-text-secondary);margin-top:1px;flex-shrink:0;width:18px;text-align:center}
 .visibility-preset .vp-opt.active i.lead{color:var(--color-text-primary)}
 .visibility-preset .vp-opt .vp-text{flex:1;min-width:0}
-.visibility-preset .vp-opt .vp-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
-.visibility-preset .vp-opt .vp-sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px;line-height:1.4}
+.visibility-preset .vp-opt .vp-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.visibility-preset .vp-opt .vp-sub{font-size:11px;color:var(--color-text-secondary);margin-top:1px;line-height:1.4}
 .visibility-preset .vp-opt .vp-check{flex-shrink:0;color:var(--color-text-tertiary)}
 .visibility-preset .vp-opt.active .vp-check{color:var(--color-text-primary)}
 
@@ -784,6 +792,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div class="form-row">
         <label id="amount-label"><span id="amount-label-text">金額 (円/月)</span><span class="req">必須</span></label>
         <input type="number" id="f-amount" placeholder="1000">
+        <p class="amount-hint"><i class="ti ti-bulb"></i><span>金額は“だいたい”で大丈夫です。正確な家計簿ではなく、ご家族に契約の存在を伝えるためのものです。毎月変わる契約（電気・ガスなど）は、最近の請求額や平均的な月の金額を入れてください。</span></p>
         <div class="amount-helper" id="amount-helper"></div>
       </div>
 
@@ -807,13 +816,13 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0;color:#A04B6E"><i class="ti ti-message-heart"></i> 家族への一言メッセージ（任意）</div>
-      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約に関する家族へのメモや想いを残せます。公開範囲（下記）に従って表示されます。</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約に関する家族へのメモや想いを残せます。公開範囲（下記）に従って表示されます。</p>
       <div class="form-row"><textarea id="f-family-message" placeholder="例: 楽しい時間をありがとう。解約手続きはよろしくね。" rows="2" style="resize:vertical;min-height:48px"></textarea></div>
 
       <button type="button" class="collapse-toggle" id="opt2-toggle" aria-expanded="false" aria-controls="opt2-section" onclick="toggleFormSection('opt2')"><i class="ti ti-chevron-right collapse-chevron"></i>機密情報を追加（任意・本人以外には非表示）</button>
       <div class="collapse-section" id="opt2-section" hidden>
         <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 機密情報（本人以外には非表示）</div>
-        <p style="font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
+        <p style="font-size:12px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
         <div id="secret-card-fields">
           <div class="form-grid">
             <div class="form-row"><label>カード会社</label><input type="text" id="f-card-brand" placeholder="例: 三井住友VISA"></div>
@@ -824,7 +833,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
-      <p style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約を家族の画面に表示するかを設定します。「ふだん」と「もしもの時」で個別に制御できます。</p>
       <div class="visibility-preset" id="visibility-preset">
         <div class="vp-opt active" id="vp-all" onclick="setVisibilityMode('all')">
           <i class="ti ti-users lead"></i>
@@ -847,11 +856,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <i class="ti ti-check vp-check"></i>
         </div>
       </div>
-      <p id="vp-private-warning" style="display:none;font-size:10px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-top:6px;line-height:1.4"><i class="ti ti-alert-triangle"></i> もしもの時も家族には表示されません。継続課金される可能性をご了承ください（通常は口座凍結で停止）。</p>
+      <p id="vp-private-warning" style="display:none;font-size:12px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-top:6px;line-height:1.4"><i class="ti ti-alert-triangle"></i> もしもの時も家族には表示されません。継続課金される可能性をご了承ください（通常は口座凍結で停止）。</p>
       <div id="viewer-checks-wrap" style="display:none;margin-top:6px">
-        <label style="font-size:10px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:10px"></i> ふだん表示するメンバー</label>
+        <label style="font-size:12px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:12px"></i> ふだん表示するメンバー</label>
         <div class="viewer-checks" id="viewer-checks"></div>
-        <label style="font-size:10px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:10px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
+        <label style="font-size:12px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:12px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
         <div class="viewer-checks" id="after-viewer-checks"></div>
       </div>
 
@@ -902,9 +911,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         </div>
       </div>
       <div id="asset-viewer-checks-wrap" style="display:none;margin-top:6px">
-        <label style="font-size:10px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:10px"></i> ふだん表示するメンバー</label>
+        <label style="font-size:12px;color:var(--color-text-secondary);margin-bottom:3px;display:block;font-weight:500"><i class="ti ti-users" style="font-size:12px"></i> ふだん表示するメンバー</label>
         <div class="viewer-checks" id="asset-viewer-checks"></div>
-        <label style="font-size:10px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:10px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
+        <label style="font-size:12px;color:var(--color-text-secondary);margin:8px 0 3px;display:block;font-weight:500"><i class="ti ti-clock-heart" style="font-size:12px"></i> もしもの時に表示するメンバー（空なら家族全員）</label>
         <div class="viewer-checks" id="asset-after-viewer-checks"></div>
       </div>
 
