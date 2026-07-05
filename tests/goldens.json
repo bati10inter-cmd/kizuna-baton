@@ -448,8 +448,10 @@
       "その他"
     ],
     "assets": [],
+    "cards": [],
     "nextId": 13,
     "nextMemberId": 5,
-    "nextAssetId": 1
+    "nextAssetId": 1,
+    "nextCardId": 1
   }
 }

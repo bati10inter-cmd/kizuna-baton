@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v93</title>
+<title>きずなbaton プロトタイプ v94</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -789,6 +789,12 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         </select>
       </div>
 
+      <!-- APP-CARD-REG(v94): 登録済みカードを選ぶと支払日・カード会社・下4桁を自動入力 -->
+      <div class="form-row" id="card-select-row">
+        <label>使用カード（選ぶと支払日などを自動入力）</label>
+        <select id="f-card-select" onchange="onCardSelect(this.value)"></select>
+      </div>
+
       <div class="form-row">
         <label id="amount-label"><span id="amount-label-text">金額 (円/月)</span><span class="req">必須</span></label>
         <input type="number" id="f-amount" placeholder="1000">
@@ -1350,6 +1356,32 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- APP-CARD-REG(v94): 支払いカードの管理モーダル（設定・契約フォーム双方から開く。cat-modal より後＝重なり順で最前面） -->
+  <div class="modal-bg" id="card-modal">
+    <div class="modal">
+      <button class="modal-close-text" onclick="closeCardModal()" aria-label="閉じる">閉じる</button>
+      <h2><i class="ti ti-credit-card"></i>支払いカードの管理</h2>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;line-height:1.5">カードを登録しておくと、契約の入力で選ぶだけで支払日などが自動で入ります。カードを解約・再発行するとき、影響する契約の一覧にもなります。</p>
+      <p style="font-size:12px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号すべて・有効期限・セキュリティコードは登録できません（入力欄がありません）。</strong>保存するのはカード会社名・下4桁・引き落とし日だけです。</p>
+      <div id="card-list" style="margin-bottom:8px"></div>
+      <div id="card-form" hidden>
+        <div class="form-section-title" id="card-form-title" style="border-top:none;padding-top:0"><i class="ti ti-credit-card"></i> 新しいカードを登録</div>
+        <div class="form-row"><label>カード会社・カード名<span class="req">必須</span></label><input type="text" id="f-cardreg-brand" placeholder="例: 三井住友VISA / 楽天カード"></div>
+        <div class="form-grid">
+          <div class="form-row"><label>カード下4桁</label><input type="text" id="f-cardreg-last4" placeholder="例: 1234" maxlength="4" inputmode="numeric"></div>
+          <div class="form-row"><label>引き落とし日（毎月）<span class="req">必須</span></label><input type="number" id="f-cardreg-payday" placeholder="例: 27" min="1" max="31"></div>
+        </div>
+        <div class="btn-row" style="gap:6px">
+          <button class="btn-primary" id="cardreg-submit" onclick="saveCardForm()">登録する</button>
+          <button onclick="closeCardForm()" style="padding:10px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;cursor:pointer">やめる</button>
+        </div>
+      </div>
+      <div class="btn-row" id="card-add-row">
+        <button class="btn-primary" onclick="openCardForm()">＋ カードを登録</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-bg" id="workflow-modal">
     <div class="modal">
       <button class="modal-close-text" onclick="closeWorkflowModal()" aria-label="閉じる">閉じる</button>
@@ -1753,6 +1785,23 @@ function coerceAssetNums(a){
 const ASSET_BETA_MAX=5;
 function betaActiveAssetCount(){return assets.filter(a=>!a.archived).length;}
 
+// APP-CARD-REG(v94): 支払いカードの事前登録。保存するのはカード会社名・下4桁・引き落とし日のみ＝
+// カード番号フル・有効期限・セキュリティコードは入力欄自体を設けない（CLAUDE.md データ範囲）。
+// 契約側には選択時に brand/last4/day を「コピー」して保存＝カード削除後も契約情報は自立して残る。
+// cardId はカード⇄契約の緩い紐付け（「このカードの契約N件」表示・引き落とし日変更の一括反映用）。
+let cards=[];        // {id,ownerId,brand,last4,payDay}
+let nextCardId=1;
+function coerceCardNums(k){
+  k.id=Number(k.id);
+  k.payDay=Number(k.payDay);
+  k.ownerId=String(k.ownerId==null?'':k.ownerId);
+  k.brand=String(k.brand==null?'':k.brand);
+  k.last4=String(k.last4==null?'':k.last4).replace(/\D/g,'').slice(0,4);
+  return k;
+}
+function myCards(){return cards.filter(k=>k.ownerId===MY_ID);}
+function cardOptionLabel(k){return `${k.brand}${k.last4?`（下4桁 ${k.last4}）`:''}・毎月${k.payDay}日`;}
+
 // === XSS対策: HTMLエスケープ ===
 // テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
 // ユーザー入力（契約名・メモ・url・メンバー名・カテゴリ・import復元データ等）を
@@ -2053,6 +2102,13 @@ function renderSettingsModal(){
       <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
     </div>`;
   }
+  // APP-CARD-REG(v94): 支払いカードの管理（契約入力の自動入力元）
+  html+=`<div class="switch-section-header">支払いカード</div>`;
+  html+=`<div class="switch-item" onclick="openCardModal()">
+    <div class="av" style="background:#3C3489"><i class="ti ti-credit-card" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">支払いカードの管理</div><div class="sub">カード会社・下4桁・引き落とし日を登録（契約入力で自動入力できます）</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
   // カテゴリ管理（既存 cat-modal を開く）
   html+=`<div class="switch-section-header">カテゴリ</div>`;
   html+=`<div class="switch-item" onclick="openCatModal()">
@@ -2076,6 +2132,161 @@ function renderSettingsModal(){
 }
 function openSettingsModal(){renderSettingsModal();openModalById('settings-modal');}
 function closeSettingsModal(){closeModalById('settings-modal');}
+
+// ==================== APP-CARD-REG(v94): 支払いカードの管理 ====================
+let editingCardId=null;      // カード編集中のid（null=新規）
+let cardModalFromForm=false; // 契約フォームの「＋新しいカードを登録…」から開いたか
+let cardSelectPrev='';       // フォームselectの直前の選択値（登録キャンセル時に戻す）
+
+function openCardModal(fromForm){
+  cardModalFromForm=!!fromForm;
+  expandedCardId=null;
+  renderCardList();
+  closeCardForm();
+  openModalById('card-modal');
+  // フォーム発でカード0枚なら、一覧を挟まず登録フォームを直接開く
+  if(cardModalFromForm&&!myCards().length)openCardForm();
+}
+function closeCardModal(){
+  closeModalById('card-modal');
+  closeCardForm();
+  // フォーム発で未登録のまま閉じた場合、selectが「＋新しいカード…」のままにならないよう戻す
+  if(cardModalFromForm){
+    cardModalFromForm=false;
+    const sel=document.getElementById('f-card-select');
+    if(sel&&sel.value==='__new')sel.value=cardSelectPrev||'';
+  }
+}
+let expandedCardId=null; // カード行タップで紐づく契約一覧を展開表示
+function toggleCardContracts(id){
+  expandedCardId=expandedCardId===id?null:id;
+  renderCardList();
+}
+function renderCardList(){
+  const el=document.getElementById('card-list');
+  const own=myCards();
+  if(!own.length){
+    el.innerHTML=`<p style="font-size:12px;color:var(--color-text-tertiary);padding:8px 0">まだカードが登録されていません。</p>`;
+    return;
+  }
+  el.innerHTML=own.map(k=>{
+    const linked=contracts.filter(c=>c.cardId===k.id);
+    const active=linked.filter(c=>!c.archived);
+    const archived=linked.filter(c=>c.archived);
+    const expanded=expandedCardId===k.id;
+    // 契約行（表示のみ）: 名前・金額・支払日。解約済みはグレーで明示
+    const contractRows=expanded&&linked.length?`<div style="margin:0 0 4px 44px;padding:6px 10px;background:var(--color-background-secondary);border-left:3px solid #3C3489;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0">
+      ${[...active,...archived].map(c=>`<div style="font-size:12px;line-height:1.7;color:${c.archived?'var(--color-text-tertiary)':'var(--color-text-primary)'}">
+        ${esc(c.name)}<span style="color:var(--color-text-tertiary)"> ・ ¥${Number(c.amount).toLocaleString()}／${c.cycle==='yearly'?'年':'月'} ・ ${c.archived?'解約済み':(c.cycle==='yearly'?`毎年${Number(c.month)||1}月${Number(c.day)||1}日`:`毎月${Number(c.day)||1}日`)}</span>
+      </div>`).join('')}
+    </div>`:'';
+    return `<div class="switch-item" style="cursor:${linked.length?'pointer':'default'}"${linked.length?` onclick="toggleCardContracts(${k.id})"`:''}>
+      <div class="av" style="background:#3C3489"><i class="ti ti-credit-card" style="font-size:14px"></i></div>
+      <div class="info"><div class="name">${esc(k.brand)}${k.last4?`（下4桁 ${esc(k.last4)}）`:''}</div>
+      <div class="sub">毎月${k.payDay}日 引き落とし${linked.length?`・このカードの契約 ${linked.length}件（タップで表示）`:''}</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
+        <button onclick="event.stopPropagation();openCardForm(${k.id})" style="padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:12px;cursor:pointer">編集</button>
+        <button onclick="event.stopPropagation();deleteCard(${k.id})" style="padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--home-danger);font-size:12px;cursor:pointer">削除</button>
+        ${linked.length?`<i class="ti ti-chevron-${expanded?'up':'down'}" style="color:var(--color-text-tertiary)"></i>`:''}
+      </div>
+    </div>${contractRows}`;
+  }).join('');
+}
+function openCardForm(id){
+  editingCardId=id||null;
+  const k=id?cards.find(x=>x.id===id):null;
+  document.getElementById('f-cardreg-brand').value=k?k.brand:'';
+  document.getElementById('f-cardreg-last4').value=k?k.last4:'';
+  document.getElementById('f-cardreg-payday').value=k?k.payDay:'';
+  document.getElementById('card-form-title').innerHTML=`<i class="ti ti-credit-card"></i> ${k?'カードを編集':'新しいカードを登録'}`;
+  document.getElementById('cardreg-submit').textContent=k?'保存する':'登録する';
+  ['f-cardreg-brand','f-cardreg-payday'].forEach(clearFieldError);
+  document.getElementById('card-form').hidden=false;
+  document.getElementById('card-add-row').style.display='none';
+}
+function closeCardForm(){
+  editingCardId=null;
+  const form=document.getElementById('card-form');
+  if(form)form.hidden=true;
+  const row=document.getElementById('card-add-row');
+  if(row)row.style.display='';
+}
+function saveCardForm(){
+  const brand=document.getElementById('f-cardreg-brand').value.trim();
+  const last4=document.getElementById('f-cardreg-last4').value.replace(/\D/g,'').slice(0,4);
+  const payDay=parseInt(document.getElementById('f-cardreg-payday').value);
+  if(!brand){showFieldError('f-cardreg-brand','カード会社名を入力してください');return;}
+  if(!payDay||payDay<1||payDay>31){showFieldError('f-cardreg-payday','1〜31の日付を入力してください');return;}
+  // データ範囲ガード: カード名欄に番号類を書かせない
+  if(looksLikeSensitiveNumber(brand)){alert('カード番号とみられる数字が含まれています。番号は保存できません。カード会社名と下4桁だけを登録してください。');return;}
+  const wasNew=!editingCardId; // closeCardForm() が editingCardId を消す前に確定させる
+  let savedId;
+  if(editingCardId){
+    const k=cards.find(x=>x.id===editingCardId);
+    if(!k)return;
+    const oldPayDay=k.payDay;
+    Object.assign(k,{brand,last4,payDay});
+    savedId=k.id;
+    // 引き落とし日が変わったら、このカードに紐づく契約の支払日も一括更新できる
+    const linked=contracts.filter(c=>!c.archived&&c.cardId===k.id&&payMethodOf(c)==='credit_card');
+    if(oldPayDay!==payDay&&linked.length&&confirm(`このカードを使う契約が${linked.length}件あります。契約の支払日も「${payDay}日」にまとめて変更しますか？`)){
+      linked.forEach(c=>{c.day=payDay;});
+      renderList();updateSummary();
+    }
+    showToast('カード情報を保存しました','success');
+  } else {
+    savedId=nextCardId++;
+    cards.push({id:savedId,ownerId:MY_ID,brand,last4,payDay});
+    showToast('カードを登録しました','success');
+  }
+  persistState();
+  renderCardList();
+  closeCardForm();
+  // 契約フォーム発の登録なら、モーダルを閉じてそのカードを選択＋自動入力
+  if(cardModalFromForm&&wasNew){
+    cardModalFromForm=false;
+    closeModalById('card-modal');
+    renderCardSelect(savedId);
+    onCardSelect(String(savedId));
+  }
+}
+function deleteCard(id){
+  const k=cards.find(x=>x.id===id);
+  if(!k)return;
+  const n=contracts.filter(c=>c.cardId===id).length;
+  if(!confirm(`「${k.brand}」を削除しますか？${n?`\nこのカードを使う契約 ${n}件の情報（カード会社名・下4桁・支払日）は契約側にそのまま残ります。`:''}`))return;
+  cards=cards.filter(x=>x.id!==id);
+  contracts.forEach(c=>{if(c.cardId===id)c.cardId=null;});
+  persistState();
+  renderCardList();
+  showToast('カードを削除しました','');
+}
+// 契約フォームの「使用カード」select を描画（credit_card 選択時のみ表示＝setPayMethod が制御）
+function renderCardSelect(selectedId){
+  const sel=document.getElementById('f-card-select');
+  if(!sel)return;
+  const own=myCards();
+  sel.innerHTML=`<option value="">カードを選ばない（下の欄に手入力）</option>`
+    +own.map(k=>`<option value="${k.id}"${Number(selectedId)===k.id?' selected':''}>${esc(cardOptionLabel(k))}</option>`).join('')
+    +`<option value="__new">＋ 新しいカードを登録…</option>`;
+  if(!selectedId)sel.value='';
+  cardSelectPrev=sel.value;
+}
+function onCardSelect(v){
+  if(v==='__new'){openCardModal(true);return;}
+  cardSelectPrev=v;
+  if(!v)return; // 「選ばない」＝既存の手入力は消さない
+  const k=cards.find(x=>x.id===Number(v));
+  if(!k)return;
+  if(formCycle==='monthly'){
+    document.getElementById('f-day').value=k.payDay;clearFieldError('f-day');
+  } else {
+    document.getElementById('f-day-yearly').value=k.payDay;clearFieldError('f-day-yearly');
+  }
+  document.getElementById('f-card-brand').value=k.brand;
+  document.getElementById('f-card-last4').value=k.last4;
+  showToast('支払日とカード情報を自動入力しました','success');
+}
 
 function openPreviewModal(){
   document.getElementById('switch-menu').classList.remove('open');
@@ -2653,6 +2864,9 @@ function setPayMethod(m){
   formPayMethod=m;
   const sel=document.getElementById('pay-method-select');
   if(sel)sel.value=m;
+  // APP-CARD-REG(v94): 「使用カード」selectはクレカ選択時のみ表示
+  const cardSelRow=document.getElementById('card-select-row');
+  if(cardSelRow)cardSelRow.style.display=m==='credit_card'?'':'none';
   // クレカ以外を選んだ場合、カード関連の入力を非表示
   const cardFields=document.getElementById('secret-card-fields');
   const secretTitle=document.getElementById('secret-section-title');
@@ -2792,6 +3006,7 @@ function openModal(){
   ['f-name','f-amount','f-day','f-day-yearly','f-tel','f-url','f-cancel','f-docs','f-memo','f-family-message','f-card-brand','f-card-last4','f-secret'].forEach(id=>{document.getElementById(id).value='';clearFieldError(id);});
   closeFormSection('opt1');
   closeFormSection('opt2');
+  renderCardSelect(''); // APP-CARD-REG(v94)
   formLiveViewers=[];
   formAfterViewers=[];
   setCycle('monthly');
@@ -2830,6 +3045,8 @@ function readForm(){
     familyMessage:document.getElementById('f-family-message').value.trim(),
     cardBrand:isCard?document.getElementById('f-card-brand').value:'',
     cardLast4:isCard?document.getElementById('f-card-last4').value:'',
+    // APP-CARD-REG(v94): 登録カードとの緩い紐付け（''/'__new'は Number()→0/NaN→null に落ちる）
+    cardId:isCard?(Number(document.getElementById('f-card-select').value)||null):null,
     secret:document.getElementById('f-secret').value,
     visibility:{
       mode:formVisibilityMode,
@@ -2958,6 +3175,7 @@ function openEditModal(){
   document.getElementById('f-family-message').value=c.familyMessage||'';
   document.getElementById('f-card-brand').value=c.cardBrand||'';
   document.getElementById('f-card-last4').value=c.cardLast4||'';
+  renderCardSelect(c.cardId||''); // APP-CARD-REG(v94): 紐付け済みカードを選択状態で復元
   document.getElementById('f-secret').value=c.secret||'';
   // P3: 既存データがある折りたたみ項目は開いた状態で表示
   const hasOpt1=c.tel||c.url||c.cancel||(c.docs&&c.docs.length)||c.memo;
@@ -3255,9 +3473,11 @@ function persistState(){
     invitations:invitations,
     categories:categories.slice(),
     assets:assets,
+    cards:cards,
     nextId:nextId,
     nextMemberId:nextMemberId,
-    nextAssetId:nextAssetId
+    nextAssetId:nextAssetId,
+    nextCardId:nextCardId
   }));
 }
 // v68(APP-DATA-RESTORE-NUM): 復元/読込データの id/amount/day/month を Number 強制。
@@ -3269,6 +3489,8 @@ function coerceContractNums(c){
   c.amount=Number(c.amount);
   c.day=Number(c.day);
   if(c.month!=null)c.month=Number(c.month);
+  // APP-CARD-REG(v94): cardId は数値 or null（旧データ＝フィールド無しは undefined のまま＝後方互換）
+  if(c.cardId!=null)c.cardId=Number(c.cardId)||null;
   return c;
 }
 function loadPersistentState(){
@@ -3299,6 +3521,11 @@ function loadPersistentState(){
     if(Array.isArray(data.assets)){
       assets=data.assets.map(coerceAssetNums);
       nextAssetId=data.nextAssetId||(assets.reduce((m,a)=>Math.max(m,Number(a.id)||0),0)+1);
+    }
+    // APP-CARD-REG(v94): 旧データ（cards フィールド無し）は cards=[] 既定＝後方互換
+    if(Array.isArray(data.cards)){
+      cards=data.cards.map(coerceCardNums);
+      nextCardId=data.nextCardId||(cards.reduce((m,k)=>Math.max(m,Number(k.id)||0),0)+1);
     }
   }catch(e){
     console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
@@ -3742,15 +3969,17 @@ function doExportJSON(){
   const myContracts=contracts.filter(c=>c.ownerId===MY_ID);
   // APP-ASSET-EXPORT: 本人所有の資産の在りかも書き出す（doBackup と整合・契約と同じ本人スコープ）
   const myAssets=assets.filter(a=>a.ownerId===MY_ID);
+  // APP-CARD-REG(v94): 本人の支払いカードも書き出す（doBackup と整合）→ schemaVersion 2→3
   const data={
-    schemaVersion:2,
+    schemaVersion:3,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v76',
+    appVersion:'kizuna-baton-prototype-v94',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
     contracts:myContracts,
-    assets:myAssets
+    assets:myAssets,
+    cards:myCards()
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -4762,7 +4991,7 @@ function doBackup(){
     app:'kizuna-baton',
     version:'v19',
     exportedAt:new Date().toISOString(),
-    data:{contracts:contracts,members:members,categories:categories.slice(),assets:assets}
+    data:{contracts:contracts,members:members,categories:categories.slice(),assets:assets,cards:cards}
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -4819,6 +5048,9 @@ function openRestoreConfirmModal(parsed){
   // APP-ASSET-RESTORE-SUMMARY: 復元対象に資産の在りかがあれば件数を明示（applyRestore は assets 復元済み:4392）
   const assetRow=Array.isArray(parsed.data.assets)&&parsed.data.assets.length
     ? `<div>保有資産：<strong>${parsed.data.assets.length}件</strong></div>` : '';
+  // APP-CARD-REG(v94): 復元対象に支払いカードがあれば件数を明示
+  const cardRow=Array.isArray(parsed.data.cards)&&parsed.data.cards.length
+    ? `<div>支払いカード：<strong>${parsed.data.cards.length}件</strong></div>` : '';
   const at=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString('ja-JP'):'不明';
   el.innerHTML=`<div style="font-size:12px;color:var(--color-text-secondary);line-height:1.7">
     <div>バックアップ日時：<strong>${at}</strong></div>
@@ -4826,6 +5058,7 @@ function openRestoreConfirmModal(parsed){
     <div>家族メンバー：<strong>${mc}名</strong></div>
     ${catRow}
     ${assetRow}
+    ${cardRow}
   </div>`;
   openModalById('restore-confirm-modal');
 }
@@ -4849,6 +5082,8 @@ function applyRestore(){
   }
   // APP-ASSET-INV: assets も復元（旧バックアップ＝assets 無しは [] 既定＝後方互換）
   assets=Array.isArray(pendingRestore.assets)?pendingRestore.assets.map(coerceAssetNums):[];
+  // APP-CARD-REG(v94): cards も復元（旧バックアップ＝cards 無しは [] 既定＝後方互換）
+  cards=Array.isArray(pendingRestore.cards)?pendingRestore.cards.map(coerceCardNums):[];
   // 整合性リセット
   selectedId=null;
   viewOwnerId=MY_ID;
@@ -4861,6 +5096,7 @@ function applyRestore(){
   nextId=(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0))+1;
   nextMemberId=(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0))+1;
   nextAssetId=(assets.reduce((m,a)=>Math.max(m,Number(a.id)||0),0))+1;
+  nextCardId=(cards.reduce((m,k)=>Math.max(m,Number(k.id)||0),0))+1;
   pendingRestore=null;
   closeModalById('restore-confirm-modal');
   // 詳細画面を閉じてリストへ
