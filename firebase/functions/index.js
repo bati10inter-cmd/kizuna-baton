@@ -20,7 +20,7 @@ const admin = require('firebase-admin');
 // 実送信を行う issueInvite にのみ bind する（下記 onCall options）。
 const SENDGRID_API_KEY = defineSecret('SENDGRID_API_KEY');
 
-const { INVITE_EXPIRY_MS, OTP_MAX_ATTEMPTS } = require('./lib/constants');
+const { INVITE_EXPIRY_MS, OTP_MAX_ATTEMPTS, OWNER_MEMBER_ID } = require('./lib/constants');
 const { genInviteToken, genOtp6, hashOtp, verifyOtp } = require('./lib/otp');
 const {
   validateEmail,
@@ -67,6 +67,31 @@ function requireUid(request) {
 
 function badInput(message) {
   return new HttpsError('invalid-argument', message);
+}
+
+// 招待リンクのベースURL（stage-2b）。クライアント boot() が `#invite=<token>` を解釈する。
+// index.html は lp.html へリダイレクトするため、必ずアプリ本体へ直リンクすること。
+const APP_INVITE_BASE_URL =
+  process.env.APP_INVITE_BASE_URL ||
+  'https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html';
+
+function buildInviteLink(token) {
+  return `${APP_INVITE_BASE_URL}#invite=${token}`;
+}
+
+// owner の表示名（users/{ownerUid}/members/m1 の name）。members/m1 未ミラーなら null。
+// viewer は rules 上 owner の members を読めないため、メール文面と share doc への転写に使う。
+function ownerMemberRef(ownerUid) {
+  return db
+    .collection('users')
+    .doc(ownerUid)
+    .collection('members')
+    .doc(OWNER_MEMBER_ID);
+}
+function ownerNameFromSnap(snap) {
+  if (!snap.exists) return null;
+  const name = snap.data().name;
+  return typeof name === 'string' && name.trim() ? name.trim() : null;
 }
 
 // ---- issueInvite（owner が招待を発行）----------------------------------------
@@ -139,12 +164,15 @@ exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) =>
   await batch.commit();
 
   // OTP を招待先メールへ（到達確認）。owner には返さない。
+  // inviterName は発行者（owner）本人の表示名（members/m1）。従来は招待相手の
+  // suggestedName を渡していた（「〇〇さんから招待」の〇〇が受信者自身になる不具合）。
+  const ownerName = ownerNameFromSnap(await ownerMemberRef(ownerUid).get());
   const { sendInviteOtpEmail } = require('./lib/email');
-  const link = `https://kizuna-baton.example/invite/${token}`;
+  const link = buildInviteLink(token);
   await sendInviteOtpEmail({
     to: email.value,
     otp,
-    inviterName: name.value,
+    inviterName: ownerName,
     link,
   });
 
@@ -204,6 +232,11 @@ exports.acceptInvite = onCall(async (request) => {
       return { ok: false, code: 'self-accept', message: 'ご自身の招待は受諾できません。' };
     }
 
+    // owner 表示名スナップショット（share doc へ転写・stage-2b）。
+    // Firestore tx は全 read が write より先の制約があるため、
+    // bad-otp 分岐の attempts++（write）より前にここで読む。
+    const ownerName = ownerNameFromSnap(await tx.get(ownerMemberRef(ownerUid)));
+
     if (!verifyOtp(otp.value, token, invite.otpHash)) {
       tx.update(inviteRef, { otpAttempts: (invite.otpAttempts || 0) + 1 });
       return { ok: false, code: 'bad-otp', message: '確認コードが正しくありません。' };
@@ -215,7 +248,7 @@ exports.acceptInvite = onCall(async (request) => {
     const shareRef = db.collection('shares').doc(`${ownerUid}_${viewerUid}`);
     tx.set(
       shareRef,
-      buildShareDoc({ ownerUid, viewerUid, viewerMemberId, acceptedAtMs: now })
+      buildShareDoc({ ownerUid, viewerUid, viewerMemberId, acceptedAtMs: now, ownerName })
     );
 
     // owner の member doc を accepted 化＋受諾者 uid を記録
@@ -270,7 +303,7 @@ exports.acceptInvite = onCall(async (request) => {
       read: false,
     });
 
-    return { ok: true, ownerUid, viewerMemberId };
+    return { ok: true, ownerUid, viewerMemberId, ownerName };
   });
 
   if (!result.ok) {
@@ -286,7 +319,12 @@ exports.acceptInvite = onCall(async (request) => {
     throw new HttpsError('failed-precondition', result.message);
   }
 
-  return { ok: true, ownerUid: result.ownerUid, viewerMemberId: result.viewerMemberId };
+  return {
+    ok: true,
+    ownerUid: result.ownerUid,
+    viewerMemberId: result.viewerMemberId,
+    ownerName: result.ownerName,
+  };
 });
 
 // ---- revokeInvite（owner が pending 招待を取消）------------------------------

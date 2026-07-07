@@ -59,16 +59,32 @@ service cloud.firestore {
       // プロフィール（表示名・color・同意状態）は本人のみ read/write
       allow read, write: if isSelf(uid);
 
-      // 契約: 本人は全操作可。承諾 share を持つ家族は「見える契約」のみ read（write 不可）
+      // 契約: 本人は全操作可。承諾 share を持つ家族は「見える契約」のみ read（write 不可）。
+      // stage-2b: 家族 read を get / list に分離。
+      //   get  … 従来どおり canViewLive（visMode 正規化＝visibility 未設定の旧 doc も後方互換で可）
+      //   list … クエリフィルタと同形の平坦式（list はクエリからルール成立を静的証明できる形が必要。
+      //           viewer は where('visibility.mode','==','all') と
+      //           where('visibility.mode','==','selected')+array-contains(viewerMemberId) の2クエリで取得。
+      //           visibility 未設定 doc はクエリに載らない＝ミラー側の visibility 正規化が前提）
       match /contracts/{cid} {
         allow read, write: if isSelf(uid);
-        allow read: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+        allow get: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+        allow list: if hasAcceptedShare(uid)
+          && (resource.data.visibility.mode == 'all'
+              || (resource.data.visibility.mode == 'selected'
+                  && resource.data.visibility.liveViewers.hasAny(
+                       [get(shareRef(uid)).data.viewerMemberId])));
       }
 
       // 資産: 契約と同じ visibility モデル（§5.1 は contracts のみ列挙だが assets も必要＝補完）
       match /assets/{aid} {
         allow read, write: if isSelf(uid);
-        allow read: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+        allow get: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+        allow list: if hasAcceptedShare(uid)
+          && (resource.data.visibility.mode == 'all'
+              || (resource.data.visibility.mode == 'selected'
+                  && resource.data.visibility.liveViewers.hasAny(
+                       [get(shareRef(uid)).data.viewerMemberId])));
       }
 
       // カード: visibility を持たない（last4 のみ）＝本人 owner-only。家族には非公開
@@ -91,11 +107,14 @@ service cloud.firestore {
     // ---- 閲覧関係 shares/{ownerUid}_{viewerUid} ----
     // 書込は P3（Cloud Functions / admin SDK＝ルールをバイパス）専用。クライアント書込は禁止。
     // read は当事者（owner か viewer が自分）のみ。
+    // stage-2b: doc ID split 照合 → フィールドベース照合へ変更。
+    //   viewer の「自分宛て share 一覧」クエリ（where('viewerUid','==',auth.uid)）を
+    //   証明可能にするため（doc ID 条件は list クエリから静的証明できない）。
+    //   buildShareDoc は ownerUid/viewerUid を常に書くためバックフィル不要。
     match /shares/{sid} {
       allow read: if signedIn()
-        && sid.split('_').size() == 2
-        && (sid.split('_')[0] == request.auth.uid
-            || sid.split('_')[1] == request.auth.uid);
+        && (resource.data.viewerUid == request.auth.uid
+            || resource.data.ownerUid == request.auth.uid);
       allow write: if false;
     }
 

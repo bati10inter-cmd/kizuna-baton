@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v98</title>
+<title>きずなbaton プロトタイプ v99</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -949,7 +949,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
       <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">プレビュー</div>
-        <button onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）</button>
+        <button id="invite-accept-open-btn" onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）</button>
       </div>
       <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
@@ -1245,12 +1245,17 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeInviteAcceptModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-link"></i>招待を受諾</h2>
-      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った OTP（6桁）を入力してください。</div>
+      <div id="invite-accept-intro" style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った OTP（6桁）を入力してください。</div>
+      <!-- stage-2b: クラウド接続時のみ表示（リンクから自動取得できなかった場合の手動貼り付けフォールバック） -->
+      <div class="form-row" id="invite-accept-token-row" style="display:none">
+        <label>招待リンク（メールに記載）</label>
+        <input type="text" id="invite-accept-token" placeholder="メールのリンクをそのまま貼り付け" style="font-size:12px">
+      </div>
       <div class="form-row">
-        <label>OTP（6桁）</label>
+        <label id="invite-accept-otp-label">OTP（6桁）</label>
         <input type="text" id="invite-accept-otp" placeholder="000000" maxlength="6" inputmode="numeric" style="font-family:var(--font-mono);font-size:18px;letter-spacing:6px;text-align:center">
       </div>
-      <div style="margin-top:8px">
+      <div style="margin-top:8px" id="invite-accept-sample-row">
         <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の OTP を入力（プロト用）</button>
       </div>
       <div id="invite-accept-error" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
@@ -1844,10 +1849,28 @@ function esc(v){return String(v==null?'':v)
   .replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 function getMember(id){return members.find(m=>m.id===id);}
-function getOwnerName(c){const m=getMember(c.ownerId);return m?m.name:'?';}
-function getOwnerColor(c){const m=getMember(c.ownerId);return m?m.color:'#888';}
+
+// ==================== APP-V2 stage-2b: リモートビュー抽象 ====================
+// クラウド接続時のみ selectView 経由で viewOwnerId に 'remote:<ownerUid>' が入る。
+// デモ/従来ビュー（'m1'|'all'|'m2'…）は 'remote:' で始まらない＝この分岐に一切入らない（完全温存）。
+// リモート契約の ownerId は owner 名前空間の 'm1'＝MY_ID と衝突するため、
+// 「本人か」の判定は必ず isOwner() を通し、そこで isRemoteView() を一括ガードする。
+function isRemoteView(){return typeof viewOwnerId==='string'&&viewOwnerId.indexOf('remote:')===0;}
+function currentRemoteOwnerUid(){return isRemoteView()?viewOwnerId.slice(7):null;}
+function currentRemoteEntry(){const u=currentRemoteOwnerUid();return u?(remoteData[u]||null):null;}
+// 現在ビューのデータソース（リモート時はメモリ上の共有データ・それ以外は従来グローバル）
+function currentContracts(){if(!isRemoteView())return contracts;const e=currentRemoteEntry();return (e&&e.contracts)||[];}
+function currentAssets(){if(!isRemoteView())return assets;const e=currentRemoteEntry();return (e&&e.assets)||[];}
+// カテゴリ見た目の解決: リモート時は owner のカテゴリ定義（read 可）を優先し、無ければ既定値
+function catIconOf(cat){const e=currentRemoteEntry();if(e&&e.categories&&e.categories.icons&&e.categories.icons[cat])return e.categories.icons[cat];return ICONS[cat]||'ti-file';}
+function catColorOf(cat){const e=currentRemoteEntry();if(e&&e.categories&&e.categories.colors&&e.categories.colors[cat])return e.categories.colors[cat];return COLORS[cat]||'#D3D1C7';}
+function catTcolorOf(cat){const e=currentRemoteEntry();if(e&&e.categories&&e.categories.tcolors&&e.categories.tcolors[cat])return e.categories.tcolors[cat];return TCOLORS[cat]||'#444441';}
+
+function getOwnerName(c){if(isRemoteView())return sharedOwnerDisplayName(currentRemoteOwnerUid());const m=getMember(c.ownerId);return m?m.name:'?';}
+function getOwnerColor(c){if(isRemoteView())return sharedOwnerColor(currentRemoteOwnerUid());const m=getMember(c.ownerId);return m?m.color:'#888';}
 function currentViewerId(){return previewAsId||MY_ID;}
-function isOwner(c){return c.ownerId===currentViewerId();}
+// リモートビューでは常に「他人の契約」＝編集/削除/公開範囲UIは既存ロジックのまま非表示になる
+function isOwner(c){if(isRemoteView())return false;return c.ownerId===currentViewerId();}
 
 // === 可視性ヘルパー ===
 // 後方互換: visibilityが未設定の契約は「全員に見せる」とみなす
@@ -1907,6 +1930,9 @@ function visibilityLabel(c){
 // - 家族プレビュー（inheritance）: 機密は一切開示しない（相続判断モード = 法定単純承認リスク回避）
 // - 家族プレビュー（full）: 開示
 function canSeeSecret(c){
+  // stage-2b リモートビュー: サーバ（rules）が可視分のみ返す＝live 家族閲覧の canViewContract 相当は担保済み。
+  // 既存の live 家族プレビューと同じく「一覧で見える契約の機密は見られる」意味論に一致させる。
+  if(isRemoteView())return true;
   const viewer=currentViewerId();
   if(c.ownerId===viewer&&!isDeathMode())return true;
   if(isInheritanceMode())return false; // 相続判断モードは機密非開示
@@ -1938,6 +1964,16 @@ function renderUserPill(){
   const av=document.getElementById('pill-av');
   const label=document.getElementById('pill-label');
   const name=document.getElementById('pill-name');
+  // stage-2b: リモート owner の共有ビュー（getMember フォールバック再帰に入らないよう先頭で分岐）
+  if(isRemoteView()){
+    const uid=currentRemoteOwnerUid();
+    const nm=sharedOwnerDisplayName(uid);
+    av.style.fontSize='11px';
+    av.textContent=nm.charAt(0);av.style.background=ownerColorCss(sharedOwnerColor(uid));
+    label.textContent=nm+'さんの契約（共有）';
+    name.textContent=nm;
+    return;
+  }
   if(viewOwnerId==='all'){
     av.textContent='家';av.style.background='var(--owner-neutral)';av.style.fontSize='12px';
     label.textContent='表示中';name.textContent='家族全員';
@@ -2005,29 +2041,56 @@ function renderSwitchMenu(){
   const el=document.getElementById('switch-menu');
   let html='';
   const viewer=currentViewerId();
-  const allCount=contracts.filter(c=>!c.archived&&canViewContract(c,viewer)).length;
   const me=getMember(MY_ID);
   const myCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&canViewContract(c,viewer)).length;
   html+=`<div class="switch-section-header">契約の表示</div>`;
-  html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
-    <div class="av" style="background:${ownerColorCss(me.color)}">${esc(me.name.charAt(0))}</div>
-    <div class="info"><div class="name">${esc(me.name)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
-    ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
-  </div>`;
-  html+=`<div class="switch-item${viewOwnerId==='all'?' active':''}" onclick="selectView('all')">
-    <div class="av" style="background:var(--owner-neutral);font-size:14px">家</div>
-    <div class="info"><div class="name">家族全員</div><div class="sub">合計 ${allCount}件の契約</div></div>
-    ${viewOwnerId==='all'?'<i class="ti ti-check check"></i>':''}
-  </div>`;
-  members.forEach(m=>{
-    if(m.id===MY_ID)return;
-    const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
-    html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" data-mid="${esc(m.id)}" onclick="selectView(this.dataset.mid)">
-      <div class="av" style="background:${ownerColorCss(m.color)}">${esc(m.name.charAt(0))}</div>
-      <div class="info"><div class="name">${esc(m.name)}</div><div class="sub">${cnt}件の契約</div></div>
-      ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
+  if(isCloudInviteMode()){
+    // stage-2b クラウド接続時: ピル＝「自分（ローカル）＋自分に共有してくれている owner たち（cross-account read）」。
+    // 単一ローカルストア前提の疑似ピル（家族全員・m2〜）はクラウドでは出さない（本番のアカウント分離モデル）。
+    const meName=me?me.name:'あなた';
+    const meColor=me?me.color:'#185FA5';
+    html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
+      <div class="av" style="background:${ownerColorCss(meColor)}">${esc(meName.charAt(0))}</div>
+      <div class="info"><div class="name">${esc(meName)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
+      ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
     </div>`;
-  });
+    const sharedOwners=getSharedOwnersMeta();
+    sharedOwners.forEach(o=>{
+      const key='remote:'+o.ownerUid;
+      const nm=sharedOwnerDisplayName(o.ownerUid);
+      const entry=remoteData[o.ownerUid];
+      const sub=entry&&!entry.error?`${(entry.contracts||[]).length}件の共有契約`:'共有された契約を見る';
+      html+=`<div class="switch-item${viewOwnerId===key?' active':''}" data-uid="${esc(o.ownerUid)}" onclick="selectView('remote:'+this.dataset.uid)">
+        <div class="av" style="background:${ownerColorCss(sharedOwnerColor(o.ownerUid))}">${esc(nm.charAt(0))}</div>
+        <div class="info"><div class="name">${esc(nm)} <span style="font-size:9px;background:var(--color-accent,#185FA5);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">共有</span></div><div class="sub">${sub}</div></div>
+        ${viewOwnerId===key?'<i class="ti ti-check check"></i>':''}
+      </div>`;
+    });
+    if(!sharedOwners.length){
+      html+=`<div style="font-size:10px;color:var(--color-text-tertiary);padding:4px 12px 8px;line-height:1.6">ご家族から招待を受けて受諾すると、ここにご家族の共有契約が表示されます。</div>`;
+    }
+  } else {
+    const allCount=contracts.filter(c=>!c.archived&&canViewContract(c,viewer)).length;
+    html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
+      <div class="av" style="background:${ownerColorCss(me.color)}">${esc(me.name.charAt(0))}</div>
+      <div class="info"><div class="name">${esc(me.name)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
+      ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
+    </div>`;
+    html+=`<div class="switch-item${viewOwnerId==='all'?' active':''}" onclick="selectView('all')">
+      <div class="av" style="background:var(--owner-neutral);font-size:14px">家</div>
+      <div class="info"><div class="name">家族全員</div><div class="sub">合計 ${allCount}件の契約</div></div>
+      ${viewOwnerId==='all'?'<i class="ti ti-check check"></i>':''}
+    </div>`;
+    members.forEach(m=>{
+      if(m.id===MY_ID)return;
+      const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
+      html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" data-mid="${esc(m.id)}" onclick="selectView(this.dataset.mid)">
+        <div class="av" style="background:${ownerColorCss(m.color)}">${esc(m.name.charAt(0))}</div>
+        <div class="info"><div class="name">${esc(m.name)}</div><div class="sub">${cnt}件の契約</div></div>
+        ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
+      </div>`;
+    });
+  }
   // v41: ヘルプ / 表示設定 / データ保管 は設定モーダル（歯車⚙→openSettingsModal）へ移設。
   // 名前タップのメニューは「契約の表示（人物選択）」＋「プライバシー確認」に絞る。
   if(members.length>1){
@@ -2048,7 +2111,26 @@ function renderSwitchMenu(){
   el.innerHTML=html;
 }
 
-function selectView(id){viewOwnerId=id;document.getElementById('switch-menu').classList.remove('open');renderAll();}
+function selectView(id){
+  document.getElementById('switch-menu').classList.remove('open');
+  // stage-2b: リモート owner の共有ビュー＝未キャッシュならクラウドから取得してから再描画
+  if(typeof id==='string'&&id.indexOf('remote:')===0){
+    viewOwnerId=id;
+    renderAll(); // 取得中は空/ローディング表示（renderList 側が remoteFetching を見る）
+    const uid=id.slice(7);
+    fetchOwnerData(uid)
+      .then(()=>{if(viewOwnerId===id)renderAll();})
+      .catch(()=>{
+        if(viewOwnerId===id){
+          showToast('共有された契約を読み込めませんでした。通信状況をご確認ください','error');
+          viewOwnerId=MY_ID;
+          renderAll();
+        }
+      });
+    return;
+  }
+  viewOwnerId=id;renderAll();
+}
 
 // v41: 設定モーダル（歯車⚙）— ヘルプ / 表示設定 / データ保管 / カテゴリ管理 を集約
 function renderSettingsModal(){
@@ -2354,7 +2436,7 @@ function openPreviewModal(){
   openModalById('preview-modal');
 }
 function closePreviewModal(){closeModalById('preview-modal');}
-function startPreview(id){previewAsId=id;previewStage='live';closePreviewModal();renderAll();if(selectedId!==null)showDetail(selectedId);}
+function startPreview(id){if(isRemoteView())viewOwnerId=MY_ID;previewAsId=id;previewStage='live';closePreviewModal();renderAll();if(selectedId!==null)showDetail(selectedId);}
 function exitPreview(){previewAsId=null;previewStage='live';renderAll();if(selectedId!==null)showDetail(selectedId);}
 
 document.addEventListener('click',(e)=>{
@@ -2366,7 +2448,12 @@ document.addEventListener('click',(e)=>{
 
 function renderCatTabs(){
   const t=document.getElementById('tabs');
-  const all=['すべて',...categories];
+  // stage-2b リモート: タブは共有契約に実在するカテゴリから導出（owner のカテゴリ定義全公開はしない）
+  const cats=isRemoteView()
+    ?[...new Set(currentContracts().map(c=>c.cat).filter(Boolean))]
+    :categories;
+  const all=['すべて',...cats];
+  if(isRemoteView()&&activeCat!=='すべて'&&!cats.includes(activeCat))activeCat='すべて';
   t.innerHTML=all.map(c=>`<div class="tab${c===activeCat?' active':''}" data-cat="${esc(c)}" onclick="setCat(this.dataset.cat)">${esc(c)}</div>`).join('');
 }
 function setCat(c){activeCat=c;renderCatTabs();renderMain();}
@@ -2413,13 +2500,15 @@ function clearSearch(){
 function filterContracts(){
   const viewer=currentViewerId();
   const q=searchQuery.toLowerCase();
-  return contracts.filter(c=>{
+  const remote=isRemoteView();
+  return currentContracts().filter(c=>{
     if(viewMode==='active'&&c.archived)return false;
     if(viewMode==='archived'&&!c.archived)return false;
-    if(viewOwnerId!=='all'&&c.ownerId!==viewOwnerId)return false;
+    // リモートは owner フィルタ不要（データソースが owner 単位）・可視性はサーバ（rules）が担保済み
+    if(!remote&&viewOwnerId!=='all'&&c.ownerId!==viewOwnerId)return false;
     if(activeCat!=='すべて'&&c.cat!==activeCat)return false;
     // 公開範囲チェック（プレビュー中＝家族視点のとき、見えないものは除外）
-    if(!canViewContract(c,viewer))return false;
+    if(!remote&&!canViewContract(c,viewer))return false;
     // v17: テキスト検索（公開範囲チェックを通過した契約のみが対象）
     if(q){
       const searchableSecret=(c.ownerId===viewer&&!isDeathMode()&&canSeeSecret(c))?c.secret:'';
@@ -2499,6 +2588,19 @@ function renderList(){
       // v17: 検索ヒット0件UI（XSS防止のため textContent で挿入）
       el.innerHTML=`<div class="empty-state"><i class="ti ti-search-off empty-icon"></i>「<span id="empty-q"></span>」に一致する契約はありません<br><button class="empty-clear-btn" onclick="clearSearch()">検索をクリア</button></div>`;
       document.getElementById('empty-q').textContent=searchQuery;
+    } else if(isRemoteView()){
+      // stage-2b: 読み込み中／空／エラーの3状態（owner がクラウド保存を始めていない場合も「空」になる）
+      const uid=currentRemoteOwnerUid();
+      const nm=esc(sharedOwnerDisplayName(uid));
+      if(remoteFetching[uid]){
+        el.innerHTML=`<div class="empty-state"><i class="ti ti-cloud-download empty-icon"></i>${nm}さんの共有契約を読み込んでいます…</div>`;
+      }else{
+        const entry=remoteData[uid];
+        const note=(entry&&entry.error)
+          ?'読み込みに失敗しました。時間をおいてもう一度お試しください。'
+          :'共有されている契約がまだ無いか、クラウドへの保存がまだ始まっていない可能性があります。';
+        el.innerHTML=`<div class="empty-state"><i class="ti ti-users empty-icon"></i>${nm}さんから共有された契約はまだ表示できません<br>${esc(note)}</div>`;
+      }
     } else {
       const who=viewOwnerId==='all'?'家族全員':getMember(viewOwnerId)?.name||'';
       el.innerHTML=`<div class="empty-state">${esc(who)}の契約はありません</div>`;
@@ -2507,9 +2609,9 @@ function renderList(){
   }
   el.innerHTML=sorted.map(c=>{
     const d=daysUntilNext(c);
-    const icon=ICONS[c.cat]||'ti-file';
-    const bg=COLORS[c.cat]||'#D3D1C7';
-    const tc=TCOLORS[c.cat]||'#444441';
+    const icon=catIconOf(c.cat);
+    const bg=catColorOf(c.cat);
+    const tc=catTcolorOf(c.cat);
     let badge='';
     if(c.archived){badge=`<span class="badge badge-archived">${c.archivedDate||'解約済'}</span>`;}
     else if(d<=3)badge='<span class="badge badge-urgent">'+d+'日後</span>';
@@ -2518,9 +2620,9 @@ function renderList(){
     const cyclePill=c.cycle==='yearly'?'<span class="cycle-pill yearly">年</span>':'';
     const pmInfo=payMethodInfo(c);
     const payIconHtml=`<span class="pay-icon" title="${pmInfo.label}"><i class="ti ${pmInfo.icon}"></i>${pmInfo.short}</span>`;
-    // 公開範囲アイコン（本人視点で自分の契約のみ表示）
+    // 公開範囲アイコン（本人視点で自分の契約のみ表示。リモート契約は ownerId が 'm1' でも他人＝出さない）
     let visIconHtml='';
-    if(!isPreviewing()&&c.ownerId===MY_ID){
+    if(!isPreviewing()&&!isRemoteView()&&c.ownerId===MY_ID){
       const vl=visibilityLabel(c);
       if(vl.key!=='all'){
         const color=vl.key==='private'?'var(--home-private-icon)':'var(--home-selected-icon)';
@@ -2600,7 +2702,7 @@ function renderCalendar(){
         const dom=inferLogoDomain(c);
         const url=dom?logoDevImageUrl(dom,32):'';
         if(url)return `<img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`;
-        const bg=COLORS[c.cat]||'#D3D1C7';
+        const bg=catColorOf(c.cat);
         return `<span class="cal-marker dot" style="background:${bg}"></span>`;
       }).join('');
       const more=dayContracts.length>3?`<span class="cal-more">+${dayContracts.length-3}</span>`:'';
@@ -2631,9 +2733,9 @@ function openDayDetail(d){
     el.innerHTML=list.map(c=>{
       const dom=inferLogoDomain(c);
       const url=dom?logoDevImageUrl(dom,48):'';
-      const icon=ICONS[c.cat]||'ti-file';
-      const bg=COLORS[c.cat]||'#D3D1C7';
-      const tc=TCOLORS[c.cat]||'#444441';
+      const icon=catIconOf(c.cat);
+      const bg=catColorOf(c.cat);
+      const tc=catTcolorOf(c.cat);
       const iconOrLogo=url
         ?`<img class="logo-img" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
         :`<i class="ti ${icon}" style="color:${tc}"></i>`;
@@ -2657,14 +2759,19 @@ function goToContract(id){closeDayDetail();showDetail(id);}
 // ==================== サマリー・詳細・CRUD ====================
 function updateSummary(){
   const viewer=currentViewerId();
-  const visible=contracts.filter(c=>!c.archived&&(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer));
+  // stage-2b リモート: サーバが可視分のみ返す＝owner フィルタ/canViewContract 不要
+  const visible=isRemoteView()
+    ?currentContracts().filter(c=>!c.archived)
+    :contracts.filter(c=>!c.archived&&(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer));
   const monthlyTotal=visible.reduce((s,c)=>s+monthlyEquivalent(c),0);
   const yearlyTotal=visible.reduce((s,c)=>s+yearlyAmount(c),0);
   document.getElementById('total-amount').textContent='¥'+monthlyTotal.toLocaleString();
   document.getElementById('yearly').textContent='¥'+yearlyTotal.toLocaleString();
   document.getElementById('total-count').textContent=visible.length;
   document.getElementById('urgent-count').textContent=visible.filter(c=>daysUntilNext(c)<=30).length;
-  document.getElementById('family-count').innerHTML=`家族 ${members.length}人で共有中 · コード FAMX-2847`;
+  document.getElementById('family-count').innerHTML=isRemoteView()
+    ?`${esc(sharedOwnerDisplayName(currentRemoteOwnerUid()))}さんから共有されています（閲覧のみ）`
+    :`家族 ${members.length}人で共有中 · コード FAMX-2847`;
 }
 
 function detailUrgentBadgeHtml(c,d){
@@ -2774,13 +2881,13 @@ function detailActionsHtml(c,owner,ownerName){
 
 function showDetail(id){
   selectedId=id;
-  const c=contracts.find(x=>x.id===id);
+  const c=currentContracts().find(x=>x.id===id);
   if(!c)return;
   const owner=isOwner(c)&&!isDeathMode();
   const seeSecret=canSeeSecret(c);
-  const bg=COLORS[c.cat]||'#D3D1C7';
-  const tc=TCOLORS[c.cat]||'#444441';
-  const icon=ICONS[c.cat]||'ti-file';
+  const bg=catColorOf(c.cat);
+  const tc=catTcolorOf(c.cat);
+  const icon=catIconOf(c.cat);
   const d=daysUntilNext(c);
   const ownerName=getOwnerName(c);
   const ownerColor=getOwnerColor(c);
@@ -2796,8 +2903,8 @@ function showDetail(id){
   const cycleLabel=c.cycle==='yearly'?'<span class="cycle-pill yearly" style="margin-left:6px">年払い</span>':'<span class="cycle-pill" style="margin-left:6px">月払い</span>';
   const vl=visibilityLabel(c);
 
-  // 本人視点でのみ公開範囲バッジを表示
-  const headerVisBadge=(!isPreviewing()&&c.ownerId===MY_ID)
+  // 本人視点でのみ公開範囲バッジを表示（リモート契約は ownerId が 'm1' でも他人＝出さない）
+  const headerVisBadge=(!isPreviewing()&&!isRemoteView()&&c.ownerId===MY_ID)
     ?`<span class="visibility-badge ${vl.key}"><i class="ti ${vl.icon}" style="font-size:10px"></i>${esc(vl.text)}に表示</span>`
     :'';
 
@@ -3321,7 +3428,8 @@ function onConsentChange(){
   btn.style.cursor=ok?'pointer':'not-allowed';
 }
 function acceptConsent(){
-  // TODO(Phase3): Firestore に consent_record 保存（タイムスタンプ・規約バージョン・IP・UA）
+  // APP-V2 stage-2b: クラウド実受諾（同意4件取得済み→acceptInvite callable がサーバ側 consentLogs を記録）
+  if(pendingCloudAccept){acceptCloudInvite();return;}
   closeConsentModal();
   if(pendingInviteId){
     // 招待フロー経由: invitations 更新 + members 追加 + トースト
@@ -3473,6 +3581,9 @@ const CLOUD_KEY='kizuna-baton:cloud:v1';
 // CLOUD_KEY とは別キー＝setCloudLink が CLOUD_KEY を丸ごと上書きするため同居できない。
 // backup JSON には含めない（端末固有）。native 移行(STORAGE_KEYS)には含める。
 const CLOUD_SYNC_KEY='kizuna-baton:cloudsync:v1';
+// stage-2b: 自分（viewer）に共有してくれている owner のピル表示用メタ [{ownerUid,viewerMemberId,ownerName,localName,acceptedAt}]。
+// 契約データそのものは保存しない（メモリのみ＝データ最小化）。backup JSON 非同梱（端末固有）・native 移行には含める。
+const SHARED_OWNERS_KEY='kizuna-baton:sharedowners:v1';
 let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
 let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
 const nativeCache={};                 // native: Preferences の同期ミラー
@@ -3481,7 +3592,7 @@ const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
 // 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
 // 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
 // NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -3661,6 +3772,14 @@ async function initCloudAuth(){
       cloudUser=u;
       if(u)setCloudLink(u);
       cloudOnAuthChangedForSync(u); // P2b(v96): uid 変化の同期状態リセット／dirty 再開（boot 再開経路）
+      // stage-2b: ログイン確立で自分宛て shares を取得（失敗は握り潰し＝次の契機で再試行）。
+      // 保留中の招待受諾があれば受諾フローへ（モーダル開放中は各閉じ処理から再試行される）。
+      // ログアウトでリモートデータをメモリから破棄し、リモートビュー中なら自分ビューへ退避。
+      if(u){loadMyShares().catch(()=>{});maybeOpenPendingInviteAccept();}
+      else{
+        remoteShares=[];remoteData={};
+        if(typeof isRemoteView==='function'&&isRemoteView()){viewOwnerId=MY_ID;renderAll();}
+      }
       if(typeof refreshCloudUi==='function')refreshCloudUi(); // 設定/モーダルが開いていれば表示追従
     });
     return cloudAuth;
@@ -3725,7 +3844,11 @@ function openCloudAccountModal(){
   // リンク済み（セッション復元待ち）のときだけ裏で初期化。未リンクの見るだけユーザーにはSDKを読ませない
   if(getCloudLink()&&!cloudUser)initCloudAuth().catch(()=>{});
 }
-function closeCloudAccountModal(){closeModalById('cloud-account-modal');}
+function closeCloudAccountModal(){
+  closeModalById('cloud-account-modal');
+  // stage-2b: 招待リンク経由でアカウント作成/ログインした場合、閉じた足で受諾フローへ戻す
+  maybeOpenPendingInviteAccept();
+}
 function showCloudError(msg){
   const el=document.getElementById('cloud-err');
   if(el){el.textContent=msg;el.style.display='';}
@@ -3924,12 +4047,17 @@ async function initCloudFunctions(){
 // --- 純関数（特性テスト T24）: アプリ状態 → Firestore doc 群＋manifest ---
 // JSON round-trip で undefined フィールドを除去（Firestore は undefined 値を invalid-argument で拒否）＋deep-copy。
 // doc ID は String(id)。categories はユーザー定義名（'/' を含み得る＝docID 不可）のため単一 doc 'list' に集約。
+// stage-2b: contracts/assets は visibility を getVisibility() で正規化して必ず書く。
+//   家族の list read は where('visibility.mode',…) クエリ（firestore.rules の allow list と対）で行うため、
+//   visibility 未設定のままミラーすると mode=='all' クエリに載らず「見えるはずの契約が見えない」。
+// ミラースキーマ版数（CLOUD_MIRROR_SCHEMA）: 出力形を変えたら +1 → 既存有効ユーザーは自動フル再同期。
+const CLOUD_MIRROR_SCHEMA=2; // v99: visibility 正規化
 function buildCloudDocs(state){
   const clean=x=>JSON.parse(JSON.stringify(x));
   const docs={contracts:{},assets:{},cards:{},members:{},categories:{}};
   const manifest={contracts:[],assets:[],cards:[],members:[],categories:[]};
-  (state.contracts||[]).forEach(c=>{const k=String(c.id);docs.contracts[k]=clean(c);manifest.contracts.push(k);});
-  (state.assets||[]).forEach(a=>{const k=String(a.id);docs.assets[k]=clean(a);manifest.assets.push(k);});
+  (state.contracts||[]).forEach(c=>{const k=String(c.id);const d=clean(c);d.visibility=clean(getVisibility(c));docs.contracts[k]=d;manifest.contracts.push(k);});
+  (state.assets||[]).forEach(a=>{const k=String(a.id);const d=clean(a);d.visibility=clean(getVisibility(a));docs.assets[k]=d;manifest.assets.push(k);});
   (state.cards||[]).forEach(cd=>{const k=String(cd.id);docs.cards[k]=clean(cd);manifest.cards.push(k);});
   (state.members||[]).forEach(m=>{const k=String(m.id);docs.members[k]=clean(m);manifest.members.push(k);});
   docs.categories.list=clean({
@@ -4018,7 +4146,7 @@ async function runCloudSync(){
       });
       await batch.commit();
     }
-    setCloudSync({dirty:false,lastSyncAt:nowIso,manifest:built.manifest});
+    setCloudSync({dirty:false,lastSyncAt:nowIso,manifest:built.manifest,mirrorSchema:CLOUD_MIRROR_SCHEMA});
     cloudSyncLastError=null;
   }catch(e){
     cloudSyncLastError=e; // 静かに保持（alert しない）。dirty は残る＝次回 persist/復帰/手動で再試行
@@ -4115,13 +4243,133 @@ function cloudOnAuthChangedForSync(u){
   const s=getCloudSync();
   if(!s)return;
   if(s.uid!==u.uid){clearCloudSync();return;}
-  if(s.enabled&&s.dirty)scheduleCloudSync();
+  // mirrorSchema 不一致＝旧形式でミラー済み（例: visibility 未正規化）→ フル再同期で正規化
+  if(s.enabled&&(s.dirty||s.mirrorSchema!==CLOUD_MIRROR_SCHEMA))scheduleCloudSync();
 }
 
 // --- status 行のみの targeted 更新（refreshCloudUi の「入力中フォームを潰さない」設計を踏襲）---
 function refreshCloudSyncStatusLine(){
   const el=document.getElementById('cloud-sync-status');
   if(el)el.textContent=cloudSyncStatusText(getCloudSync(),cloudSyncLastError);
+}
+
+// ==================== APP-V2 stage-2b: cross-account read（受諾者が owner の共有契約を読む） ====================
+// 権限の真の境界は firestore.rules（allow list＝クエリと同形の平坦式）。クライアントは
+// 「自分宛て shares 逆引き → owner ごとに2クエリ（mode=='all' ／ 'selected'＋array-contains 自分の memberId）」で
+// 可視分のみを取得する（private/after_only/対象外 selected はクエリに載らない＝rules とクエリの二重防御）。
+// 取得した他人の契約データは**メモリのみ**保持（localStorage へ永続しない＝データ最小化）。
+// persistState/buildCloudDocs のグローバル contracts/assets には決して混入させない。
+
+let remoteShares=[];   // 自分が viewer の承諾済み share 一覧 [{ownerUid,viewerMemberId,ownerName,status}]（メモリ）
+let remoteData={};     // ownerUid → {contracts,assets,categories,fetchedAt,error}（メモリのみ）
+let remoteFetching={}; // ownerUid → Promise（single-flight）
+
+// --- ピル表示用メタ（SHARED_OWNERS_KEY・端末保存はメタのみ＝契約データは保存しない）---
+function getSharedOwnersMeta(){
+  try{const raw=lsGet(SHARED_OWNERS_KEY);if(!raw)return [];const a=JSON.parse(raw);return Array.isArray(a)?a:[];}catch(e){return [];}
+}
+function saveSharedOwnersMeta(list){
+  try{lsSet(SHARED_OWNERS_KEY,JSON.stringify(list));}catch(e){}
+}
+function upsertSharedOwnerMeta(entry){
+  if(!entry||!entry.ownerUid)return;
+  const list=getSharedOwnersMeta();
+  const i=list.findIndex(x=>x.ownerUid===entry.ownerUid);
+  if(i>=0)list[i]=Object.assign({},list[i],entry);
+  else list.push(entry);
+  saveSharedOwnersMeta(list);
+}
+// 表示名の優先順: ローカルリネーム > share の ownerName スナップショット > 「ご家族」
+function sharedOwnerDisplayName(ownerUid){
+  const meta=getSharedOwnersMeta().find(x=>x.ownerUid===ownerUid);
+  if(meta&&meta.localName)return meta.localName;
+  if(meta&&meta.ownerName)return meta.ownerName;
+  const sh=remoteShares.find(s=>s.ownerUid===ownerUid);
+  return (sh&&sh.ownerName)||'ご家族';
+}
+// 所有者カラー相当: リモート owner にも一貫した色を割り当てる（PALETTE を uid ハッシュで決定的に）
+function sharedOwnerColor(ownerUid){
+  let h=0;for(let i=0;i<ownerUid.length;i++)h=(h*31+ownerUid.charCodeAt(i))>>>0;
+  return PALETTE[h%PALETTE.length];
+}
+
+// --- 自分宛て shares の取得（契機: ログイン確立時・受諾成功時）---
+async function loadMyShares(){
+  if(!isCloudInviteMode())return [];
+  const db=await initCloudFirestore();
+  const m=cloudDbMod;
+  const snap=await m.getDocs(m.query(
+    m.collection(db,'shares'),
+    m.where('viewerUid','==',cloudUser.uid),
+    m.where('status','==','accepted')
+  ));
+  remoteShares=[];
+  snap.forEach(d=>{
+    const v=d.data();
+    remoteShares.push({ownerUid:v.ownerUid,viewerMemberId:v.viewerMemberId,ownerName:v.ownerName||null,status:v.status});
+  });
+  // メタ同期: ownerName を反映し、unlink/アカウント削除済みの share はメタから清掃
+  const alive=new Set(remoteShares.map(s=>s.ownerUid));
+  const merged=getSharedOwnersMeta().filter(x=>alive.has(x.ownerUid));
+  remoteShares.forEach(s=>{
+    const i=merged.findIndex(x=>x.ownerUid===s.ownerUid);
+    if(i>=0){if(s.ownerName&&!merged[i].ownerName)merged[i].ownerName=s.ownerName;}
+    else merged.push({ownerUid:s.ownerUid,viewerMemberId:s.viewerMemberId,ownerName:s.ownerName,acceptedAt:null});
+  });
+  saveSharedOwnersMeta(merged);
+  // 表示中のリモート owner が共有停止されていたら自分ビューへ退避
+  const viewingUid=currentRemoteOwnerUid();
+  if(viewingUid&&!alive.has(viewingUid)){
+    viewOwnerId=MY_ID;
+    delete remoteData[viewingUid];
+  }
+  renderAll();
+  return remoteShares;
+}
+
+// --- owner 1人分の共有データ取得（contracts/assets＝2クエリ・categories＝1 get・cards は rules 上 owner-only＝読まない）---
+async function fetchOwnerData(ownerUid,force){
+  const cached=remoteData[ownerUid];
+  if(cached&&!cached.error&&!force)return cached;
+  if(remoteFetching[ownerUid])return remoteFetching[ownerUid];
+  remoteFetching[ownerUid]=(async()=>{
+    const share=remoteShares.find(s=>s.ownerUid===ownerUid)
+      ||getSharedOwnersMeta().find(x=>x.ownerUid===ownerUid);
+    if(!share)throw new Error('share-not-found');
+    const db=await initCloudFirestore();
+    const m=cloudDbMod;
+    const mid=share.viewerMemberId;
+    const fetchColl=async coll=>{
+      const base=m.collection(db,'users',ownerUid,coll);
+      const [allSnap,selSnap]=await Promise.all([
+        m.getDocs(m.query(base,m.where('visibility.mode','==','all'))),
+        m.getDocs(m.query(base,
+          m.where('visibility.mode','==','selected'),
+          m.where('visibility.liveViewers','array-contains',mid)))
+      ]);
+      const byId={};
+      allSnap.forEach(d=>{byId[d.id]=d.data();});
+      selSnap.forEach(d=>{byId[d.id]=d.data();});
+      return Object.values(byId);
+    };
+    const [rc,ra]=await Promise.all([fetchColl('contracts'),fetchColl('assets')]);
+    let rcat=null;
+    try{
+      const cd=await m.getDoc(m.doc(db,'users',ownerUid,'categories','list'));
+      if(cd.exists())rcat=cd.data();
+    }catch(e){} // categories が無くても契約は表示できる（アイコン等は既定値で描画）
+    const entry={contracts:rc,assets:ra,categories:rcat,fetchedAt:Date.now(),error:null};
+    remoteData[ownerUid]=entry;
+    return entry;
+  })();
+  try{
+    return await remoteFetching[ownerUid];
+  }catch(e){
+    remoteData[ownerUid]={contracts:[],assets:[],categories:null,fetchedAt:Date.now(),error:e};
+    throw e;
+  }finally{
+    delete remoteFetching[ownerUid];
+  }
 }
 
 // === v70(APP-DEMO-FRESH): デモ先行＋ワンタップ「サンプルを消して入力する」 ===
@@ -4136,7 +4384,8 @@ function isShowingDemo(){
 function renderDemoBanner(){
   const bar=document.getElementById('demo-banner');
   if(!bar)return;
-  bar.classList.toggle('show', isShowingDemo());
+  // stage-2b: リモート共有ビューでは（自分のデータがデモでも）バナーを出さない
+  bar.classList.toggle('show', isShowingDemo()&&!isRemoteView());
 }
 function startFresh(){
   if(!confirm('サンプル（デモ）を消して、ご自身とご家族の記録を始めますか？\nサンプルは元に戻せません（ご自身のデータはいつでも追加・編集できます）。'))return;
@@ -4217,6 +4466,8 @@ function closeOnboarding(){
   const wasFirstTime=!forceShowOnboarding;
   forceShowOnboarding=false;
   if(wasFirstTime) maybeShowPreviewNudge();
+  // stage-2b: 起動チェーンの末尾で保留中の招待受諾を開く（ナッジ等が開いていればスキップ→そちらの閉じ処理で再試行）
+  maybeOpenPendingInviteAccept();
 }
 function maybeShowPreviewNudge(){
   if(lsGet(PREVIEW_NUDGE_KEY)) return;       // 既出なら出さない
@@ -4227,6 +4478,7 @@ function closePreviewNudge(go){
   lsSet(PREVIEW_NUDGE_KEY,'1');
   closeModalById('preview-nudge-modal');
   if(go) openPreviewModal();
+  else maybeOpenPendingInviteAccept(); // stage-2b: チェーン末尾（プレビューへ進んだ場合は招待導線を邪魔しない）
 }
 function showWelcomeAfterAccept(inviterName){
   document.getElementById('welcome-inviter-name').textContent=inviterName;
@@ -4422,6 +4674,11 @@ function revokeInvitation(id){
   renderInvitations();
 }
 function renderInvitations(){
+  // stage-2b: 受諾入口のラベルをモードで切替（クラウド時は実受諾・デモ時は従来文言のまま）
+  const acceptBtn=document.getElementById('invite-accept-open-btn');
+  if(acceptBtn)acceptBtn.innerHTML=isCloudInviteMode()
+    ?'<i class="ti ti-user-check"></i>招待を受ける（メールのリンクから）'
+    :'<i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）';
   if(isCloudInviteMode()){renderCloudInvitations();return;}
   refreshInvitationStatuses();
   const el=document.getElementById('invitations-list');
@@ -4485,9 +4742,69 @@ async function revokeCloudInvite(token){
   }
 }
 
+// ==================== APP-V2 stage-2b: 受諾フローのクラウド分岐 ====================
+// クラウド接続時（isCloudInviteMode）は acceptInvite callable で実受諾（shares 生成＝閲覧の鍵）。
+// それ以外（cloudSync=false の現行β）は従来どおり端末内モック＝デモ経路を完全温存。
+
+// 招待リンク/貼り付け文字列 → token（32桁hex）。純関数（特性テスト対象）。
+function parseInviteTokenFromHash(hash){
+  const m=/^#invite=([0-9a-f]{32})$/.exec(hash||'');
+  return m?m[1]:null;
+}
+// URL 全体・生 token どちらの貼り付けも許容する寛容版（手動フォールバック用）
+function extractInviteToken(input){
+  const s=(input||'').trim();
+  if(/^[0-9a-f]{32}$/.test(s))return s;
+  const m=/#invite=([0-9a-f]{32})(?![0-9a-f])/.exec(s);
+  return m?m[1]:null;
+}
+// acceptInvite callable エラー → やさしい日本語（純関数・cloudInviteErrorMessage と同パターン）
+function cloudAcceptErrorMessage(err){
+  const code=(err&&(err.code||err.message))||'';
+  if(/permission-denied/.test(code))return '確認コードが正しくないか、入力回数の上限に達しています。メールの6桁コードをもう一度お確かめください。';
+  if(/failed-precondition/.test(code))return 'この招待は使用できません（期限切れ・取消・受諾済みのいずれか）。ご家族に再発行を依頼してください。';
+  if(/not-found/.test(code))return '招待が見つかりませんでした。メールのリンクをもう一度ご確認ください。';
+  if(/unauthenticated/.test(code))return 'クラウドへの再ログインが必要です。設定からログインし直してください。';
+  return '受諾の処理に失敗しました。通信状況をご確認のうえ、もう一度お試しください。';
+}
+let pendingCloudInviteToken=null; // boot() が #invite= から拾う／受諾失敗時の再入力用（メモリのみ）
+let pendingCloudAccept=null;      // {token,otp}: OTP 入力後〜同意完了まで保持（サーバ照合は同意後に一括）
+
+// 起動チェーン（unlock→同意→オンボ→ナッジ）の合間に、保留中の招待受諾を安全に開く。
+// モーダルが開いている間は何もしない＝チェーン側の閉じ処理から再度呼ばれる。
+function maybeOpenPendingInviteAccept(){
+  if(!FEATURES.cloudSync||!pendingCloudInviteToken)return;
+  if(document.querySelector('.modal-bg.open'))return;
+  if(!cloudUser){
+    // リンク済み端末はセッション復元（onAuthStateChanged）待ち＝復元完了時に再試行される
+    if(getCloudLink())return;
+    // 受諾には viewer 自身のアカウントが必要（acceptInvite は要認証）。先にアカウント作成/ログインへ。
+    showToast('招待を受け取るには、先にアカウントの作成（またはログイン）が必要です');
+    openCloudAccountModal();
+    return;
+  }
+  openInviteAcceptModal();
+}
+
 function openInviteAcceptModal(){
   document.getElementById('invite-accept-otp').value='';
   document.getElementById('invite-accept-error').style.display='none';
+  // クラウド接続時のみ: リンク貼り付け欄を表示・サンプルOTPを非表示・文言を実運用向けに
+  const cloud=isCloudInviteMode();
+  const tokenRow=document.getElementById('invite-accept-token-row');
+  const sampleRow=document.getElementById('invite-accept-sample-row');
+  const intro=document.getElementById('invite-accept-intro');
+  const otpLabel=document.getElementById('invite-accept-otp-label');
+  if(tokenRow){
+    tokenRow.style.display=cloud?'':'none';
+    const ti=document.getElementById('invite-accept-token');
+    if(ti)ti.value=pendingCloudInviteToken||'';
+  }
+  if(sampleRow)sampleRow.style.display=cloud?'none':'';
+  if(intro)intro.textContent=cloud
+    ?'メールに届いた招待リンクと確認コード（6桁）をご用意ください。リンクから開いた場合は、確認コードの入力だけで進めます。'
+    :'招待リンクから受け取った OTP（6桁）を入力してください。';
+  if(otpLabel)otpLabel.textContent=cloud?'確認コード（6桁・メールに記載）':'OTP（6桁）';
   openModalById('invite-accept-modal');
 }
 function closeInviteAcceptModal(){
@@ -4498,17 +4815,73 @@ function fillSampleOtp(){
   if(sample)document.getElementById('invite-accept-otp').value=sample.otp;
 }
 function verifyInviteOtp(){
-  refreshInvitationStatuses();
   const otp=document.getElementById('invite-accept-otp').value.trim();
   const errEl=document.getElementById('invite-accept-error');
   errEl.style.display='none';
   if(!/^\d{6}$/.test(otp)){errEl.textContent='6桁の数字を入力してください';errEl.style.display='';return;}
+
+  if(isCloudInviteMode()){
+    // クラウド実経路: token＋OTP の形式チェックのみ行い、サーバ照合は同意取得後の acceptInvite に一任
+    //（OTP 試行回数を同意前に消費しない・OTP検証と受諾はサーバ側トランザクションで原子的）。
+    const rawToken=(document.getElementById('invite-accept-token')||{value:''}).value;
+    const token=extractInviteToken(rawToken)||pendingCloudInviteToken;
+    if(!token){errEl.textContent='メールに記載の招待リンクを貼り付けてください';errEl.style.display='';return;}
+    pendingCloudAccept={token,otp};
+    closeInviteAcceptModal();
+    openConsentModal('ご家族','ご家族',null); // 発行者名は受諾成功後に share から取得（この時点では未知）
+    return;
+  }
+
+  // モック（デモ）経路: 端末内 invitations[] と照合（従来どおり）
+  refreshInvitationStatuses();
   const inv=invitations.find(i=>i.otp===otp && i.status==='pending');
   if(!inv){errEl.textContent='該当する有効な招待が見つかりません（期限切れまたは取消の可能性）';errEl.style.display='';return;}
   // 既存 consent モーダルを呼ぶ（同意 4 件取得 → acceptConsent() で invitations/members 更新）
   closeInviteAcceptModal();
   const inviter=getMember(inv.invitedBy);
   openConsentModal(inviter?inviter.name:'本人',inv.suggestedRelation,inv.id);
+}
+
+// クラウド実受諾: acceptInvite callable（OTP検証＋shares 生成＋consentLog＋owner通知を原子的に実行）
+async function acceptCloudInvite(){
+  const req=pendingCloudAccept;
+  if(!req)return;
+  pendingCloudAccept=null;
+  closeConsentModal();
+  try{
+    const fns=await initCloudFunctions();
+    const res=await cloudFnsMod.httpsCallable(fns,'acceptInvite')({
+      token:req.token,
+      otp:req.otp,
+      termsVersion:TERMS_VERSION,
+      privacyVersion:PRIVACY_VERSION,
+      residencyConfirmed:true,
+      ageConfirmed:true
+    });
+    const data=(res&&res.data)||{};
+    pendingCloudInviteToken=null;
+    // ピル表示用メタのみ端末保存（契約データそのものは保存しない＝データ最小化）
+    upsertSharedOwnerMeta({
+      ownerUid:data.ownerUid,
+      viewerMemberId:data.viewerMemberId,
+      ownerName:data.ownerName||null,
+      acceptedAt:new Date().toISOString()
+    });
+    // ローカル同意ログ（サーバ側 consentLogs は acceptInvite が記録済み・acceptOwnerConsent と同型）
+    try{
+      let log=[];
+      const raw=lsGet(CONSENT_LOG_KEY);if(raw)log=JSON.parse(raw)||[];
+      log.push({ts:new Date().toISOString(),tosVersion:TERMS_VERSION,ppVersion:PRIVACY_VERSION,residency:true,age:true,actor:'viewer',action:'invite-accept-cloud'});
+      lsSet(CONSENT_LOG_KEY,JSON.stringify(log));
+    }catch(e){}
+    loadMyShares().catch(()=>{});
+    showWelcomeAfterAccept(data.ownerName||'ご家族');
+    renderAll();
+  }catch(e){
+    pendingCloudInviteToken=req.token; // 再入力時にリンク欄へ自動充填
+    alert(cloudAcceptErrorMessage(e));
+    openInviteAcceptModal(); // OTP を入れ直せるように受諾モーダルへ戻す
+  }
 }
 
 // Step 6.5: トースト
@@ -4874,7 +5247,10 @@ function doExport(){
   closeExportModal();
   const meName=esc(getMember(MY_ID).name);
   const exportStage=exportMode==='inheritance'?'inheritance':(exportMode==='family'?'full':'live');
-  let filtered=contracts.filter(c=>(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer,exportStage));
+  // stage-2b リモート: 共有ビューの印刷は live 可視分のみ（サーバが可視分だけ返している）
+  let filtered=isRemoteView()
+    ?currentContracts().slice()
+    :contracts.filter(c=>(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer,exportStage));
   // 死後モード（相続判断・完全開示）では「本人のみ」契約を除外。生前モードでは after_only も除外（生前は本人にしか見えない）
   if(exportMode==='inheritance'||exportMode==='family'){
     filtered=filtered.filter(c=>getVisibility(c).mode!=='private');
@@ -4887,7 +5263,9 @@ function doExport(){
   const yearlyTotal=active.reduce((s,c)=>s+yearlyAmount(c),0);
   const dateStr=new Date().toLocaleDateString('ja-JP');
   const modeLabel=exportMode==='self'?'通常版（自分用）':(exportMode==='inheritance'?'相続判断モード（Stage 1）':'完全開示モード（Stage 2）');
-  const ownerLabel=viewOwnerId==='all'?'家族全員':esc(getMember(viewOwnerId).name);
+  const ownerLabel=isRemoteView()
+    ?esc(sharedOwnerDisplayName(currentRemoteOwnerUid()))
+    :(viewOwnerId==='all'?'家族全員':esc(getMember(viewOwnerId).name));
 
   const html=buildExportPrintHtml(active, archived, {meName,dateStr,modeLabel,ownerLabel,monthlyTotal,yearlyTotal,exportMode});
   const w=window.open('','_blank');
@@ -5223,6 +5601,8 @@ function syncMainTabUI(){
   if(fab){
     if(isAssets){fab.innerHTML='<i class="ti ti-plus"></i>保有資産を追加';fab.onclick=openAssetModal;}
     else{fab.innerHTML='<i class="ti ti-plus"></i>契約を追加';fab.onclick=openModal;}
+    // stage-2b: リモート共有ビューは閲覧のみ＝追加 FAB を出さない
+    fab.style.display=isRemoteView()?'none':'';
   }
 }
 function setMainTab(t){
@@ -5236,10 +5616,12 @@ function setMainTab(t){
 function filterAssets(){
   const viewer=currentViewerId();
   const q=(searchQuery||'').trim().toLowerCase();
-  return assets.filter(a=>{
-    if(!canViewContract(a,viewer))return false;
+  const remote=isRemoteView();
+  return currentAssets().filter(a=>{
+    // リモートは owner フィルタ不要・可視性はサーバ（rules）が担保済み
+    if(!remote&&!canViewContract(a,viewer))return false;
     if(viewMode==='archived'){if(!a.archived)return false;}else{if(a.archived)return false;}
-    if(viewOwnerId!=='all'&&a.ownerId!==viewOwnerId)return false;
+    if(!remote&&viewOwnerId!=='all'&&a.ownerId!==viewOwnerId)return false;
     if(q){
       const hay=[a.name,assetTypeInfo(a).label,a.location,a.note].map(x=>String(x||'').toLowerCase()).join(' ');
       if(!hay.includes(q))return false;
@@ -5252,6 +5634,11 @@ function renderAssetList(){
   if(!el)return;
   const list=filterAssets();
   if(!list.length){
+    if(isRemoteView()){
+      const nm=esc(sharedOwnerDisplayName(currentRemoteOwnerUid()));
+      el.innerHTML=`<div class="empty-state"><i class="ti ti-wallet empty-icon"></i>${nm}さんから共有された「保有資産」はまだありません</div>`;
+      return;
+    }
     const who=viewOwnerId==='all'?'家族全員':(getMember(viewOwnerId)?.name||'');
     el.innerHTML=`<div class="empty-state"><i class="ti ti-wallet empty-icon"></i>${esc(who)}の「保有資産」はまだありません<br>下の「保有資産を追加」から、銀行・証券・保険などの<br>会社名や保管場所を残せます（番号は書きません）</div>`;
     return;
@@ -5264,7 +5651,7 @@ function renderAssetList(){
     const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColorStyle}">${esc(ownerName.charAt(0))}</div>`:'';
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     let visIconHtml='';
-    if(!isPreviewing()&&a.ownerId===MY_ID){
+    if(!isPreviewing()&&!isRemoteView()&&a.ownerId===MY_ID){
       const vl=visibilityLabel(a);
       if(vl.key!=='all'){
         const color=vl.key==='private'?'var(--home-private-icon)':'var(--home-selected-icon)';
@@ -5283,7 +5670,7 @@ function renderAssetList(){
   }).join('');
 }
 function showAssetDetail(id){
-  const a=assets.find(x=>x.id===id);
+  const a=currentAssets().find(x=>x.id===id);
   if(!a)return;
   editingAssetId=id;
   const ti=assetTypeInfo(a);
@@ -5300,14 +5687,16 @@ function showAssetDetail(id){
         <div style="font-size:11px;color:var(--color-text-secondary)">${esc(ti.label)} · ${esc(ownerName)}</div>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary,#F4F2EC);padding:7px 10px;border-radius:6px;margin-bottom:12px"><i class="ti ${vl.icon}"></i> ${esc(vl.text)}</div>
+    ${isRemoteView()
+      ?`<div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary,#F4F2EC);padding:7px 10px;border-radius:6px;margin-bottom:12px"><i class="ti ti-users"></i> ${esc(ownerName)}さんから共有（閲覧のみ）</div>`
+      :`<div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary,#F4F2EC);padding:7px 10px;border-radius:6px;margin-bottom:12px"><i class="ti ${vl.icon}"></i> ${esc(vl.text)}</div>`}
     ${row('保管場所',a.location)}
     ${telRow}
     ${urlRow}
     ${row('メモ',a.note)}
-    <div class="detail-actions" style="margin-top:10px">${a.archived
+    ${isRemoteView()?'':`<div class="detail-actions" style="margin-top:10px">${a.archived
       ?`<button onclick="restoreAsset(${a.id})"><i class="ti ti-arrow-back-up"></i>利用中に戻す</button>`
-      :`<button class="btn-archive" onclick="archiveAsset(${a.id})"><i class="ti ti-archive"></i>解約済みに</button>`}<button class="btn-danger" onclick="deleteAsset(${a.id})"><i class="ti ti-trash"></i>削除</button></div>
+      :`<button class="btn-archive" onclick="archiveAsset(${a.id})"><i class="ti ti-archive"></i>解約済みに</button>`}<button class="btn-danger" onclick="deleteAsset(${a.id})"><i class="ti ti-trash"></i>削除</button></div>`}
   </div>`;
   document.getElementById('screen-list').classList.add('hidden');
   document.getElementById('screen-asset-detail').classList.remove('hidden');
@@ -6030,6 +6419,21 @@ async function boot(){
   // APP-V2-AUTH(v95): クラウドアカウントにリンク済みのユーザーのみ、裏で SDK を読みセッション復元。
   // 非await＋失敗握り潰し＝既存の起動チェーン（unlock→同意→オンボーディング）とオフライン起動に影響しない。
   if(FEATURES.cloudSync && getCloudLink())initCloudAuth().catch(()=>{});
+  // APP-V2 stage-2b: 招待リンク（#invite=<token>）の受け口。cloudSync=false では完全無視（休眠）。
+  // token は履歴/ブックマークに残さないよう即 hash を除去し、メモリ保持のみ。
+  if(FEATURES.cloudSync){
+    const inviteToken=parseInviteTokenFromHash(location.hash);
+    if(inviteToken){
+      pendingCloudInviteToken=inviteToken;
+      try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+      if(!getCloudLink())initCloudAuth().catch(()=>{}); // 未リンク端末でも受諾にはアカウントが要る＝SDK を先読み
+      // 起動チェーン（unlock→同意→オンボ→ナッジ）が開いていなければ即、開いていれば各閉じ処理から再試行
+      maybeOpenPendingInviteAccept();
+      if(document.querySelector('.modal-bg.open')){
+        showToast('ご家族からの招待が届いています。画面の案内のあとに続きます');
+      }
+    }
+  }
 }
 boot();
 

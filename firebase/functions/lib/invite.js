@@ -64,13 +64,17 @@ function toOwnerInviteView(doc) {
 }
 
 // share ドキュメント（firestore.rules の canViewLive が参照する viewerMemberId を保持）。
-function buildShareDoc({ ownerUid, viewerUid, viewerMemberId, acceptedAtMs }) {
+// ownerName: 受諾時点の owner 表示名スナップショット（stage-2b）。viewer は rules 上
+// owner の members/プロフィールを読めないため、当事者 read 可の share に転写して
+// ピル表示名に使う。owner が members/m1 未ミラーなら null（クライアントは「ご家族」表示）。
+function buildShareDoc({ ownerUid, viewerUid, viewerMemberId, acceptedAtMs, ownerName }) {
   return stripUndefined({
     ownerUid,
     viewerUid,
     viewerMemberId,
     status: 'accepted',
     acceptedAtMs,
+    ownerName: ownerName || null,
   });
 }
 

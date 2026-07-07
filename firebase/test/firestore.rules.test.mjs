@@ -16,7 +16,10 @@ import {
   assertSucceeds,
   assertFails,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import {
+  doc, getDoc, setDoc, deleteDoc,
+  collection, query, where, getDocs,
+} from 'firebase/firestore';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RULES = readFileSync(join(__dirname, '..', 'firestore.rules'), 'utf8');
@@ -191,4 +194,110 @@ test('14c. shares は当事者のみ read 可', async () => {
   await assertSucceeds(getDoc(doc(ownerDb(), `shares/${OWNER}_${FAM}`)));   // owner
   await assertSucceeds(getDoc(doc(famDb(), `shares/${OWNER}_${FAM}`)));     // viewer
   await assertFails(getDoc(doc(strangerDb(), `shares/${OWNER}_${FAM}`)));   // 第三者
+});
+
+// ============================================================================
+// stage-2b: viewer の list クエリ（cross-account read）
+//   list ルールはクエリフィルタからの静的証明が必要。クライアントの実クエリと
+//   同形のクエリで検証する（Q-A: mode=='all' / Q-B: selected+array-contains）。
+// ============================================================================
+
+// viewer が実際に発行する2クエリ
+const qAll = (db) => query(
+  collection(db, `users/${OWNER}/contracts`),
+  where('visibility.mode', '==', 'all'),
+);
+const qSelected = (db, mid) => query(
+  collection(db, `users/${OWNER}/contracts`),
+  where('visibility.mode', '==', 'selected'),
+  where('visibility.liveViewers', 'array-contains', mid),
+);
+
+test('15a. 承諾 share ＋ Q-A（mode all クエリ）→ list できる', async () => {
+  await seedShare('accepted');
+  await seedContract('c1', { mode: 'all', liveViewers: [], afterViewers: [] });
+  await seedContract('c2', { mode: 'private', liveViewers: [], afterViewers: [] });
+  const snap = await assertSucceeds(getDocs(qAll(famDb())));
+  assert.equal(snap.size, 1); // private はクエリ条件で除外され all のみ
+});
+
+test('15b. 承諾 share ＋ Q-B（selected＋array-contains 自分の memberId）→ list できる', async () => {
+  await seedShare('accepted', FAM_MID);
+  await seedContract('c1', { mode: 'selected', liveViewers: [FAM_MID], afterViewers: [] });
+  await seedContract('c2', { mode: 'selected', liveViewers: ['m3'], afterViewers: [] });
+  const snap = await assertSucceeds(getDocs(qSelected(famDb(), FAM_MID)));
+  assert.equal(snap.size, 1); // 自分が対象の契約のみ
+});
+
+test('15c. フィルタ無しの全件 list は拒否（証明不能）', async () => {
+  await seedShare('accepted');
+  await seedContract('c1', { mode: 'all', liveViewers: [], afterViewers: [] });
+  await assertFails(getDocs(collection(famDb(), `users/${OWNER}/contracts`)));
+});
+
+test('15d. share 無し/revoked では Q-A も拒否', async () => {
+  await seedContract('c1', { mode: 'all', liveViewers: [], afterViewers: [] });
+  await assertFails(getDocs(qAll(famDb())));           // share なし
+  await seedShare('revoked');
+  await assertFails(getDocs(qAll(famDb())));           // revoked
+});
+
+test('15e. Q-B で share の viewerMemberId と異なる memberId を指定 → 拒否', async () => {
+  await seedShare('accepted', FAM_MID); // share 上の自分は m2
+  await seedContract('c1', { mode: 'selected', liveViewers: ['m3'], afterViewers: [] });
+  await assertFails(getDocs(qSelected(famDb(), 'm3'))); // 他人の memberId でのなりすましクエリ
+});
+
+test('15f. mode private を対象にした list クエリは拒否', async () => {
+  await seedShare('accepted');
+  await seedContract('c1', { mode: 'private', liveViewers: [], afterViewers: [] });
+  await assertFails(getDocs(query(
+    collection(famDb(), `users/${OWNER}/contracts`),
+    where('visibility.mode', '==', 'private'),
+  )));
+});
+
+test('15g. 本人はフィルタ無し全件 list 可（従来どおり）', async () => {
+  await seedContract('c1', { mode: 'private', liveViewers: [], afterViewers: [] });
+  const snap = await assertSucceeds(getDocs(collection(ownerDb(), `users/${OWNER}/contracts`)));
+  assert.equal(snap.size, 1);
+});
+
+// ---- shares の list クエリ（フィールドベース化の検証） ----
+test('16a. viewer は自分宛て shares を where(viewerUid==自分) で list できる', async () => {
+  await seedShare('accepted');
+  const snap = await assertSucceeds(getDocs(query(
+    collection(famDb(), 'shares'),
+    where('viewerUid', '==', FAM),
+    where('status', '==', 'accepted'),
+  )));
+  assert.equal(snap.size, 1);
+});
+
+test('16b. 第三者は他人宛て shares を list できない', async () => {
+  await seedShare('accepted');
+  await assertFails(getDocs(query(
+    collection(strangerDb(), 'shares'),
+    where('viewerUid', '==', FAM),
+  )));
+});
+
+test('16c. owner は自分発行の shares を where(ownerUid==自分) で list できる', async () => {
+  await seedShare('accepted');
+  const snap = await assertSucceeds(getDocs(query(
+    collection(ownerDb(), 'shares'),
+    where('ownerUid', '==', OWNER),
+  )));
+  assert.equal(snap.size, 1);
+});
+
+// ---- assets の list（contracts と同型） ----
+test('17. 承諾 share ＋ assets Q-A → list でき、private は載らない', async () => {
+  await seedShare('accepted');
+  await seedAsset('a1', { mode: 'all', liveViewers: [], afterViewers: [] });
+  const snap = await assertSucceeds(getDocs(query(
+    collection(famDb(), `users/${OWNER}/assets`),
+    where('visibility.mode', '==', 'all'),
+  )));
+  assert.equal(snap.size, 1);
 });

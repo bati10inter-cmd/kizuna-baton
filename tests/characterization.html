@@ -131,9 +131,11 @@
       ], [true, true, true, true]));
       // APP-V2-SYNC P2b(v96): buildCloudDocs＝状態→Firestore doc群（純関数・ネットワーク不要）
       // 検証点: String(id)キー / undefined除去（Firestoreはundefined値を拒否） / '/'入りカテゴリ名はdocIDでなくdata / deep-copy / manifest形
+      // stage-2b(v99): contracts/assets の visibility は getVisibility() 正規化で必ず書く
+      //（家族の list read は where('visibility.mode',…) クエリ＝未設定 doc はクエリに載らないため）
       add('T24', () => {
         const input = {
-          contracts: [{id:1,name:'A',cat:'保険',ownerId:'m1',cardId:undefined},{id:2,name:'B',cat:'x/y',ownerId:'m2'}],
+          contracts: [{id:1,name:'A',cat:'保険',ownerId:'m1',cardId:undefined},{id:2,name:'B',cat:'x/y',ownerId:'m2',visibility:{mode:'selected',liveViewers:['m2']}}],
           members: [{id:'m1',name:'あ'}],
           categories: ['保険','x/y'],
           assets: [{id:5,type:'bank'}],
@@ -147,10 +149,18 @@
           ('cardId' in out.docs.contracts['1']),
           out.docs.categories.list.list.length === 3 && input.categories.length === 2, // deep-copy（出力書換が入力に波及しない）
           input.contracts[0].name === 'A',
-          out.manifest
+          out.manifest,
+          out.docs.contracts['1'].visibility,                       // 未設定 → all 正規化
+          out.docs.contracts['2'].visibility,                       // 部分指定 → 欠損フィールド補完
+          out.docs.assets['5'].visibility,                          // assets も同様に正規化
+          input.contracts[1].visibility.afterViewers === undefined  // 正規化が入力へ波及しない
         ], [
           ['1','2'], false, true, true,
-          {contracts:['1','2'],assets:['5'],cards:['3'],members:['m1'],categories:['list']}
+          {contracts:['1','2'],assets:['5'],cards:['3'],members:['m1'],categories:['list']},
+          {mode:'all',liveViewers:[],afterViewers:[]},
+          {mode:'selected',liveViewers:['m2'],afterViewers:[]},
+          {mode:'all',liveViewers:[],afterViewers:[]},
+          true
         ]);
       });
       // APP-V2-SYNC P2b(v96): diffCloudManifest＝削除差分（純関数・prev null対応）
@@ -174,6 +184,33 @@
         W.cloudSyncErrorMessage({code:'permission-denied'}).includes('ログイン'),
         W.cloudSyncErrorMessage(null).includes('うまく保存できませんでした')
       ], ['', '保存待ちの変更があります', '最終保存: 7月15日 09:05', true, true, true, true]));
+
+      // APP-V2 stage-2b(v99): 招待リンク token 抽出＋受諾エラー文言（純関数・ネットワーク不要）
+      add('T27', () => {
+        const TOK = 'a'.repeat(32);
+        assertDeepEqual([
+          W.parseInviteTokenFromHash('#invite=' + TOK),
+          W.parseInviteTokenFromHash('#invite=short'),          // 32桁hex以外は不可
+          W.parseInviteTokenFromHash(''),
+          W.parseInviteTokenFromHash(null),
+          W.extractInviteToken(TOK),                            // 生 token
+          W.extractInviteToken('  ' + TOK + '  '),              // 前後空白許容
+          W.extractInviteToken('https://x.github.io/app.html#invite=' + TOK), // URL全体貼付
+          W.extractInviteToken('#invite=' + TOK + 'ff'),        // 34桁は不一致（境界チェック）
+          W.extractInviteToken('でたらめ'),
+          W.cloudAcceptErrorMessage({code:'functions/permission-denied'}).includes('確認コード'),
+          W.cloudAcceptErrorMessage({code:'functions/failed-precondition'}).includes('再発行'),
+          W.cloudAcceptErrorMessage({code:'functions/not-found'}).includes('リンク'),
+          W.cloudAcceptErrorMessage(null).includes('もう一度'),
+          W.sharedOwnerColor('uidAbc') === W.sharedOwnerColor('uidAbc'), // 決定的
+          /^#[0-9A-Fa-f]{6}$/.test(W.sharedOwnerColor('uidXyz'))         // PALETTE の hex
+        ], [
+          TOK, null, null, null,
+          TOK, TOK, TOK, null, null,
+          true, true, true, true,
+          true, true
+        ]);
+      });
 
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
       snapshots.S02 = {

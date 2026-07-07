@@ -17,6 +17,9 @@ const INVITE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 // β版で許可する関係性（3区分のみ・invitation-flow-design.md §2）
 const ALLOWED_RELATIONS = ['配偶者', '子', '親'];
+// owner 本人の memberId（クライアント MY_ID='m1' 固定と対）。
+// owner の表示名は users/{ownerUid}/members/m1 の name から取得する。
+const OWNER_MEMBER_ID = 'm1';
 // users/{uid} 配下のサブコレクション一覧（APP-V2-ACCOUNT-DELETE）。
 // recursiveDelete が実削除を担うため網羅必須ではないが、テストの seed/検証と共有する正のリスト。
 const USER_SUBCOLLECTIONS = [
@@ -34,5 +37,6 @@ module.exports = {
   INVITE_EXPIRY_MS,
   OTP_MAX_ATTEMPTS,
   ALLOWED_RELATIONS,
+  OWNER_MEMBER_ID,
   USER_SUBCOLLECTIONS,
 };
