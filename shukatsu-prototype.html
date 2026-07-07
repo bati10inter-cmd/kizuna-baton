@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v97</title>
+<title>きずなbaton プロトタイプ v98</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -949,7 +949,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
       <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">プレビュー</div>
-        <button onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す</button>
+        <button onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）</button>
       </div>
       <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
@@ -1187,6 +1187,12 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <label>呼び名（受諾者が変更可）</label>
           <input type="text" id="invite-suggested-name" placeholder="例: 美咲" maxlength="20">
         </div>
+        <!-- APP-V2 stage-2a: クラウド接続時のみ表示（招待先メール＝OTP 送信先） -->
+        <div class="form-row" id="invite-email-row" style="display:none">
+          <label>招待先のメールアドレス</label>
+          <input type="email" id="invite-email" placeholder="例: sister@example.com" maxlength="254" inputmode="email" autocomplete="off">
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:3px;line-height:1.6">確認コード（6桁）はこのアドレスへ自動送信されます。あなたには表示されません。</div>
+        </div>
         <div class="form-row">
           <label>関係性（β版は3区分）</label>
           <div id="invite-relation-radios" style="display:flex;gap:6px;margin-top:4px">
@@ -1194,6 +1200,12 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
             <label style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:12px;text-align:center;cursor:pointer"><input type="radio" name="invite-relation" value="子" style="margin-right:4px">子</label>
             <label style="flex:1;padding:7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:12px;text-align:center;cursor:pointer"><input type="radio" name="invite-relation" value="親" style="margin-right:4px">親</label>
           </div>
+        </div>
+        <!-- APP-V2 stage-2a: クラウド接続時のみ表示（公開範囲「選択した家族」の紐付け先スロット） -->
+        <div class="form-row" id="invite-member-row" style="display:none">
+          <label>どの家族として招待するか（任意）</label>
+          <select id="invite-member" style="width:100%;padding:8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background);color:var(--color-text-primary);font-size:13px"></select>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:3px;line-height:1.6">公開範囲を「選択した家族」にした契約は、ここで選んだ家族にだけ表示されます。未選択でも「すべての家族に表示」の契約は共有されます。</div>
         </div>
         <!-- §4.1.2 注記 -->
         <div style="background:#FFF8E1;border-left:3px solid #E0B43D;padding:9px 11px;border-radius:3px;font-size:11px;color:#754C00;margin-top:10px;line-height:1.7">
@@ -1216,9 +1228,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
           <div id="invite-result-url" style="font-family:var(--font-mono);font-size:10px;background:var(--color-background-secondary);padding:8px 10px;border-radius:var(--border-radius-md);word-break:break-all;flex:1"></div>
           <button onclick="copyInviteUrl()" title="招待URLをコピー" style="flex-shrink:0;padding:0 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-copy"></i>コピー</button>
         </div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">OTP（6桁・有効7日）</div>
-        <div id="invite-result-otp" style="font-family:var(--font-mono);font-size:20px;letter-spacing:6px;text-align:center;background:var(--color-background-secondary);padding:12px;border-radius:var(--border-radius-md);margin-bottom:10px"></div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.6;margin-bottom:10px">OTP は招待先メールへの到達確認のみを目的としており、身元保証ではありません（ToS 6.5.3）。</div>
+        <!-- モック（デモ）経路のみ OTP を画面表示。クラウド実経路では OTP は招待先メールへ送信され、ここは非表示 -->
+        <div id="invite-result-otp-block">
+          <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">OTP（6桁・有効7日）</div>
+          <div id="invite-result-otp" style="font-family:var(--font-mono);font-size:20px;letter-spacing:6px;text-align:center;background:var(--color-background-secondary);padding:12px;border-radius:var(--border-radius-md);margin-bottom:10px"></div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.6;margin-bottom:10px">OTP は招待先メールへの到達確認のみを目的としており、身元保証ではありません（ToS 6.5.3）。</div>
+        </div>
+        <!-- クラウド実経路: OTP は相手メールへ送信済み -->
+        <div id="invite-result-mail-note" style="display:none;font-size:11px;color:#137A57;line-height:1.7;background:var(--color-background-secondary);padding:10px 12px;border-radius:var(--border-radius-md);margin-bottom:10px"><i class="ti ti-mail-check"></i> 確認コード（6桁）を招待先のメールアドレスへ送信しました。上の招待リンクをLINE/メール等でご家族に送ってください（コードはご家族がメールで受け取ります）。</div>
       </div>
     </div>
   </div>
@@ -4253,11 +4270,39 @@ function checkInvitationLimits(){
   return null;
 }
 
+// APP-V2 stage-2a: クラウド接続（アカウント有＋cloudSync）時は招待をサーバ callable で実発行。
+// それ以外（現行β・cloudSync=false）は従来どおり端末内モック（デモ）で動作。
+function isCloudInviteMode(){return !!(FEATURES.cloudSync && cloudUser);}
+function populateInviteMemberSelect(){
+  const sel=document.getElementById('invite-member');
+  if(!sel)return;
+  const opts=['<option value="">（自動で作成）</option>'];
+  members.filter(m=>m.id!==MY_ID).forEach(m=>{
+    opts.push(`<option value="${esc(m.id)}">${esc(m.name)}</option>`);
+  });
+  sel.innerHTML=opts.join('');
+}
+// callable 招待エラー → やさしい日本語（cloudAuthErrorMessage と同パターン）
+function cloudInviteErrorMessage(err){
+  const code=(err&&(err.code||err.message))||'';
+  if(/resource-exhausted/.test(code))return '招待の発行上限に達しています。しばらくしてからお試しください。';
+  if(/invalid-argument/.test(code))return '入力内容をご確認ください（メールアドレス・関係性など）。';
+  if(/unauthenticated/.test(code))return 'クラウドへの再ログインが必要です。設定からログインし直してください。';
+  return '招待の処理に失敗しました。通信状況をご確認のうえ、もう一度お試しください。';
+}
 function openInviteIssueModal(){
   document.getElementById('invite-issue-form').style.display='';
   document.getElementById('invite-issue-result').style.display='none';
   document.getElementById('invite-suggested-name').value='';
+  const emailEl=document.getElementById('invite-email');if(emailEl)emailEl.value='';
   document.querySelectorAll('input[name="invite-relation"]').forEach(r=>r.checked=false);
+  // クラウド接続時のみメール欄・メンバー選択を表示（モック経路では従来どおり非表示）
+  const cloud=isCloudInviteMode();
+  const emailRow=document.getElementById('invite-email-row');
+  const memberRow=document.getElementById('invite-member-row');
+  if(emailRow)emailRow.style.display=cloud?'':'none';
+  if(memberRow)memberRow.style.display=cloud?'':'none';
+  if(cloud)populateInviteMemberSelect();
   const msg=document.getElementById('invite-limit-msg');
   const limitErr=checkInvitationLimits();
   const issueBtn=document.getElementById('invite-issue-btn');
@@ -4283,6 +4328,44 @@ function issueInvitation(){
   if(!relationEl){alert('関係性を選択してください');return;}
   const relation=relationEl.value;
   if(!FAMILY_LABELS_BETA.includes(relation)){alert('β版では配偶者・子・親のみ選択可能です');return;}
+
+  const otpBlock=document.getElementById('invite-result-otp-block');
+  const mailNote=document.getElementById('invite-result-mail-note');
+
+  if(isCloudInviteMode()){
+    // クラウド実経路: サーバ callable で発行。OTP は招待先メールへ送信され画面には出さない。
+    const email=(document.getElementById('invite-email').value||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('招待先のメールアドレスを入力してください');return;}
+    const memberId=(document.getElementById('invite-member').value||'').trim();
+    const btn=document.getElementById('invite-issue-btn');
+    if(btn){btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';}
+    (async()=>{
+      try{
+        const fns=await initCloudFunctions();
+        const res=await cloudFnsMod.httpsCallable(fns,'issueInvite')({
+          inviteeEmail:email,
+          suggestedName:name,
+          suggestedRelation:relation,
+          memberId:memberId||undefined
+        });
+        const data=(res&&res.data)||{};
+        const link=data.inviteLink||`https://kizuna-baton.example/invite/${data.token||''}`;
+        document.getElementById('invite-issue-form').style.display='none';
+        document.getElementById('invite-issue-result').style.display='';
+        document.getElementById('invite-result-url').textContent=link;
+        if(otpBlock)otpBlock.style.display='none';
+        if(mailNote)mailNote.style.display='';
+        renderInvitations();
+      }catch(e){
+        alert(cloudInviteErrorMessage(e));
+      }finally{
+        if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
+      }
+    })();
+    return;
+  }
+
+  // モック（デモ）経路: 端末内で発行し OTP を画面表示（cloudSync=false の現行β・自己完結デモ）
   const token=genInviteToken();
   const otp=genOtp6();
   const now=new Date();
@@ -4308,6 +4391,8 @@ function issueInvitation(){
   document.getElementById('invite-issue-result').style.display='';
   document.getElementById('invite-result-url').textContent=`https://kizuna-baton.example/invite/${token}`;
   document.getElementById('invite-result-otp').textContent=otp;
+  if(otpBlock)otpBlock.style.display='';
+  if(mailNote)mailNote.style.display='none';
 }
 // v45: 招待URLをワンタッチコピー（本番httpsはClipboard API、非対応環境はtextarea+execCommandでフォールバック）
 async function copyInviteUrl(){
@@ -4337,6 +4422,7 @@ function revokeInvitation(id){
   renderInvitations();
 }
 function renderInvitations(){
+  if(isCloudInviteMode()){renderCloudInvitations();return;}
   refreshInvitationStatuses();
   const el=document.getElementById('invitations-list');
   if(!el)return;
@@ -4356,6 +4442,47 @@ function renderInvitations(){
       <button data-iid="${esc(inv.id)}" onclick="revokeInvitation(this.dataset.iid)" title="招待を取消" style="padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid #F09595;background:transparent;color:#A32D2D;font-size:11px;cursor:pointer"><i class="ti ti-x"></i></button>
     </div>`;
   }).join('');
+}
+
+// APP-V2 stage-2a: クラウド実経路の未受諾一覧＝サーバ listInvites（OTP 抜き）を取得して描画。
+async function renderCloudInvitations(){
+  const el=document.getElementById('invitations-list');
+  if(!el)return;
+  el.innerHTML='<div style="font-size:11px;color:var(--color-text-tertiary);padding:6px 0">読み込み中…</div>';
+  try{
+    const fns=await initCloudFunctions();
+    const res=await cloudFnsMod.httpsCallable(fns,'listInvites')({});
+    const pending=((res&&res.data&&res.data.invites)||[]).filter(i=>i.status==='pending');
+    if(pending.length===0){
+      el.innerHTML='<div style="font-size:11px;color:var(--color-text-tertiary);padding:6px 0">未受諾の招待はありません</div>';
+      return;
+    }
+    el.innerHTML=pending.map(inv=>{
+      const remainMs=(inv.expiresAtMs||0)-nowMs();
+      const remainDays=Math.max(0,Math.ceil(remainMs/(24*60*60*1000)));
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:var(--color-text-primary)">${esc(inv.suggestedName||'ご家族')} <span style="font-size:10px;color:var(--color-text-tertiary)">（${esc(inv.suggestedRelation||'')}）</span></div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px"><i class="ti ti-clock" style="font-size:10px"></i> 残り${remainDays}日 · 確認コードはメール送信済み</div>
+        </div>
+        <button data-tok="${esc(inv.token)}" onclick="revokeCloudInvite(this.dataset.tok)" title="招待を取消" style="padding:5px 8px;border-radius:var(--border-radius-md);border:0.5px solid #F09595;background:transparent;color:#A32D2D;font-size:11px;cursor:pointer"><i class="ti ti-x"></i></button>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="font-size:11px;color:#A32D2D;padding:6px 0">招待一覧を取得できませんでした</div>';
+  }
+}
+async function revokeCloudInvite(token){
+  if(!token)return;
+  if(!confirm('この招待を取り消しますか？'))return;
+  try{
+    const fns=await initCloudFunctions();
+    await cloudFnsMod.httpsCallable(fns,'revokeInvite')({token});
+    showToast('招待を取り消しました');
+    renderInvitations();
+  }catch(e){
+    alert(cloudInviteErrorMessage(e));
+  }
 }
 
 function openInviteAcceptModal(){

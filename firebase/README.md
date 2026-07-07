@@ -36,6 +36,12 @@ npx firebase emulators:start --only auth --project demo-kizuna-baton
 4. `shukatsu-prototype.html` の `FIREBASE_CONFIG`（`__FIREBASE_API_KEY__` 等のプレースホルダ）へ差し込む（Claude に貼り付けで依頼可。apiKey は公開可能な識別子＝秘密情報ではない）
 5. **Blaze（従量課金）への切替は P3（Cloud Functions）着手時でよい**。P1（Auth）・P2（Firestore）は無料の Spark プランで動く。切替時もエミュレータ・小規模利用なら実費ほぼ ¥0（budget アラート設定を推奨）
 
+### Firestore ロケーション（APP-V2-FIREBASE-REGION・確定）
+
+- **`asia-northeast1`（東京）＝日本国内保管**（2026-07-07 オーナーが実プロジェクトで作成・Standard エディション・本番モード）。**ロケーションは作成後変更不可**。
+- 越境（個情法28条）への含意＝**契約・資産・カード会社名/下4桁・メモ・家族メッセージ等の本体は日本国内**。一方 **Firebase Authentication はリージョン選択不可＝Google グローバル基盤（米国想定）にメール/uid 等の認証情報のみ保管**＝この部分だけ国外が残る。
+- 28条は「外国にある第三者」該当が **事業者所在（Google LLC＝米国法人）** で判断されうるため、東京保管でも検討自体は残る＝**基準適合体制ルート（Google Cloud DPA を相当措置と整理し国名(米国)・制度概要・措置を自前開示）** で対応（LEG-CROSSBORDER・個人開発スケールで弁護士不要の方針）。PP v4.0 第7条3項は「Firestore＝東京(国内)／Authentication＝Google(国外・限定情報)」の2分割で記述する。
+
 ## 動作確認の手順（P1）
 
 1. 上記でエミュレータ起動

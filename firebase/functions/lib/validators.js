@@ -55,10 +55,24 @@ function validateVersion(raw, label) {
   return { ok: true, value: v };
 }
 
+// 招待先メンバー ID: アプリの member スキーム（'m2' 等）に対応させ、rules の
+// liveViewers（'m2'）照合を一致させるための任意引数。未指定なら空文字を返し、
+// 呼び出し側でサーバ auto-id 採番へフォールバックする（後方互換）。
+// owner 名前空間の doc ID になるため '/' 等を含まない厳格な形式のみ許容する。
+function validateMemberId(raw) {
+  const v = typeof raw === 'string' ? raw.trim() : '';
+  if (!v) return { ok: true, value: '' };
+  if (!/^m[0-9]{1,9}$/.test(v)) {
+    return { ok: false, message: 'メンバー ID の形式が正しくありません。' };
+  }
+  return { ok: true, value: v };
+}
+
 module.exports = {
   validateEmail,
   validateRelation,
   validateName,
   validateOtpInput,
   validateVersion,
+  validateMemberId,
 };

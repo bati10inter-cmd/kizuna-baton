@@ -1,0 +1,11 @@
+# Cloud Functions ローカル設定・依存（コミットしない）
+node_modules/
+
+# 環境変数（.env.example のみコミット・実 .env は非コミット）
+.env
+.env.local
+.env.*.local
+
+# Firebase Functions ランタイムログ
+*.log
+.runtimeconfig.json

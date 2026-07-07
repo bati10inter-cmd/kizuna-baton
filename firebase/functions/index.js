@@ -13,7 +13,12 @@
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { setGlobalOptions } = require('firebase-functions/v2');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+
+// SendGrid API キー（本番のメール送信）。値はリポジトリに置かず Firebase Secret で管理し、
+// 実送信を行う issueInvite にのみ bind する（下記 onCall options）。
+const SENDGRID_API_KEY = defineSecret('SENDGRID_API_KEY');
 
 const { INVITE_EXPIRY_MS, OTP_MAX_ATTEMPTS } = require('./lib/constants');
 const { genInviteToken, genOtp6, hashOtp, verifyOtp } = require('./lib/otp');
@@ -23,6 +28,7 @@ const {
   validateName,
   validateOtpInput,
   validateVersion,
+  validateMemberId,
 } = require('./lib/validators');
 const { checkIssueAllowed } = require('./lib/rateLimit');
 const {
@@ -64,7 +70,8 @@ function badInput(message) {
 }
 
 // ---- issueInvite（owner が招待を発行）----------------------------------------
-exports.issueInvite = onCall(async (request) => {
+// SENDGRID_API_KEY を bind＝実送信時のみ Secret を process.env で参照可能にする。
+exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) => {
   const ownerUid = requireUid(request);
   const data = request.data || {};
 
@@ -74,6 +81,10 @@ exports.issueInvite = onCall(async (request) => {
   if (!relation.ok) throw badInput(relation.message);
   const name = validateName(data.suggestedName, 'ご家族');
   if (!name.ok) throw badInput(name.message);
+  // 招待先メンバー ID（任意）。クライアントが既存 member スロット（'m2' 等）を渡すと
+  // rules の liveViewers 照合が一致する。未指定はサーバ auto-id へフォールバック。
+  const memberIdInput = validateMemberId(data.memberId);
+  if (!memberIdInput.ok) throw badInput(memberIdInput.message);
 
   // レート制限: owner の既存招待を集計（pending+accepted ≤5 / 24h ≤3）。
   const snap = await db
@@ -91,12 +102,12 @@ exports.issueInvite = onCall(async (request) => {
   const token = genInviteToken();
   const otp = genOtp6();
 
-  // owner 名前空間に招待先メンバーを採番（auto-id）。rules の viewerMemberId ブリッジ用。
-  const memberRef = db
-    .collection('users')
-    .doc(ownerUid)
-    .collection('members')
-    .doc();
+  // owner 名前空間の招待先メンバー。クライアント指定の member id があればそれを、
+  // 無ければ auto-id を採番（rules の viewerMemberId↔liveViewers ブリッジ用）。
+  const membersCol = db.collection('users').doc(ownerUid).collection('members');
+  const memberRef = memberIdInput.value
+    ? membersCol.doc(memberIdInput.value)
+    : membersCol.doc();
   const viewerMemberId = memberRef.id;
 
   const inviteDoc = buildInviteDoc({
@@ -113,13 +124,18 @@ exports.issueInvite = onCall(async (request) => {
 
   const batch = db.batch();
   batch.set(db.collection('invitations').doc(token), inviteDoc);
-  batch.set(memberRef, {
-    name: name.value,
-    suggestedRelation: relation.value,
-    status: 'pending',
-    invitedVia: token,
-    createdAtMs: now,
-  });
+  // merge: クライアント指定の既存 member スロット（mirror 済の color/name 等）を保持する。
+  batch.set(
+    memberRef,
+    {
+      name: name.value,
+      suggestedRelation: relation.value,
+      status: 'pending',
+      invitedVia: token,
+      createdAtMs: now,
+    },
+    { merge: true }
+  );
   await batch.commit();
 
   // OTP を招待先メールへ（到達確認）。owner には返さない。
