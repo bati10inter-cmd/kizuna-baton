@@ -242,6 +242,34 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
 </head>
 <body>
 
+<!-- ===== 規約改定 告知バナー（v100 / C5・APP-V2-PP-PRIVACY） ===== -->
+<!-- Path A: クラウド保存は完全オプトイン＝有効化時の個別同意でPP第17条2項ただし書きにより30日前通知に代替。
+     バナーは「継続的な告知」を担う（閉じても footer の恒久リンクが残る＝Fable L-3）。 -->
+<div id="policy-update-banner" style="display:none;background:var(--bg-warm);border-bottom:1px solid var(--border-strong);color:var(--text);font-size:13px;line-height:1.7">
+  <div class="container" style="display:flex;align-items:flex-start;gap:12px;padding:10px 20px">
+    <i class="ti ti-bell" style="color:var(--accent);flex-shrink:0;margin-top:2px"></i>
+    <div style="flex:1">
+      <strong>利用規約（v3.3.0）・プライバシーポリシー（v4.0）を改定しました。</strong>
+      端末間でご自身のデータを同期できる<strong>「クラウド保存」機能（任意・オプトイン）</strong>の追加によるものです。データの保存場所はこれまでと変わりません（お使いの端末の中だけ）。ご自身で「アカウントの作成」と「クラウド保存の有効化」の両方を行ったときにのみ、クラウドにも保存されます。
+      <a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">プライバシーポリシー</a> ・
+      <a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">利用規約</a>
+    </div>
+    <button type="button" onclick="dismissPolicyBanner()" aria-label="閉じる" style="flex-shrink:0;background:transparent;border:none;color:var(--text-sub);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px"><i class="ti ti-x"></i></button>
+  </div>
+</div>
+<script>
+  // 改定告知バナー: 一度閉じたら再表示しない（localStorage）。閉じても footer に恒久リンクを残す。
+  (function(){
+    var KEY='kizuna-baton:lp-policy-banner:v4.0';
+    var el=document.getElementById('policy-update-banner');
+    try{ if(!localStorage.getItem(KEY)) el.style.display=''; }catch(e){ el.style.display=''; }
+    window.dismissPolicyBanner=function(){
+      el.style.display='none';
+      try{ localStorage.setItem(KEY,'1'); }catch(e){}
+    };
+  })();
+</script>
+
 <!-- ===== Header ===== -->
 <header class="header">
   <div class="header-inner">
@@ -715,11 +743,17 @@ footer{background:var(--bg);border-top:1px solid var(--border);padding:40px 0 32
         <a href="#features">機能</a>
         <a href="#worksheet">無料の記入シート</a>
         <a href="#waitlist">β版を試す</a>
+        <a href="docs/terms-of-service.html" target="_blank" rel="noopener">利用規約</a>
         <a href="docs/privacy-policy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
         <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a>
       </div>
     </div>
     <div class="copyright">
+      <div style="margin-bottom:8px">
+        <i class="ti ti-bell" style="color:var(--accent-soft)"></i>
+        利用規約（v3.3.0）・プライバシーポリシー（v4.0）に改定しました（「クラウド保存」機能の追加・任意）。詳細は
+        <a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">プライバシーポリシー</a>・<a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">利用規約</a>をご確認ください。
+      </div>
       © 2026 きずなbaton. All rights reserved.
     </div>
   </div>

@@ -22,7 +22,7 @@
 | NSFaceIDUsageDescription | ✅ 完了 | APPSTORE-META-FACEID |
 | スクリーンショット 6.9"(1320×2868) | ✅ 完了（**マーケ加工版まで完了**） | **2026-07-02** iPhone 17 Pro Max シミュレータで5枚取得（`marketing/app-store-screenshots-6.9/`・全件1320×2868実測確認）＝①ホーム(契約一覧)②契約詳細(家族への一言・私的/非開示)③契約詳細(Netflix・家族への一言＋解約方法＋家族全員に表示)④カレンダー(月次支払合計)⑤生体ロック(Face ID/Touch ID)。**2026-07-05 マーケ加工版 `store-01`〜`store-05` 作成（§4.1・見出し＋ベゼル＋ブランド背景・提出はこちらを推奨）** |
 | メタデータ文言（本書 §1〜§3） | ✅ 確定 | **2026-07-02 オーナー最終確認済**（App名/サブタイトル/プロモ/説明文）。改訂履歴 v0.8 参照 |
-| App Privacy データラベル（§5） | 🟡 下書き | β=ほぼ未収集だが**IAP導入で「購入」項目の扱い要判断**（§5）。本番(Firebase)で要更新 |
+| App Privacy データラベル（§5） | 🟢 v100「収集あり」化済（提出時にASC登録） | v100（PP v4.0）で**Data Not Collected→収集あり**へ更新済（§5）＝Contact Info/Identifiers/User Content/Financial Info・全て Data Linked to You・**トラッキング無**・目的=App Functionality。オプトイン（アカウント作成＋クラウド保存有効化）時のみ収集。`PrivacyInfo.xcprivacy` 追従済。招待先メールは cloudInvite 休眠のため対象外。ASC コンソール実登録は提出時 |
 | アカウント削除導線（5.1.1(v)） | ✅ v97実装済（v2で実動） | APP-V2-ACCOUNT-DELETE（2026-07-07）＝callable `deleteAccount`＋クライアント配線済。即時完全削除（ToS第18条整合）。現行β（v1提出）はアカウント無し＝対象外のまま。`FEATURES.cloudSync=true`（v2）で実動・deployはP3-deploy同梱 |
 | **課金（IAP・配信＝同時課金）** | 🟡 提出前タスク（軽量） | APPSTORE-IAP/解約導線=v82実装済✅。残＝特商法ページ＋PP の公開URL化のみ。消費税/インボイスは免税・B2Cで専門家確認不要（§7.2・2026-06-29是正） |
 
@@ -133,18 +133,23 @@
 
 ## 5. App Privacy（データ収集ラベル）下書き
 
-> App Store Connect の「App Privacy」回答。β版は**サーバを持たずローカル完結・トラッキングなし**。
+> App Store Connect の「App Privacy」回答。**v100（PP v4.0）で「収集あり」へ更新**。既定は端末内完結だが、**本人が任意でアカウント作成＋「クラウド保存」を有効化した場合に限り** Firebase（Auth／Firestore）へデータを保管するため、Apple のガイドライン上は当該データを「収集あり」として申告する（オプトインでも申告対象）。**トラッキングは一切なし**（ATT 不要・広告/解析SDKなし）。
 
-- **Data Used to Track You**：なし（ATT 不要・広告SDKなし）。
-- **Data Linked to You**：なし。
+- **Data Used to Track You**：**なし**（ATT 不要・広告SDKなし・第三者共有なし）。
+- **Data Linked to You**（すべて uid に紐付く／目的＝**App Functionality** のみ・トラッキング無）:
+  - **Contact Info → Email Address**（アカウント作成時。Firebase Authentication）
+  - **Identifiers → User ID**（Firebase の uid。アカウント作成時）
+  - **User Content → Other User Content**（クラウド保存有効化時：契約・資産メタデータ、所在メモ、ご家族への引き継ぎメッセージ）
+  - **Financial Info → Payment Info / Other Financial Info**（クラウド保存有効化時：カード会社名・下4桁〔＝Payment Info〕、契約の月額/年額の金額〔＝Other Financial Info〕）。※カード番号フル・口座番号・暗証番号は取得しない（CLAUDE.md データ範囲）
+  - **Name（表示名・家族の呼び名）の扱い**：登録画面の表示名／家族の呼び名を「Name」として申告するか、User Content 内に含めるかは提出時に確定（保守的には **Name（App Functionality・Linked）** を1項目追加）。呼び名は本人が自由設定＝実名とは限らない。
 - **Data Not Linked to You**：なし。
-- **総合回答**：**Data Not Collected（データを収集していません）**。
-  - 根拠：契約情報は端末内（Preferences/localStorage）に保管され、開発者が収集・外部送信しない。`PrivacyInfo.xcprivacy` も `NSPrivacyCollectedDataTypes` 空・`NSPrivacyTracking=false` と整合。
-  - 問い合わせ用メール（kizunabaton.official@gmail.com）はアプリ内のフォーム収集ではない＝収集ラベル対象外。
+- **総合回答**：**Data Is Collected（収集あり）**。ただし**トラッキングなし**・**第三者への販売/共有なし**・目的は全て「アプリ機能の提供（端末間同期）」。
+  - `PrivacyInfo.xcprivacy` の `NSPrivacyCollectedDataTypes` を上記データ型で追従（`NSPrivacyTracking=false` は維持）。→ §11・C 参照。
+  - **アカウント削除導線（Guideline 5.1.1(v)）は実装済**（`deleteOwnAccount`＝`deleteAccount` callable でサーバ側完全削除）。
+  - 問い合わせ用メール（kizunabaton.official@gmail.com）はアプリ内フォーム収集ではない＝収集ラベル対象外。
+  - **招待先メール（第三者情報）は申告対象外**：v100 では家族招待（実メール送信）を `FEATURES.cloudInvite=false` で休眠（PP v4.0 の対象外）。招待解禁（APP-V2-INVITE-RELEASE）時に、招待先メール＝Contact Info（第三者）の申告要否を再判定する。
 
-> 🟦 **IAP（配信＝同時課金）導入時の判断**：純正 StoreKit のみで RevenueCat 等の課金SDKを入れない場合、購入処理は Apple が担い**開発者が購入データを収集しない**ため、原則 Data Not Collected のままで足りる見込み（要確認）。ただし **RevenueCat 等の課金分析SDKを入れると「購入（Purchases）」データの収集申告が必要**になり、`PrivacyInfo.xcprivacy` も該当SDKの記載に追従が要る。**初回は純正 StoreKit を推奨**（ラベルを増やさない）。
-
-> 🔴 **本番（アカウント分離・Firebase Auth 等）導入時に要更新**：メールアドレス／ユーザーID＝「Contact Info・Identifiers（App機能向け・トラッキング無し）」を申告し、**アカウント削除導線（Guideline 5.1.1(v)）も実装**すること。
+> 🟦 **IAP（配信＝同時課金）導入時の判断**：純正 StoreKit のみで RevenueCat 等の課金SDKを入れない場合、購入処理は Apple が担い**開発者が購入データを収集しない**ため、「購入（Purchases）」ラベルの追加は不要の見込み（要確認）。RevenueCat 等の課金分析SDKを入れると「購入」データの収集申告と `PrivacyInfo.xcprivacy` 追従が要る。**初回は純正 StoreKit を推奨**。
 
 ---
 
