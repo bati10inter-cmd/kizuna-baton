@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "//": "stage-2b: 受諾者が owner の selected 契約を読む Q-B クエリ用（mode== 等値 ＋ liveViewers array-contains）。等値＋array-contains の複合はエミュレータでは不要だが本番 Firestore は複合インデックスを要求する。",
+      "collectionGroup": "contracts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibility.mode", "order": "ASCENDING" },
+        { "fieldPath": "visibility.liveViewers", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "//": "stage-2b: 資産も契約と同型の 2 クエリ read（Q-B）。",
+      "collectionGroup": "assets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibility.mode", "order": "ASCENDING" },
+        { "fieldPath": "visibility.liveViewers", "arrayConfig": "CONTAINS" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
