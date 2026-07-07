@@ -1,9 +1,14 @@
 {
   "name": "kizuna-baton-firebase",
   "version": "1.0.0",
-  "description": "きずなbaton — Firebase 開発環境（APP-V2-SYNC: P1=Auth Emulator／P2=firestore.rules／P3=functions を集約予定）",
+  "description": "きずなbaton — Firebase 開発環境（APP-V2-SYNC: P1=Auth Emulator／P2=firestore.rules＋rules-unit-testing／P3=functions を集約予定）",
   "private": true,
+  "scripts": {
+    "test:rules": "firebase emulators:exec --only firestore --project demo-kizuna-baton \"node --test 'test/*.test.mjs'\""
+  },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "firebase": "^12.15.0",
     "firebase-tools": "^14.0.0"
   }
 }

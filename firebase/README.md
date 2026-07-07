@@ -4,7 +4,7 @@
 正本アプリは従来どおり `shukatsu-prototype.html`（単一HTML・ビルドツール不使用）。ここは**開発ツールとサーバ側資産のみ**。
 
 - P1（APP-V2-AUTH）: Auth Emulator（本README）
-- P2（APP-V2-FIRESTORE）: `firestore.rules` を追加予定
+- P2a（APP-V2-FIRESTORE）: `firestore.rules` ＋ ルールのエミュレータテスト（`test/`）追加済 ← **本節「Firestore セキュリティルール」参照**
 - P3（APP-V2-INVITE-SERVER）: `functions/` を追加予定
 
 `node_modules/` は `.gitignore` 対象（native/ と同様）。
@@ -43,3 +43,40 @@ npx firebase emulators:start --only auth --project demo-kizuna-baton
 3. `shukatsu-prototype.html` の `FEATURES.cloudSync` を一時的に `true` へ（**コミットしない**）
 4. http://localhost:8000/shukatsu-prototype.html → 設定 →「家族とつなぐ準備」で 登録/ログイン/ログアウト/パスワード再設定 を確認
 5. 検証後 `cloudSync:false` に戻す
+
+## Firestore セキュリティルール（P2a・APP-V2-FIRESTORE）
+
+`firestore.rules` はクライアントの `canViewContract(c, viewerId)`（`shukatsu-prototype.html`）の **live ステージ**をサーバ側へ写像したもの。**権限の真の境界はこのルール**（クライアント判定は UX 用）。P2a はルール本体とエミュレータテストのみ＝アプリ本体・`sw.js`・本番には一切触れない（`cloudSync:false` のまま）。Firestore への実データ書込・同意つき移行UIは P2b（別）。
+
+### canViewContract(live) → ルールの対応
+
+| visibility.mode | 本人(owner) | 承諾済み share を持つ家族(viewer) |
+|---|---|---|
+| `all`（未設定も `getVisibility` が all 正規化） | 可 | 可 |
+| `selected` | 可 | `liveViewers` に viewer の memberId を含むときのみ可 |
+| `private` | 可 | 不可 |
+| `after_only` | 可 | **live では不可**（もしもの時＝emergencyMode P5 の別ゲート・本ルールでは非実効） |
+| 未知mode | 可 | 不可（fail-safe） |
+
+- **memberId↔uid ブリッジ**: `liveViewers` は memberId（`'m2'`）を持つが Firestore 認証は uid。`shares/{ownerUid}_{viewerUid}` に **`viewerMemberId`** を持たせてルールで照合する。この share は **P3（Cloud Functions）が招待受諾時に生成**（P2a ではテストが合成 share を seed して検証）。
+- **後方互換**: `visibility` 未設定＝`{mode:'all'}`（`getVisibility` 正規化）をルールでも維持（`visMode()`）。
+- `shares`/`invitations` へのクライアント書込は禁止（P3 の admin SDK 専用）。`consentLogs` は追記のみ（update/delete 不可）。
+
+### ルールのテスト（エミュレータ・Java 必須）
+
+Firestore エミュレータは **Java（JRE）が必要**（Auth エミュレータは不要だった）。未導入なら:
+
+```bash
+brew install openjdk        # keg-only。PATH に前置して使う（sudo 不要）
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+```
+
+テスト実行（`firebase/` 直下）:
+
+```bash
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"   # java を PATH に（未設定なら）
+npm install                                          # 初回のみ（@firebase/rules-unit-testing・firebase）
+npm run test:rules                                   # Firestore エミュレータ(8080)を起動しルールテストを実行
+```
+
+`test/firestore.rules.test.mjs` が canViewContract 写像の全分岐（all/selected/private/after_only・未設定=all・未承諾share・viewer write 拒否・assets 同型・cards owner-only・consentLogs 追記のみ・invitations/shares 書込禁止）を検証。**全 18 ケース PASS が受け入れ基準**。実行中に出る `PERMISSION_DENIED` ログは拒否系テスト（assertFails）が意図的に発生させたもの。

@@ -129,6 +129,51 @@
         W.cloudAuthErrorMessage({code:'auth/unknown-xyz'}).includes('もう一度お試しください'),
         W.cloudAuthErrorMessage(null).includes('もう一度お試しください')
       ], [true, true, true, true]));
+      // APP-V2-SYNC P2b(v96): buildCloudDocs＝状態→Firestore doc群（純関数・ネットワーク不要）
+      // 検証点: String(id)キー / undefined除去（Firestoreはundefined値を拒否） / '/'入りカテゴリ名はdocIDでなくdata / deep-copy / manifest形
+      add('T24', () => {
+        const input = {
+          contracts: [{id:1,name:'A',cat:'保険',ownerId:'m1',cardId:undefined},{id:2,name:'B',cat:'x/y',ownerId:'m2'}],
+          members: [{id:'m1',name:'あ'}],
+          categories: ['保険','x/y'],
+          assets: [{id:5,type:'bank'}],
+          cards: [{id:3,brand:'VISA'}],
+          icons: {'x/y':'ti-tag'}, colors: {}, tcolors: {}
+        };
+        const out = W.buildCloudDocs(input);
+        out.docs.contracts['1'].name = '書換', out.docs.categories.list.list.push('追加');
+        assertDeepEqual([
+          Object.keys(out.docs.contracts).sort(),
+          ('cardId' in out.docs.contracts['1']),
+          out.docs.categories.list.list.length === 3 && input.categories.length === 2, // deep-copy（出力書換が入力に波及しない）
+          input.contracts[0].name === 'A',
+          out.manifest
+        ], [
+          ['1','2'], false, true, true,
+          {contracts:['1','2'],assets:['5'],cards:['3'],members:['m1'],categories:['list']}
+        ]);
+      });
+      // APP-V2-SYNC P2b(v96): diffCloudManifest＝削除差分（純関数・prev null対応）
+      add('T25', () => assertDeepEqual([
+        W.diffCloudManifest(
+          {contracts:['1','2'],assets:['5'],cards:[],members:['m1','m2'],categories:['list']},
+          {contracts:['1'],assets:[],cards:['9'],members:['m1'],categories:['list']}
+        ),
+        W.diffCloudManifest(null, {contracts:['1'],assets:[],cards:[],members:[],categories:['list']})
+      ], [
+        {contracts:['2'],assets:['5'],cards:[],members:['m2'],categories:[]},
+        {contracts:[],assets:[],cards:[],members:[],categories:[]}
+      ]));
+      // APP-V2-SYNC P2b(v96): 同期status/エラー文言（純関数・引数のみに依存）
+      add('T26', () => assertDeepEqual([
+        W.cloudSyncStatusText(null, null),
+        W.cloudSyncStatusText({enabled:true,dirty:true}, null),
+        W.cloudSyncStatusText({enabled:true,dirty:false,lastSyncAt:'2026-07-15T09:05:00'}, null),
+        W.cloudSyncStatusText({enabled:true,dirty:false}, {code:'unavailable'}).includes('もう一度'),
+        W.cloudSyncErrorMessage({code:'unavailable'}).includes('電波'),
+        W.cloudSyncErrorMessage({code:'permission-denied'}).includes('ログイン'),
+        W.cloudSyncErrorMessage(null).includes('うまく保存できませんでした')
+      ], ['', '保存待ちの変更があります', '最終保存: 7月15日 09:05', true, true, true, true]));
 
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
       snapshots.S02 = {

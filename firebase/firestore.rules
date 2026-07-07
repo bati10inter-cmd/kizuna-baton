@@ -1,0 +1,114 @@
+rules_version = '2';
+
+// ============================================================================
+// きずなbaton — Firestore セキュリティルール（APP-V2-FIRESTORE / P2a）
+// ----------------------------------------------------------------------------
+// クライアントの canViewContract(c, viewerId)（shukatsu-prototype.html）の
+// **live ステージ**をサーバ側ルールへ写像したもの。権限の真の境界はここ（サーバ）。
+//
+// canViewContract(live) の対応:
+//   mode 'all'（未設定も getVisibility が all 正規化） … owner可 / 承諾share家族=可
+//   mode 'selected'                                   … owner可 / liveViewers に viewer の memberId を含む家族のみ可
+//   mode 'private'                                    … owner可 / 家族=不可
+//   mode 'after_only'                                 … owner可 / live では家族=不可（もしもの時＝emergencyMode P5 ゲート・本ルールでは live 非実効）
+//   未知mode                                          … owner可 / 家族=不可（fail-safe）
+//
+// memberId↔uid ブリッジ: liveViewers は memberId（'m2'）を持つが認証は uid。
+//   shares/{ownerUid}_{viewerUid} に viewerMemberId を持たせ、ルールで照合する。
+//   この share ドキュメントは P3（Cloud Functions）が招待受諾時に生成する
+//   （P2a ではエミュレータテストが合成 share を seed して検証）。
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- 共通ヘルパー ----
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+
+    function shareRef(ownerUid) {
+      return /databases/$(database)/documents/shares/$(ownerUid + '_' + request.auth.uid);
+    }
+    // owner → 自分（viewer）への「受諾済み」閲覧関係が存在するか
+    function hasAcceptedShare(ownerUid) {
+      return signedIn()
+        && exists(shareRef(ownerUid))
+        && get(shareRef(ownerUid)).data.status == 'accepted';
+    }
+    // getVisibility() 正規化: visibility/mode 未設定は 'all' 扱い（後方互換の鉄則・設計書 §5.3）
+    function visMode(data) {
+      return (('visibility' in data) && ('mode' in data.visibility))
+        ? data.visibility.mode
+        : 'all';
+    }
+    // canViewContract(live) の viewer 側判定（本人でない・承諾 share 保有が前提）。
+    // 'private'/'after_only'/未知mode は false（after_only は live 非実効＝emergencyMode ゲート）。
+    function canViewLive(ownerUid, data) {
+      let mode = visMode(data);
+      let mid = get(shareRef(ownerUid)).data.viewerMemberId;
+      return mode == 'all'
+        || (mode == 'selected'
+            && ('visibility' in data)
+            && ('liveViewers' in data.visibility)
+            && (data.visibility.liveViewers is list)
+            && data.visibility.liveViewers.hasAny([mid]));
+    }
+
+    // ---- 本人サブツリー users/{uid}/** ----
+    match /users/{uid} {
+      // プロフィール（表示名・color・同意状態）は本人のみ read/write
+      allow read, write: if isSelf(uid);
+
+      // 契約: 本人は全操作可。承諾 share を持つ家族は「見える契約」のみ read（write 不可）
+      match /contracts/{cid} {
+        allow read, write: if isSelf(uid);
+        allow read: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+      }
+
+      // 資産: 契約と同じ visibility モデル（§5.1 は contracts のみ列挙だが assets も必要＝補完）
+      match /assets/{aid} {
+        allow read, write: if isSelf(uid);
+        allow read: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+      }
+
+      // カード: visibility を持たない（last4 のみ）＝本人 owner-only。家族には非公開
+      match /cards/{cardId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      // 家族名簿: 本人のみ
+      match /members/{mid} {
+        allow read, write: if isSelf(uid);
+      }
+
+      // カテゴリ: 本人 read/write。家族はラベル表示のため read 可
+      match /categories/{ckey} {
+        allow read, write: if isSelf(uid);
+        allow read: if hasAcceptedShare(uid);
+      }
+    }
+
+    // ---- 閲覧関係 shares/{ownerUid}_{viewerUid} ----
+    // 書込は P3（Cloud Functions / admin SDK＝ルールをバイパス）専用。クライアント書込は禁止。
+    // read は当事者（owner か viewer が自分）のみ。
+    match /shares/{sid} {
+      allow read: if signedIn()
+        && sid.split('_').size() == 2
+        && (sid.split('_')[0] == request.auth.uid
+            || sid.split('_')[1] == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ---- 招待 invitations/{token}（P3 サーバ発行専用・クライアント直接アクセス禁止） ----
+    match /invitations/{token} {
+      allow read, write: if false;
+    }
+
+    // ---- 同意監査証跡 consentLogs/{uid}/entries/{entryId}（追記のみ・改ざん耐性） ----
+    // 注: §5.1 の consentLogs/{uid}/{entryId} は doc パス段数規則を満たさないため entries サブコレクション形へ是正
+    match /consentLogs/{uid}/entries/{entryId} {
+      allow read, create: if isSelf(uid);
+      allow update, delete: if false;
+    }
+  }
+}
