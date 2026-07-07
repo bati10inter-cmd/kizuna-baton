@@ -1578,7 +1578,11 @@ const FEATURES={
   // true でプラン画面のCTAが実購入になり、有料エンタイトルメントで上限が無制限化される。
   // ⚠️ App Store 提出には別途「特商法表記」「FIN-TAX(消費税/インボイス)」「課金法務確認」が必須
   //   （docs/app-store-metadata-draft.md 提出ブロッカー）。コード稼働≠提出可。
-  iap:true
+  iap:true,
+  // APP-V2-SYNC(v95): 道②クラウド接続（端末間の家族共有・v2アップデート）。P1=Firebase Auth のみ実装済。
+  // ⚠️ v2 リリースには APP-V2-PP-PRIVACY（PP改訂＋再同意＋App Privacyラベル更新）が必須＝完了まで false 固定。
+  //   false の間は UI 非表示・SDK 読込ゼロ＝既存ユーザーへの影響なし（検証時のみローカルで一時 true・コミット禁止）。
+  cloudSync:false
 };
 
 // =========== 無料プラン: 契約件数上限（APPSTORE-IAP v82: 5→10）===========
@@ -3412,6 +3416,10 @@ const SORT_KEY='kizuna-baton:sort:v19';
 const PAID_FLAG_KEY='kizuna-baton:paid:v82'; // 端末キャッシュ('1'=有料)。起動時に currentEntitlement で上書き。backup JSON には含めない（端末固有）
 let isPaid=false; // 竹(家族プラン)エンタイトルメント。StoreKit currentEntitlements の結果を正とする
 const APP_LOCK_KEY='kizuna-baton:app-lock:v79'; // 端末ローカル設定（'1'=ロックON）。backup JSON には含めない（端末固有）
+// APP-V2-AUTH(v95): この端末⇔クラウドアカウントのリンク {version,uid,email,memberId,linkedAt}。
+// パスワードは保存しない（Firebase Auth が扱う）。backup JSON には含めない（端末固有＝他端末へ複製しない）。
+// native 移行(STORAGE_KEYS)には含める＝同一端末内の複製のため安全。
+const CLOUD_KEY='kizuna-baton:cloud:v1';
 let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
 let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
 const nativeCache={};                 // native: Preferences の同期ミラー
@@ -3420,7 +3428,7 @@ const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
 // 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
 // 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
 // NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY,CLOUD_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -3534,6 +3542,106 @@ function loadPersistentState(){
   }
 }
 let corruptStateDetected=false; // v57(APP-DATA-CORRUPT): loadPersistentState のパース失敗を記録
+
+// ==================== クラウド接続（APP-V2-SYNC / P1=APP-V2-AUTH v95） ====================
+// 道②＝端末間の家族接続（v2アップデート）の認証基盤。P1=Auth（本セクション）→P2=Firestore→P3=招待サーバ化。
+// FEATURES.cloudSync=false の間は UI 非表示・SDK 読込ゼロ。オプトイン＝アカウントを作らないユーザーは従来どおり端末内のみで動作。
+// パスワードは Firebase Auth が扱い、アプリ・端末には保存しない。端末に保存するのは uid/email のみ（CLOUD_KEY）。
+const FIREBASE_SDK_VERSION='12.15.0';
+// 実プロジェクトの Web config は APP-V2-FIREBASE-SETUP（オーナーのコンソール作業）完了後に差し込む。
+// apiKey 等は公開可能な識別子（秘密情報ではない）。アクセス制御は P2 の Firestore セキュリティルールが正。
+const FIREBASE_CONFIG={
+  apiKey:'__FIREBASE_API_KEY__',
+  authDomain:'__FIREBASE_AUTH_DOMAIN__',
+  projectId:'__FIREBASE_PROJECT_ID__',
+  appId:'__FIREBASE_APP_ID__'
+};
+function firebaseConfigured(){return !/^__/.test(FIREBASE_CONFIG.apiKey);}
+// ローカル開発（Auth Emulator）判定: Web の localhost のみ。native は capacitor://localhost のため IS_NATIVE 除外が必須。
+// 機能露出のゲートは FEATURES.cloudSync のみ＝この判定はエミュレータ接続先の切替にしか使わない。
+function isCloudDevHost(){
+  return !IS_NATIVE&&(location.hostname==='localhost'||location.hostname==='127.0.0.1');
+}
+let cloudUser=null;        // onAuthStateChanged の最新 User（未ログイン=null）
+let cloudAuthMod=null;     // firebase-auth モジュール（import() 結果）
+let cloudAuth=null;        // Auth インスタンス
+let cloudInitPromise=null; // initCloudAuth の memoize（失敗時は null に戻し再試行可能）
+function getCloudLink(){
+  const raw=lsGet(CLOUD_KEY);
+  if(!raw)return null;
+  try{const l=JSON.parse(raw);return(l&&l.uid)?l:null;}catch(e){return null;}
+}
+function setCloudLink(user){
+  // P1 の意味論: この端末のログイン uid ⇔ MY_ID('m1')。別 uid の再ログインは上書き（last-login-wins・設定にメール表示で可視化）
+  lsSet(CLOUD_KEY,JSON.stringify({version:1,uid:user.uid,email:user.email||'',memberId:MY_ID,linkedAt:new Date().toISOString()}));
+}
+function clearCloudLink(){lsRemove(CLOUD_KEY);}
+// Firebase SDK（modular ESM）を必要時のみ動的読込。静的 <script> を足さない＝未使用ユーザー・テスト・オフライン起動に影響ゼロ。
+async function initCloudAuth(){
+  if(cloudInitPromise)return cloudInitPromise;
+  cloudInitPromise=(async()=>{
+    const dev=isCloudDevHost();
+    if(!firebaseConfigured()&&!dev)throw new Error('cloud-not-configured');
+    const base=`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+    const appMod=await import(`${base}/firebase-app.js`);
+    const authMod=await import(`${base}/firebase-auth.js`);
+    // dev（エミュレータ）時は demo- プロジェクト固定 config＝実リソース・実APIキー不要
+    const cfg=dev&&!firebaseConfigured()
+      ?{apiKey:'demo-key',authDomain:'demo-kizuna-baton.firebaseapp.com',projectId:'demo-kizuna-baton',appId:'demo'}
+      :FIREBASE_CONFIG;
+    const app=appMod.initializeApp(cfg);
+    cloudAuthMod=authMod;
+    cloudAuth=authMod.getAuth(app);
+    cloudAuth.languageCode='ja'; // 再設定メール等を日本語で
+    if(dev){try{authMod.connectAuthEmulator(cloudAuth,'http://127.0.0.1:9099',{disableWarnings:true});}catch(e){}}
+    authMod.onAuthStateChanged(cloudAuth,u=>{
+      cloudUser=u;
+      if(u)setCloudLink(u);
+      if(typeof refreshCloudUi==='function')refreshCloudUi(); // 設定/モーダルが開いていれば表示追従
+    });
+    return cloudAuth;
+  })();
+  cloudInitPromise.catch(()=>{cloudInitPromise=null;});
+  return cloudInitPromise;
+}
+async function cloudSignUp(email,pass){
+  const auth=await initCloudAuth();
+  const cred=await cloudAuthMod.createUserWithEmailAndPassword(auth,email,pass);
+  setCloudLink(cred.user);
+  return cred.user;
+}
+async function cloudSignIn(email,pass){
+  const auth=await initCloudAuth();
+  const cred=await cloudAuthMod.signInWithEmailAndPassword(auth,email,pass);
+  setCloudLink(cred.user);
+  return cred.user;
+}
+async function cloudSignOut(){
+  const auth=await initCloudAuth();
+  await cloudAuthMod.signOut(auth);
+  clearCloudLink(); // 端末とアカウントのリンクも解除（記録した内容はこの端末に残る）
+}
+async function cloudSendReset(email){
+  const auth=await initCloudAuth();
+  await cloudAuthMod.sendPasswordResetEmail(auth,email);
+}
+// Firebase Auth エラーコード → やさしい日本語（純関数・特性テスト T23 対象）
+function cloudAuthErrorMessage(err){
+  const code=(err&&err.code)||'';
+  const map={
+    'auth/email-already-in-use':'このメールアドレスはすでに登録されています。「ログイン」からお試しください。',
+    'auth/invalid-email':'メールアドレスの形が正しくないようです。もう一度お確かめください。',
+    'auth/missing-email':'メールアドレスを入力してください。',
+    'auth/weak-password':'パスワードが短すぎます。6文字以上でお願いします。',
+    'auth/missing-password':'パスワードを入力してください。',
+    'auth/wrong-password':'メールアドレスまたはパスワードが違うようです。',
+    'auth/invalid-credential':'メールアドレスまたはパスワードが違うようです。',
+    'auth/user-not-found':'このメールアドレスの登録が見つかりません。「はじめて登録する」からお試しください。',
+    'auth/too-many-requests':'しばらく時間をおいてから、もう一度お試しください。',
+    'auth/network-request-failed':'インターネットに接続できませんでした。電波の良いところでもう一度お試しください。'
+  };
+  return map[code]||'うまく接続できませんでした。時間をおいてもう一度お試しください。';
+}
 
 // === v70(APP-DEMO-FRESH): デモ先行＋ワンタップ「サンプルを消して入力する」 ===
 // 全ユーザーが最初にサンプル(デモ)を見て使い方を理解 → 自分のデータで始めたい人はワンタップでクリア。
