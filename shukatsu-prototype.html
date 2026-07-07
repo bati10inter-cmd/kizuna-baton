@@ -1550,6 +1550,15 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- APP-V2-AUTH(v95): クラウドアカウント（家族とつなぐ準備）モーダル。restore-error-modal より後＝最前面 -->
+  <div class="modal-bg" id="cloud-account-modal">
+    <div class="modal">
+      <button class="modal-close-text" onclick="closeCloudAccountModal()" aria-label="閉じる">閉じる</button>
+      <h2><i class="ti ti-cloud-heart"></i>家族とつなぐ準備</h2>
+      <div id="cloud-account-body"></div>
+    </div>
+  </div>
+
   <!-- v19: 復元用 hidden file input -->
   <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
 </div>
@@ -2066,6 +2075,25 @@ function renderSettingsModal(){
       <div class="info"><div class="name">Face ID / Touch IDで開く</div><div class="sub">${locked?'オン（開くときに確認します。使えない時は端末のパスコードで開けます）':'オフ（だれでもそのまま開けます）'}</div></div>
       <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${locked?'checked':''} onchange="toggleAppLock()"><span class="setting-toggle-thumb"></span></label>
     </div>`;
+  }
+  // APP-V2-AUTH(v95): 家族とつなぐ準備（クラウドアカウント）。FEATURES.cloudSync=false の間は非表示
+  if(FEATURES.cloudSync){
+    const cloudLink=getCloudLink();
+    html+=`<div class="switch-section-header">家族とつなぐ準備</div>`;
+    if(cloudUser||cloudLink){
+      const cloudEmail=esc((cloudUser&&cloudUser.email)||(cloudLink&&cloudLink.email)||'');
+      html+=`<div class="switch-item" onclick="openCloudAccountModal()">
+        <div class="av" style="background:#0F6E56"><i class="ti ti-cloud-check" style="font-size:14px"></i></div>
+        <div class="info"><div class="name">アカウント</div><div class="sub">${cloudEmail} でログイン中</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+      </div>`;
+    }else{
+      html+=`<div class="switch-item" onclick="openCloudAccountModal()">
+        <div class="av" style="background:#185FA5"><i class="ti ti-cloud-heart" style="font-size:14px"></i></div>
+        <div class="info"><div class="name">アカウントをつくる・ログイン</div><div class="sub">ご家族と情報を共有する準備です（今はこの端末だけで使えます）</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+      </div>`;
+    }
   }
   // データ保管（印刷・書き出し / バックアップ / 復元）
   html+=`<div class="switch-section-header">データ保管</div>`;
@@ -3641,6 +3669,130 @@ function cloudAuthErrorMessage(err){
     'auth/network-request-failed':'インターネットに接続できませんでした。電波の良いところでもう一度お試しください。'
   };
   return map[code]||'うまく接続できませんでした。時間をおいてもう一度お試しください。';
+}
+// === APP-V2-AUTH UI: 設定「家族とつなぐ準備」＋アカウントモーダル ===
+let cloudUiWasLoggedIn=false; // onAuthStateChanged 由来の再描画をログイン状態の変化時のみに限定（入力中のフォームを潰さない）
+function refreshCloudUi(){
+  const loggedIn=!!cloudUser;
+  if(cloudUiWasLoggedIn===loggedIn)return;
+  cloudUiWasLoggedIn=loggedIn;
+  const modal=document.getElementById('cloud-account-modal');
+  if(modal&&modal.classList.contains('open'))renderCloudAccountModal(loggedIn?'signedin':'menu');
+  const settings=document.getElementById('settings-modal');
+  if(settings&&settings.classList.contains('open'))renderSettingsModal();
+}
+function openCloudAccountModal(){
+  closeSettingsModal();
+  renderCloudAccountModal(cloudUser?'signedin':'menu');
+  openModalById('cloud-account-modal');
+  // リンク済み（セッション復元待ち）のときだけ裏で初期化。未リンクの見るだけユーザーにはSDKを読ませない
+  if(getCloudLink()&&!cloudUser)initCloudAuth().catch(()=>{});
+}
+function closeCloudAccountModal(){closeModalById('cloud-account-modal');}
+function showCloudError(msg){
+  const el=document.getElementById('cloud-err');
+  if(el){el.textContent=msg;el.style.display='';}
+}
+function renderCloudAccountModal(view){
+  const el=document.getElementById('cloud-account-body');
+  if(!el)return;
+  // 実プロジェクト未設定かつエミュレータ環境でもない → 準備中表示（フォームを出さない）
+  if(!firebaseConfigured()&&!isCloudDevHost()){
+    el.innerHTML=`<div class="beta-info-box">この機能は<strong>準備中</strong>です。もうしばらくお待ちください。<br>いまはこれまでどおり、この端末だけでお使いいただけます。</div>`;
+    return;
+  }
+  const err=`<div id="cloud-err" style="display:none;color:#A32D2D;font-size:12px;line-height:1.6;margin:6px 0"></div>`;
+  const note=`<div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:10px"><i class="ti ti-lock"></i> パスワードはこのアプリには保存されません。メールアドレスはログインのためだけに使います。</div>`;
+  let html='';
+  if(view==='signedin'){
+    const em=esc((cloudUser&&cloudUser.email)||(getCloudLink()||{}).email||'');
+    html=`<div class="beta-info-box"><strong>${em}</strong> でログインしています。<br>ご家族のスマホとつながる機能は、次のアップデートで届きます。</div>
+      ${err}
+      <button class="plan-cta" onclick="confirmCloudSignout()">この端末でログアウトする</button>
+      <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">ログアウトしても、記録した内容はこの端末に残ります。</div>`;
+  }else if(view==='signup'){
+    html=`<div class="form-row"><label>メールアドレス</label><input id="cloud-email" type="email" autocomplete="email" placeholder="例: hanako@example.com"></div>
+      <div class="form-row"><label>パスワード（6文字以上）</label><input id="cloud-pass" type="password" autocomplete="new-password" minlength="6" placeholder="お忘れにならないものを"></div>
+      ${err}
+      <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudSignup()"><i class="ti ti-user-plus"></i>登録する</button></div>
+      <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">すでにお持ちの方はこちら（ログイン）</button>
+      ${note}`;
+  }else if(view==='signin'){
+    html=`<div class="form-row"><label>メールアドレス</label><input id="cloud-email" type="email" autocomplete="email" placeholder="登録したメールアドレス"></div>
+      <div class="form-row"><label>パスワード</label><input id="cloud-pass" type="password" autocomplete="current-password" placeholder="登録したパスワード"></div>
+      ${err}
+      <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudSignin()"><i class="ti ti-login"></i>ログイン</button></div>
+      <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('reset')">パスワードを忘れたとき</button>
+      <button class="plan-cta" style="margin-top:6px" onclick="renderCloudAccountModal('signup')">はじめての方はこちら（登録）</button>
+      ${note}`;
+  }else if(view==='reset'){
+    html=`<div class="beta-info-box">登録したメールアドレスへ、パスワードを新しくつくり直すためのご案内をお送りします。</div>
+      <div class="form-row"><label>メールアドレス</label><input id="cloud-email" type="email" autocomplete="email" placeholder="登録したメールアドレス"></div>
+      ${err}
+      <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudReset()"><i class="ti ti-mail"></i>ご案内メールを送る</button></div>
+      <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">ログインにもどる</button>`;
+  }else{ // menu
+    html=`<div class="beta-info-box">アカウントは<strong>任意</strong>です。つくらなくても、これまでどおりこの端末だけでお使いいただけます。<br>将来のアップデートで、ご家族のスマホと安全につながるための準備です。</div>
+      <div class="btn-row"><button class="btn-primary" onclick="renderCloudAccountModal('signup')"><i class="ti ti-user-plus"></i>はじめて登録する</button></div>
+      <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">すでにお持ちの方（ログイン）</button>
+      ${note}`;
+  }
+  el.innerHTML=html;
+}
+function cloudFormValues(){
+  const email=((document.getElementById('cloud-email')||{}).value||'').trim();
+  const pass=((document.getElementById('cloud-pass')||{}).value||'');
+  return {email,pass};
+}
+function cloudSubmitBusy(busy){
+  const btn=document.getElementById('cloud-submit-btn');
+  if(btn){btn.disabled=busy;btn.style.opacity=busy?'0.5':'1';}
+}
+async function submitCloudSignup(){
+  const {email,pass}=cloudFormValues();
+  if(!email){showCloudError('メールアドレスを入力してください。');return;}
+  if(!pass){showCloudError('パスワードを入力してください。');return;}
+  cloudSubmitBusy(true);
+  try{
+    await cloudSignUp(email,pass);
+    showToast('アカウントを登録しました','success');
+    renderCloudAccountModal('signedin');
+    renderSettingsModal();
+  }catch(e){showCloudError(cloudAuthErrorMessage(e));}
+  finally{cloudSubmitBusy(false);}
+}
+async function submitCloudSignin(){
+  const {email,pass}=cloudFormValues();
+  if(!email){showCloudError('メールアドレスを入力してください。');return;}
+  if(!pass){showCloudError('パスワードを入力してください。');return;}
+  cloudSubmitBusy(true);
+  try{
+    await cloudSignIn(email,pass);
+    showToast('ログインしました','success');
+    renderCloudAccountModal('signedin');
+    renderSettingsModal();
+  }catch(e){showCloudError(cloudAuthErrorMessage(e));}
+  finally{cloudSubmitBusy(false);}
+}
+async function submitCloudReset(){
+  const {email}=cloudFormValues();
+  if(!email){showCloudError('メールアドレスを入力してください。');return;}
+  cloudSubmitBusy(true);
+  try{
+    await cloudSendReset(email);
+    showToast('ご案内メールをお送りしました','success');
+    renderCloudAccountModal('signin');
+  }catch(e){showCloudError(cloudAuthErrorMessage(e));}
+  finally{cloudSubmitBusy(false);}
+}
+async function confirmCloudSignout(){
+  if(!confirm('この端末でログアウトしますか？\n記録した内容はこの端末に残ります。'))return;
+  try{
+    await cloudSignOut();
+    showToast('ログアウトしました','success');
+    renderCloudAccountModal('menu');
+    renderSettingsModal();
+  }catch(e){showCloudError(cloudAuthErrorMessage(e));}
 }
 
 // === v70(APP-DEMO-FRESH): デモ先行＋ワンタップ「サンプルを消して入力する」 ===
@@ -5400,6 +5552,9 @@ async function boot(){
       'データを読み込めませんでした'
     );
   }
+  // APP-V2-AUTH(v95): クラウドアカウントにリンク済みのユーザーのみ、裏で SDK を読みセッション復元。
+  // 非await＋失敗握り潰し＝既存の起動チェーン（unlock→同意→オンボーディング）とオフライン起動に影響しない。
+  if(FEATURES.cloudSync && getCloudLink())initCloudAuth().catch(()=>{});
 }
 boot();
 
