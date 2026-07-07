@@ -23,9 +23,28 @@ function provider() {
   return process.env.EMAIL_PROVIDER || 'log';
 }
 
+// エミュレータ実行中のみ true（本番デプロイでは false）。index.js の isEmulator と同一判定。
+// OTP 平文を console.log する 'log' プロバイダを本番で絶対に走らせないためのゲート。
+function isEmulator() {
+  return (
+    process.env.FUNCTIONS_EMULATOR === 'true' ||
+    !!process.env.FIRESTORE_EMULATOR_HOST
+  );
+}
+
 async function sendInviteOtpEmail({ to, otp, inviterName, link }) {
   const p = provider();
   if (p === 'log') {
+    // 'log' は OTP 平文＋招待リンク（token 埋込）を Cloud Logging に出力するため
+    // エミュレータ限定。本番で EMAIL_PROVIDER 未設定のまま呼ばれたら明示的に失敗させ、
+    // 秘密情報がログに残る「無症状な誤設定デプロイ」を防ぐ（_devOutbox と同じ厳格ゲート）。
+    if (!isEmulator()) {
+      throw new Error(
+        "EMAIL_PROVIDER が未設定です。本番デプロイでは 'log' プロバイダ（OTP をログ出力）は" +
+          '使用できません。deploy 時に実送信実装（Trigger Email 拡張 or nodemailer+SMTP）を有効化し、' +
+          'EMAIL_PROVIDER を設定してください。'
+      );
+    }
     // eslint-disable-next-line no-console
     console.log(
       `[email:log] invite OTP → to=${to} otp=${otp} inviter=${inviterName || ''} link=${link || ''}`

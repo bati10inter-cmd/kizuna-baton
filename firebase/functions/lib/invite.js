@@ -47,7 +47,9 @@ function buildInviteDoc({
 }
 
 // listInvites が owner へ返す安全なビュー（otp/otpHash・inviteeEmail を除外）。
-// inviteeEmail は owner が入力した値だが、返却は最小限に留める（token も除外＝共有はUI別導線）。
+// otpHash は秘密のため除外。inviteeEmail は owner が入力した値だが返却は最小限に留めて除外。
+// token は含める＝発行者本人が招待URL（/invite/{token}）を再共有するのに必要（token 単体では
+// OTP なしに acceptInvite できず、owner=発行者に返すため露出面は増えない）。
 function toOwnerInviteView(doc) {
   return stripUndefined({
     token: doc.token,

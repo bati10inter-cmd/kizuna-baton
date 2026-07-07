@@ -97,7 +97,7 @@ npm run test:rules                                   # Firestore エミュレー
 | `deleteAccount` | 本人 | **アカウントと全データの即時完全削除**（APP-V2-ACCOUNT-DELETE・Apple 5.1.1(v)・ToS第18条/PP第14条「14日以内・復元不可」整合）。順序＝shares 両方向整理（viewer 側は相手 owner の member を `unlinked` 化）→ invitations（発行分＋受諾分）削除 → `users/{uid}` サブツリー＋`consentLogs/{uid}` を `recursiveDelete` → **最後に Auth `deleteUser`**（途中失敗時は認証が残り再実行で完遂＝冪等） |
 
 - **OTP は平文保存しない**（`otpHash` のみ・token を salt に sha256）。純ロジックは `functions/lib/`（`otp.js`/`rateLimit.js`/`validators.js`/`invite.js`/`constants.js`）に分離しテスト容易化。
-- **メール送信は差替アダプタ** `functions/lib/email.js`（env `EMAIL_PROVIDER`）。既定 `'log'`＝エミュレータで OTP を console 出力（実送信なし）。`'smtp'`/`'sendgrid'` は**デプロイ時にオーナーが有効化するスタブ**。
+- **メール送信は差替アダプタ** `functions/lib/email.js`（env `EMAIL_PROVIDER`）。既定 `'log'`＝**エミュレータ限定**で OTP を console 出力（実送信なし）。`'smtp'`/`'sendgrid'` は**デプロイ時にオーナーが有効化するスタブ**。**⚠️本番（エミュレータ外）で `EMAIL_PROVIDER` 未設定のまま呼ばれると `'log'` は使えず明示 throw**（OTP 平文が Cloud Logging に残る誤設定デプロイを防ぐ厳格ゲート＝`_devOutbox` と同型・APP-V2-SEC-REVIEW 2026-07-07）。よって deploy 前に下記手順2で実プロバイダ設定が必須。
 - **`_devOutbox/{token}`** はエミュレータ限定（`isEmulator()` ゲート）の OTP 露出で、結合テストが受諾に使う。firestore.rules に match が無く既定 deny＝クライアント不可視。**本番デプロイでは絶対に書かれない**。
 
 ### テスト（エミュレータ・Java 必須）
