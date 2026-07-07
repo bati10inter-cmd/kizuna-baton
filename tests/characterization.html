@@ -75,7 +75,8 @@
 
     async function loadApp(){
       localStorage.clear();
-      const html = await fetch('/shukatsu-prototype.html').then(r => r.text());
+      // cache:'no-store'＝ブラウザHTTPキャッシュの旧版を掴んで偽FAIL/偽PASSになるのを防ぐ（v95で実害確認済み）
+      const html = await fetch('/shukatsu-prototype.html', {cache:'no-store'}).then(r => r.text());
       const iframe = document.getElementById('app');
       iframe.srcdoc = html.replace('<script>', SHIM + '<script>');
       await new Promise(resolve => iframe.onload = resolve);
@@ -121,6 +122,13 @@
       add('T20', () => assertDeepEqual([W.isBuiltInSampleContract({id:1,name:'Netflix'}), W.isBuiltInSampleContract({id:1,name:'改名'})], [true, false]));
       add('T21', () => assertEqual(W.payMethodOf({}), 'credit_card'));
       add('T22', () => assertDeepEqual([W.daysUntilNext({cycle:'monthly',day:15}), W.daysUntilNext({cycle:'monthly',day:16})], [0, 1]));
+      // APP-V2-AUTH(v95): Firebase Auth エラーコード→やさしい日本語（純関数・ネットワーク不要）
+      add('T23', () => assertDeepEqual([
+        W.cloudAuthErrorMessage({code:'auth/email-already-in-use'}).includes('すでに登録'),
+        W.cloudAuthErrorMessage({code:'auth/invalid-credential'}).includes('違うようです'),
+        W.cloudAuthErrorMessage({code:'auth/unknown-xyz'}).includes('もう一度お試しください'),
+        W.cloudAuthErrorMessage(null).includes('もう一度お試しください')
+      ], [true, true, true, true]));
 
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
       snapshots.S02 = {
