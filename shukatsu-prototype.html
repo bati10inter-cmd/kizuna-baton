@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v96</title>
+<title>きずなbaton プロトタイプ v97</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1252,10 +1252,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         ご本人のアカウントを削除すると以下が起こります：
       </div>
       <ul style="font-size:11px;color:var(--color-text-secondary);line-height:1.7;padding-left:18px;margin-bottom:10px">
-        <li>ご家族からあなたの契約一覧が見えなくなります</li>
-        <li>ふだんの共有（liveViewers）が無効化されます</li>
-        <li>削除前に JSON エクスポートでバックアップを取ることを推奨します</li>
-        <li>削除後 14 日間は復元可能です（規約 13 条準拠）。14 日経過後は完全に削除されます</li>
+        <li>ご家族からあなたの契約一覧が見えなくなります（ふだんの共有も解除されます）</li>
+        <li>クラウドに保存した記録とログイン用アカウントは完全に削除されます</li>
+        <li>この端末の中の記録は消えません</li>
+        <li><strong>削除は取り消せません</strong>（利用規約第18条）。削除の前に JSON エクスポートでのバックアップをおすすめします</li>
       </ul>
       <div style="font-size:11px;color:#DC2626;background:#FEF2F2;border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.6">
         ご確認のため「<strong>アカウントを削除する</strong>」と一字一句正確に入力してください。
@@ -1926,7 +1926,8 @@ function renderUserPill(){
     label.textContent='表示中';name.textContent='家族全員';
   } else {
     const m=getMember(viewOwnerId);
-    if(!m){viewOwnerId=MY_ID;return renderUserPill();}
+    // フォールバック: MY_ID 自身も不在（プロト版アカウント削除後）は 'all' へ＝無限再帰を防ぐ（v97）
+    if(!m){viewOwnerId=(viewOwnerId===MY_ID?'all':MY_ID);return renderUserPill();}
     av.style.fontSize='11px';
     av.textContent=m.name.charAt(0);av.style.background=ownerColorCss(m.color);
     label.textContent=m.id===MY_ID?'自分の契約':m.name+'さんの契約';
@@ -3742,7 +3743,8 @@ function renderCloudAccountModal(view){
       ${syncBlock}
       ${err}
       <button class="plan-cta" style="margin-top:10px" onclick="confirmCloudSignout()">この端末でログアウトする</button>
-      <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">ログアウトしても、記録した内容はこの端末に残ります。</div>`;
+      <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">ログアウトしても、記録した内容はこの端末に残ります。</div>
+      <div style="font-size:11px;line-height:1.7;margin-top:8px"><a href="javascript:void(0)" onclick="closeCloudAccountModal();openAccountDeleteModal()" style="color:var(--color-text-tertiary)">アカウントを削除する（クラウドの記録もすべて削除）</a></div>`;
   }else if(view==='syncsetup'){
     // P2b(v96): 同意つき有効化（何が・どこに・やめられることを明示。メモ/引き継ぎメッセージ/カード下4桁の開示は消さない）
     html=`<div class="beta-info-box"><strong>クラウド保存について</strong><br>
@@ -3879,6 +3881,27 @@ async function initCloudFirestore(){
   })();
   cloudDbInitPromise.catch(()=>{cloudDbInitPromise=null;});
   return cloudDbInitPromise;
+}
+
+// --- Functions SDK 初期化（APP-V2-ACCOUNT-DELETE: Firestore と同じ遅延 import() パターン）---
+// callable（deleteAccount。P3-deploy 後は招待系も）用。region はサーバ setGlobalOptions と一致必須。
+let cloudFnsMod=null;          // firebase-functions モジュール（import() 結果）
+let cloudFns=null;             // Functions インスタンス
+let cloudFnsInitPromise=null;  // memoize（失敗時 null 戻しで再試行可能）
+async function initCloudFunctions(){
+  if(cloudFnsInitPromise)return cloudFnsInitPromise;
+  cloudFnsInitPromise=(async()=>{
+    await initCloudAuth();
+    const base=`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+    const fnsMod=await import(`${base}/firebase-functions.js`);
+    cloudFnsMod=fnsMod;
+    cloudFns=fnsMod.getFunctions(cloudApp,'asia-northeast1');
+    // dev（Web localhost）はエミュレータへ。native は isCloudDevHost が除外＝常に本番 Functions
+    if(isCloudDevHost()){try{fnsMod.connectFunctionsEmulator(cloudFns,'127.0.0.1',5001);}catch(e){}}
+    return cloudFns;
+  })();
+  cloudFnsInitPromise.catch(()=>{cloudFnsInitPromise=null;});
+  return cloudFnsInitPromise;
 }
 
 // --- 純関数（特性テスト T24）: アプリ状態 → Firestore doc 群＋manifest ---
@@ -4395,13 +4418,49 @@ function revokeAcceptedMember(id){
   renderMemberList();renderInvitations();renderAll();
 }
 
+// APP-V2-ACCOUNT-DELETE(v97): 実アカウントは即時完全削除（オーナー決定・ToS第18条「14日以内・復元不可」整合）。
+// サーバ callable `deleteAccount` が Firestore cascade（users/{uid}配下・consentLogs・shares・invitations）
+// ＋ Firebase Auth deleteUser を実行。この端末（localStorage）の記録は消さない＝既存クラウド系UIと一貫。
+// Callable エラー → やさしい日本語（cloudAuthErrorMessage と同パターン）
+function deleteAccountErrorMessage(err){
+  const code=(err&&err.code)||'';
+  const map={
+    'functions/unauthenticated':'ログインの確認ができませんでした。いったんログインし直してからお試しください。',
+    'functions/internal':'削除の途中で問題が起きました。時間をおいてもう一度お試しください。',
+    'functions/unavailable':'インターネットに接続できませんでした。電波の良いところでもう一度お試しください。'
+  };
+  return map[code]||'うまく削除できませんでした。時間をおいてもう一度お試しください。';
+}
 function deleteOwnAccount(){
-  // TODO(Phase3): Firebase Auth deleteUser + Firestore cascade delete + 14日猶予ジョブのキック
-  // プロトタイプ実装: 本人所有契約を contracts から除外、本人 member を非表示扱い（プロト上は配列から外す）
+  if(FEATURES.cloudSync&&cloudUser){
+    // 実アカウント（v2）: サーバで即時完全削除
+    const btn=document.getElementById('account-delete-exec');
+    if(btn&&btn.disabled)return; // 確認テキスト未入力
+    if(btn){btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';}
+    (async()=>{
+      try{
+        const fns=await initCloudFunctions();
+        await cloudFnsMod.httpsCallable(fns,'deleteAccount')({});
+        // クラウド側は消滅済み。端末側のリンク・同期状態を後片付け（記録データは残す）
+        try{if(cloudAuthMod&&cloudAuth)await cloudAuthMod.signOut(cloudAuth);}catch(e){}
+        clearCloudLink();
+        clearCloudSync();
+        closeAccountDeleteModal();
+        showToast('アカウントとクラウドの記録を削除しました。この端末の中の記録は残っています','success');
+        renderAll();
+      }catch(e){
+        alert(deleteAccountErrorMessage(e));
+        if(btn)onAccountDeleteConfirmInput(); // 入力状態に応じてボタン復帰
+      }
+    })();
+    return;
+  }
+  // アカウントなし（現行β・プロトタイプ動作）: 本人所有契約を contracts から除外、本人 member を配列から外す
   contracts=contracts.filter(c=>c.ownerId!==MY_ID);
   members=members.filter(m=>m.id!==MY_ID);
+  if(viewOwnerId===MY_ID)viewOwnerId='all'; // 本人 member 消滅後のピル表示先（renderUserPill の再帰防止）
   closeAccountDeleteModal();
-  alert('アカウントを削除しました（プロトタイプ動作）。\n本番では 14 日の猶予期間中は復元可能です。');
+  alert('アカウントを削除しました（プロトタイプ動作）。');
   renderAll();
 }
 
