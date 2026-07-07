@@ -5,7 +5,7 @@
 
 - P1（APP-V2-AUTH）: Auth Emulator（本README）
 - P2a（APP-V2-FIRESTORE）: `firestore.rules` ＋ ルールのエミュレータテスト（`test/`）追加済 ← **本節「Firestore セキュリティルール」参照**
-- P3（APP-V2-INVITE-SERVER）: `functions/` を追加予定
+- P3-core（APP-V2-INVITE-SERVER）: `functions/`（Cloud Functions callable）＋結合テスト追加済 ← **本節「招待サーバ化（Cloud Functions）」参照**
 
 `node_modules/` は `.gitignore` 対象（native/ と同様）。
 
@@ -80,3 +80,42 @@ npm run test:rules                                   # Firestore エミュレー
 ```
 
 `test/firestore.rules.test.mjs` が canViewContract 写像の全分岐（all/selected/private/after_only・未設定=all・未承諾share・viewer write 拒否・assets 同型・cards owner-only・consentLogs 追記のみ・invitations/shares 書込禁止）を検証。**全 18 ケース PASS が受け入れ基準**。実行中に出る `PERMISSION_DENIED` ログは拒否系テスト（assertFails）が意図的に発生させたもの。
+
+## 招待サーバ化（Cloud Functions）（P3-core・APP-V2-INVITE-SERVER）
+
+`functions/` は招待フローを **Cloud Functions v2 callable（Admin SDK）** で実装したもの。Admin SDK は `firestore.rules` をバイパスするため、rules で `allow write:false` にした `invitations`/`shares` への書込はここでのみ行う。**権限の真の境界は firestore.rules（家族の契約 read）＋本 functions（発行/受諾/取消）**。
+
+### callable の一覧
+
+| 関数 | 呼び出し | 役割 |
+|---|---|---|
+| `issueInvite` | owner | token/OTP サーバ発行・レート制限強制（1日3件/pending+accepted 5件）・invitations と pending member 作成・OTP を招待先メールへ送信。**戻り値に OTP を含めない**（到達確認は招待先メールでのみ得られる＝サーバ化の肝） |
+| `acceptInvite` | invitee | OTP＋同意で受諾。`shares/{ownerUid}_{viewerUid}` 作成（rules の memberId↔uid ブリッジ `viewerMemberId` を転写）＋ consentLog 追記＋ member accepted 化＋ owner 通知。誤 OTP は `otpAttempts++`、5回でロック |
+| `revokeInvite` | owner | pending 招待を取消（以後受諾不可） |
+| `unlinkShare` | owner | 受諾済み share を `status:'revoked'` に（rules read ゲートで家族の閲覧を即遮断＝閲覧権限停止） |
+| `listInvites` | owner | 自分の招待一覧を **OTP/otpHash 抜き**で返す |
+| `deleteAccount` | 本人 | **アカウントと全データの即時完全削除**（APP-V2-ACCOUNT-DELETE・Apple 5.1.1(v)・ToS第18条/PP第14条「14日以内・復元不可」整合）。順序＝shares 両方向整理（viewer 側は相手 owner の member を `unlinked` 化）→ invitations（発行分＋受諾分）削除 → `users/{uid}` サブツリー＋`consentLogs/{uid}` を `recursiveDelete` → **最後に Auth `deleteUser`**（途中失敗時は認証が残り再実行で完遂＝冪等） |
+
+- **OTP は平文保存しない**（`otpHash` のみ・token を salt に sha256）。純ロジックは `functions/lib/`（`otp.js`/`rateLimit.js`/`validators.js`/`invite.js`/`constants.js`）に分離しテスト容易化。
+- **メール送信は差替アダプタ** `functions/lib/email.js`（env `EMAIL_PROVIDER`）。既定 `'log'`＝エミュレータで OTP を console 出力（実送信なし）。`'smtp'`/`'sendgrid'` は**デプロイ時にオーナーが有効化するスタブ**。
+- **`_devOutbox/{token}`** はエミュレータ限定（`isEmulator()` ゲート）の OTP 露出で、結合テストが受諾に使う。firestore.rules に match が無く既定 deny＝クライアント不可視。**本番デプロイでは絶対に書かれない**。
+
+### テスト（エミュレータ・Java 必須）
+
+```bash
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"   # java を PATH に
+npm run test:functions:deps    # 初回のみ（functions/ の firebase-admin・firebase-functions を install）
+npm run test:functions         # Functions+Firestore+Auth エミュレータで結合テスト
+```
+
+`test/functions.test.mjs` が issueInvite（正常/不正入力/1日3件超/pending5件超/未認証）・acceptInvite（正常で share/consentLog/member/通知生成・誤OTP・5回ロック・期限切れ・revoked・自己受諾不可）・revokeInvite・unlinkShare（rules 経由で家族 read が遮断されることまで）・listInvites（OTP 非返却）・**deleteAccount（未認証拒否／本人の全データ・共有・招待・Auth の完全削除＋家族 read 遮断＋再サインイン不可／viewer 側削除の owner 非干渉＋member unlinked 化）**を検証。**全 17 ケース PASS が受け入れ基準**（削除系は専用 Auth ユーザーを都度作成＝共有 owner/viewer 非破壊）。
+
+### オーナー deploy 作業（P3-deploy・本セッション対象外）
+
+エミュレータ検証はこの作業なしで完結する。**実端末で別端末の家族へ届けるには次が必要**（いずれもオーナー・課金/資格情報を伴う）:
+
+1. **Blaze（従量課金）へ切替**（Cloud Functions deploy の前提。小規模は無料枠内の公算・budget アラート推奨）。
+2. **メール送信基盤の選定・設定**＝`email.js` の本番実装を有効化。候補: (a) Firebase 拡張「Trigger Email」＋ SendGrid/SMTP、(b) `nodemailer`＋SMTP（SendGrid/Mailgun/SES 等）。API キー等は functions シークレット（`defineSecret`）で管理し**リポジトリに置かない**。
+3. `firebase deploy --only functions,firestore:rules`（push/deploy はオーナー確認）。
+4. **クライアント配線**＝`shukatsu-prototype.html` の招待モックを `httpsCallable` へ差替（cloudSync ゲート配下）。**OTP は owner に返らない**仕様に UI を合わせる（招待先がメールで受け取った OTP を入力する導線）。
+5. 実端末 E2E（owner 端末で発行 → 別端末の invitee がアカウント作成 → OTP＋同意で受諾 → 共有契約が見える）。

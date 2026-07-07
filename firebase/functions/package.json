@@ -1,0 +1,14 @@
+{
+  "name": "kizuna-baton-functions",
+  "description": "きずなbaton — 招待サーバ化（APP-V2-INVITE-SERVER / P3）Cloud Functions",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0"
+  }
+}
