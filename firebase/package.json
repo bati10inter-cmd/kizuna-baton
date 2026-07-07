@@ -1,0 +1,9 @@
+{
+  "name": "kizuna-baton-firebase",
+  "version": "1.0.0",
+  "description": "きずなbaton — Firebase 開発環境（APP-V2-SYNC: P1=Auth Emulator／P2=firestore.rules／P3=functions を集約予定）",
+  "private": true,
+  "devDependencies": {
+    "firebase-tools": "^14.0.0"
+  }
+}
