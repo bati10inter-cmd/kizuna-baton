@@ -26,6 +26,16 @@ npx firebase emulators:start --only auth --project demo-kizuna-baton
 `shukatsu-prototype.html` の `isCloudDevHost()` が `localhost`/`127.0.0.1`（Web のみ・native 除外）を検知したときだけ `connectAuthEmulator` に接続する。
 本番 config は `FIREBASE_CONFIG` プレースホルダ（`__FIREBASE_API_KEY__` 等）に、オーナーのコンソール作業（TASKS.md **APP-V2-FIREBASE-SETUP**）完了後に差し込む。
 
+## オーナー作業: 実プロジェクトの作成（APP-V2-FIREBASE-SETUP）
+
+エミュレータ検証はこの作業なしで完結する。実端末・本番での動作にはこの作業が必要。
+
+1. https://console.firebase.google.com → 「プロジェクトを追加」→ 名前例 `kizuna-baton`（Google アナリティクスは不要=オフでよい）
+2. 左メニュー「構築 > Authentication」→「始める」→ ログイン方法で **「メール / パスワード」を有効化**（他は不要）
+3. プロジェクト概要 ⚙ →「プロジェクトの設定」→「マイアプリ」→ **Web アプリ（</>）を追加**（ニックネーム例 `kizuna-baton-web`・Hosting は不要）→ 表示される `firebaseConfig` の **apiKey / authDomain / projectId / appId** を控える
+4. `shukatsu-prototype.html` の `FIREBASE_CONFIG`（`__FIREBASE_API_KEY__` 等のプレースホルダ）へ差し込む（Claude に貼り付けで依頼可。apiKey は公開可能な識別子＝秘密情報ではない）
+5. **Blaze（従量課金）への切替は P3（Cloud Functions）着手時でよい**。P1（Auth）・P2（Firestore）は無料の Spark プランで動く。切替時もエミュレータ・小規模利用なら実費ほぼ ¥0（budget アラート設定を推奨）
+
 ## 動作確認の手順（P1）
 
 1. 上記でエミュレータ起動
