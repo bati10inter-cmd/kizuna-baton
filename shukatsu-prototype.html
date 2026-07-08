@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v100</title>
+<title>きずなbaton プロトタイプ v101</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -142,7 +142,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item .check{color:var(--color-text-primary);font-size:16px}
 .switch-section-header{padding:8px 16px;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
 .switch-section-header:first-child{border-top:none;margin-top:0}
-.switch-migrate-note{margin:0 12px 6px;padding:8px 10px;font-size:11px;line-height:1.6;color:var(--color-text-secondary);background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:8px}
+.switch-migrate-note{margin:0 12px 6px;padding:8px 10px;font-size:13px;line-height:1.7;color:var(--color-text-secondary);background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:8px}
 .switch-migrate-note i{color:var(--accent-warm);margin-right:4px}
 .setting-toggle{position:relative;width:40px;height:24px;flex-shrink:0;cursor:pointer;display:inline-block}
 .setting-toggle input{opacity:0;width:0;height:0;position:absolute}
@@ -355,6 +355,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .app-lock-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-warm);color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:600;cursor:pointer}
 .app-lock-altbtn{background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:8px;text-decoration:underline}
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
+/* 項目10: 入力中にキーボード直上へ出す「完了」ボタン（タッチ端末のみ・JSで表示制御） */
+#kb-done{display:none;position:fixed;right:12px;bottom:8px;z-index:60;background:var(--accent-warm);color:#fff;border:none;border-radius:22px;padding:9px 18px;font-size:15px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,0.28);align-items:center;gap:6px;cursor:pointer}
+#kb-done.show{display:inline-flex}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
 .modal-close-text{position:absolute;top:2px;right:2px;background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:14px 12px;min-height:44px;line-height:1;z-index:2}
@@ -561,10 +564,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .restore-warning-box i{font-size:14px;margin-top:1px;flex-shrink:0}
 :root.dark .restore-warning-box{background:rgba(163,45,45,0.22);border-color:rgba(240,149,149,0.5);color:#F2C7C7}
 
-.beta-info-box{background:#F5F4EE;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:8px;font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.beta-info-box{background:#F5F4EE;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:8px;font-size:13px;color:var(--color-text-secondary);line-height:1.7}
 .beta-info-box.warn{background:#FAEEDA;border-color:#EF9F27;color:#633806}
 :root.dark .beta-info-box{background:var(--color-background-secondary);color:var(--color-text-secondary)}
 :root.dark .beta-info-box.warn{background:rgba(239,159,39,0.18);border-color:rgba(239,159,39,0.5);color:#EFC788}
+/* v101: 老眼モードをクラウド/アカウント系の説明にも適用（従来は .large 未適用で小さいままだった） */
+:root.large .beta-info-box{font-size:16px;line-height:1.8}
+.cloud-fineprint{font-size:13px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px}
+:root.large .cloud-fineprint{font-size:15px}
 /* v46: プラン選択UIモック */
 .plan-cycle-toggle{display:flex;gap:4px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:3px;margin:4px 0 12px}
 .plan-cycle-toggle>div{flex:1;text-align:center;font-size:12px;padding:6px 4px;border-radius:6px;cursor:pointer;color:var(--color-text-secondary);transition:background 0.15s}
@@ -953,7 +960,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
       <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
-        <button onclick="openAccountDeleteModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid #DC2626;background:transparent;color:#DC2626;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-trash"></i>アカウントを削除する</button>
+        <button onclick="openAccountDeleteModal()" style="width:100%;padding:10px 10px;border-radius:var(--border-radius-md);border:0.5px solid #DC2626;background:transparent;color:#DC2626;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-trash"></i>アカウントを削除する</button>
       </div>
     </div>
   </div>
@@ -1022,9 +1029,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <div style="font-size:15px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
           家族メンバー管理画面の「<strong>招待で追加</strong>」から、招待リンク + OTP を発行できます。受諾者が利用規約・プライバシーポリシーに同意した上で参加します。
         </div>
-        <div style="background:#FFEBEE;border-left:3px solid #C62828;padding:9px 11px;border-radius:3px;font-size:13px;color:#7B1F1F;line-height:1.7;margin-top:8px">
-          <strong>β版での重要なお知らせ:</strong><br>
-          本人の応答途絶を契機とする <strong>「もしもの時」の自動開示は提供されません</strong>。家族メンバーへの開示は、本人が公開範囲設定で手動共有した契約に限ります。
+        <div class="beta-info-box" style="margin-top:8px;font-size:14px;line-height:1.8">
+          ご家族に見えるのは、あなたが公開範囲設定で共有した契約だけです。共有するかどうかは、いつでもあなたが決められます。
         </div>
         <div style="text-align:center;font-size:14px;line-height:1.8;color:var(--color-text-secondary);margin-top:12px">
           いつか手渡す、その日まで。<br>あなたのペースで、少しずつ整えていきましょう。
@@ -1144,14 +1150,14 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </div>
 
       <!-- ウェルカム文言 -->
-      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:10px;font-size:13px;line-height:1.8">
         きずなbaton をご利用いただく前に、<strong>利用規約・プライバシーポリシー</strong>への同意をお願いします。<br>
-        <span style="font-size:11px;color:var(--color-text-tertiary)"><strong>基本機能は無料</strong>でご利用いただけます。ご家族への引き継ぎにご活用ください。</span>
+        <span style="font-size:12px;color:var(--color-text-tertiary)"><strong>基本機能は無料</strong>でご利用いただけます。ご家族への引き継ぎにご活用ください。</span>
       </div>
 
       <!-- データ取扱いの簡潔説明（v100: PP v4.0＝既定は端末内のみ／任意オプトインでクラウド保存） -->
-      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
-        ※ 既定では、記録は<strong>お使いの端末の中（localStorage）</strong>にのみ保存されます。ご本人が<strong>アカウント作成とクラウド保存の有効化（任意）</strong>の両方を行った場合に限り、端末間で同期するためのコピーが Google（Firebase・データ本体は東京リージョン）にも保管されます。このほかの外部送信は、契約サービスのロゴ画像取得のため Logo.dev へ当該サービスのドメイン名のみ（氏名・メール等は送信しません）、アイコン表示の Tabler Icons CDN、および<strong>ご自身が任意で感想を送信した場合に限り</strong>フィードバックフォーム Formspree へ入力内容のみ（感想の選択値・選択式タグ・送信元区分のみ。契約名・番号類は送信しません）に限られます。詳細はプライバシーポリシー第2条をご確認ください。<br>
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
+        ※ 記録は既定で<strong>お使いの端末の中だけ</strong>に保存されます。<strong>アカウント作成とクラウド保存の有効化（どちらも任意）</strong>を行ったときに限り、端末間で同期するためのコピーが Google（Firebase・東京リージョン）にも保管されます。その他の外部送信（サービスロゴ取得・アイコン表示・任意送信の感想フォーム）を含む詳細は、プライバシーポリシー第2条をご確認ください。<br>
         ※ 今回の改定（利用規約 v3.3.0・プライバシーポリシー v4.0）は、この<strong>クラウド保存機能（任意）の追加</strong>と、規約変更手続き（利用規約 第17条）の整理によるものです。
       </div>
 
@@ -1276,21 +1282,21 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeAccountDeleteModal()" aria-label="閉じる">閉じる</button>
       <h2 style="color:#DC2626"><i class="ti ti-alert-triangle"></i>アカウントを削除</h2>
-      <div style="font-size:12px;color:var(--color-text-primary);line-height:1.6;margin-bottom:10px">
+      <div style="font-size:13px;color:var(--color-text-primary);line-height:1.7;margin-bottom:10px">
         ご本人のアカウントを削除すると以下が起こります：
       </div>
-      <ul style="font-size:11px;color:var(--color-text-secondary);line-height:1.7;padding-left:18px;margin-bottom:10px">
+      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:18px;margin-bottom:10px">
         <li>ご家族からあなたの契約一覧が見えなくなります（ふだんの共有も解除されます）</li>
         <li>クラウドに保存した記録とログイン用アカウントは完全に削除されます</li>
         <li>この端末の中の記録は消えません</li>
         <li><strong>削除は取り消せません</strong>（利用規約第18条）。削除の前に JSON エクスポートでのバックアップをおすすめします</li>
       </ul>
-      <div style="font-size:11px;color:#DC2626;background:#FEF2F2;border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.6">
+      <div style="font-size:13px;color:#DC2626;background:#FEF2F2;border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.7">
         ご確認のため「<strong>アカウントを削除する</strong>」と一字一句正確に入力してください。
       </div>
       <input type="text" id="account-delete-confirm" placeholder="アカウントを削除する" oninput="onAccountDeleteConfirmInput()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;margin-bottom:10px">
       <div class="btn-row">
-        <button id="account-delete-exec" onclick="deleteOwnAccount()" disabled style="background:#DC2626;color:#fff;border:0;padding:8px 14px;border-radius:var(--border-radius-md);font-size:12px;cursor:not-allowed;opacity:0.4"><i class="ti ti-trash"></i> 削除を確定する</button>
+        <button id="account-delete-exec" onclick="deleteOwnAccount()" disabled style="background:#DC2626;color:#fff;border:0;padding:10px 16px;border-radius:var(--border-radius-md);font-size:14px;cursor:not-allowed;opacity:0.4"><i class="ti ti-trash"></i> 削除を確定する</button>
       </div>
     </div>
   </div>
@@ -1398,6 +1404,15 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <div class="form-grid">
           <div class="form-row"><label>カード下4桁</label><input type="text" id="f-cardreg-last4" placeholder="例: 1234" maxlength="4" inputmode="numeric"></div>
           <div class="form-row"><label>引き落とし日（毎月）<span class="req">必須</span></label><input type="number" id="f-cardreg-payday" placeholder="例: 27" min="1" max="31"></div>
+        </div>
+        <!-- APP-CARD-ASSET-MERGE(v101): カードの家族公開＝見せる/見せない の1トグル（資産4モードは使わない） -->
+        <div class="form-row">
+          <label>ご家族への公開</label>
+          <div style="display:flex;gap:6px">
+            <button type="button" id="cardvis-private" onclick="setCardFormVisibility('private')">家族に見せない</button>
+            <button type="button" id="cardvis-all" onclick="setCardFormVisibility('all')">家族に見せる</button>
+          </div>
+          <div id="cardvis-hint" style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px;line-height:1.5"></div>
         </div>
         <div class="btn-row" style="gap:6px">
           <button class="btn-primary" id="cardreg-submit" onclick="saveCardForm()">登録する</button>
@@ -1589,6 +1604,9 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
   <!-- v19: 復元用 hidden file input -->
   <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
+
+  <!-- 項目10: 入力確定（キーボードを閉じる）ボタン。タッチ端末で入力欄フォーカス時のみ表示 -->
+  <button id="kb-done" type="button" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="dismissKeyboard()"><i class="ti ti-check"></i> 完了</button>
 </div>
 
 <script>
@@ -1825,11 +1843,20 @@ function coerceAssetNums(a){
   a.ownerId=String(a.ownerId==null?'':a.ownerId);
   if('tel' in a)a.tel=String(a.tel==null?'':a.tel);
   if('url' in a)a.url=String(a.url==null?'':a.url);
+  // APP-CARD-ASSET-MERGE(v101): カード型資産は payDay/last4/brand を持つ。payDay は renderCardList で
+  // esc 無し描画されるため（毎月${payDay}日）Number 強制。last4=数字4桁・brand=文字列化（旧 coerceCardNums 同等の防御）。
+  if(a.type==='card'){
+    a.payDay=Number(a.payDay);
+    a.brand=String(a.brand==null?'':a.brand);
+    a.last4=String(a.last4==null?'':a.last4).replace(/\D/g,'').slice(0,4);
+    if(a.name==null||a.name==='')a.name=a.brand;
+  }
   return a;
 }
 // APP-ASSET-BETA-CAP: β版は資産の在りかもアクティブ5件まで（契約 CONTRACT_BETA_MAX と同数）。資産に説明用サンプルは無いため除外判定不要。
 const ASSET_BETA_MAX=5;
-function betaActiveAssetCount(){return assets.filter(a=>!a.archived).length;}
+// APP-CARD-ASSET-MERGE(v101): カード型資産は5件上限の対象外（旧 cards[] の無制限を維持）。
+function betaActiveAssetCount(){return assets.filter(a=>!a.archived&&a.type!=='card').length;}
 
 // APP-CARD-REG(v94): 支払いカードの事前登録。保存するのはカード会社名・下4桁・引き落とし日のみ＝
 // カード番号フル・有効期限・セキュリティコードは入力欄自体を設けない（CLAUDE.md データ範囲）。
@@ -1845,8 +1872,40 @@ function coerceCardNums(k){
   k.last4=String(k.last4==null?'':k.last4).replace(/\D/g,'').slice(0,4);
   return k;
 }
-function myCards(){return cards.filter(k=>k.ownerId===MY_ID);}
+// APP-CARD-ASSET-MERGE(v101): カードは type:'card' 資産に一本化。
+// myCards は本人のカード資産（非archived＝管理一覧/select 選択肢用）。
+function myCards(){return assets.filter(a=>a.type==='card'&&a.ownerId===MY_ID&&!a.archived);}
+// findCardAsset は id 一致のカード資産（archived 含む＝紐付け解決/自動入力の取りこぼし防止）。
+function findCardAsset(id){id=Number(id);if(isNaN(id))return null;return assets.find(a=>a.type==='card'&&a.id===id)||null;}
+// 契約に紐付くカード資産（マスク判定用・archived 含む）。
+function cardAssetOf(c){if(!c||c.cardId==null)return null;const list=currentAssets();const id=Number(c.cardId);return list.find(a=>a.type==='card'&&a.id===id)||null;}
 function cardOptionLabel(k){return `${k.brand}${k.last4?`（下4桁 ${k.last4}）`:''}・毎月${k.payDay}日`;}
+
+// APP-CARD-ASSET-MERGE(v101): 旧 cards[] → type:'card' 資産へ一度きり無損失移行。
+// 冪等: cards が空なら no-op（新規/移行済みは素通り）。非throw（破損カードも String/Number で無害化・総当り）。
+// ID名前空間が assets と別のため新 id を採番し、contract.cardId を旧→新へ張り替える。
+// 既定 visibility=private（見せない）: 旧カードは全経路で owner-only だったため露出を広げない（#4）。
+function migrateCardsToAssets(){
+  if(!Array.isArray(cards)||!cards.length)return;
+  const idMap={};
+  cards.forEach(k=>{
+    const src=coerceCardNums(Object.assign({},k));
+    const newId=nextAssetId++;
+    idMap[src.id]=newId;
+    assets.push({
+      id:newId,type:'card',ownerId:src.ownerId||MY_ID,
+      name:src.brand,brand:src.brand,last4:src.last4,payDay:src.payDay,
+      location:'',tel:'',url:'',note:'',
+      visibility:{mode:'private',liveViewers:[],afterViewers:[]},
+      archived:false
+    });
+  });
+  (Array.isArray(contracts)?contracts:[]).forEach(c=>{
+    if(c.cardId==null)return;
+    c.cardId=(idMap[c.cardId]!=null)?idMap[c.cardId]:null; // 対応カードが無い紐付けは切る
+  });
+  cards=[];
+}
 
 // === XSS対策: HTMLエスケープ ===
 // テキスト・"..."/'...'属性の両コンテキストで安全。innerHTML/document.write へ
@@ -2216,6 +2275,7 @@ function renderSettingsModal(){
   html+=`<div class="switch-migrate-note">${IS_NATIVE
     ? '<i class="ti ti-info-circle"></i>Web版（ブラウザ）で使っていたデータは自動では引き継がれません。Web版で「データをバックアップ」して書き出したファイルを、下の「データを復元」から読み込んでください。'
     : '<i class="ti ti-info-circle"></i>アプリ版（App Store）へ引き継ぐときは、ここで「データをバックアップ」して書き出したファイルを、アプリ版の「データを復元」から読み込みます。ブラウザとアプリはデータの保存場所が別のため、自動では引き継がれません。'}</div>`;
+  html+=`<div class="switch-migrate-note"><i class="ti ti-heart"></i> いまお試し中の記録も、下の「データをバックアップ」で書き出しておけます。正式版が出たら「データを復元」でそのまま引き継げます。</div>`;
   html+=`<div class="switch-item" onclick="openExportModal()">
     <div class="av" style="background:#555"><i class="ti ti-printer" style="font-size:14px"></i></div>
     <div class="info"><div class="name">印刷・書き出し</div><div class="sub">家族に渡す印刷書面やJSONで出力</div></div>
@@ -2229,6 +2289,12 @@ function renderSettingsModal(){
   html+=`<div class="switch-item" onclick="triggerRestore()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
     <div class="info"><div class="name">データを復元</div><div class="sub">${IS_NATIVE?'Web版で書き出したファイルからも読込（上書き）':'バックアップファイルから読込（上書き）'}</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // v101: テスト用リセット（破壊的・2段確認。テストを繰り返す際に iOS 設定へ入らず初期化するための導線）
+  html+=`<div class="switch-item" onclick="resetAllToDemoTest()">
+    <div class="av" style="background:#A32D2D"><i class="ti ti-refresh-alert" style="font-size:14px"></i></div>
+    <div class="info"><div class="name" style="color:#A32D2D">【テスト用】全データを消してサンプルに戻す</div><div class="sub">この端末の記録をすべて消去し、最初のサンプル状態に戻します（取り消せません）</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // プラン（v46: 表示見本 → v91 APP-IAP-UX: 現在プランを明示＋加入者には解約導線を設定直下に独立表示）
@@ -2329,7 +2395,7 @@ function renderCardList(){
     return `<div class="switch-item" style="cursor:${linked.length?'pointer':'default'}"${linked.length?` onclick="toggleCardContracts(${k.id})"`:''}>
       <div class="av" style="background:#3C3489"><i class="ti ti-credit-card" style="font-size:14px"></i></div>
       <div class="info"><div class="name">${esc(k.brand)}${k.last4?`（下4桁 ${esc(k.last4)}）`:''}</div>
-      <div class="sub">毎月${k.payDay}日 引き落とし${linked.length?`・このカードの契約 ${linked.length}件（タップで表示）`:''}</div></div>
+      <div class="sub">毎月${k.payDay}日 引き落とし・${getVisibility(k).mode==='all'?'家族に見せる':'本人のみ'}${linked.length?`・このカードの契約 ${linked.length}件（タップで表示）`:''}</div></div>
       <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
         <button onclick="event.stopPropagation();openCardForm(${k.id})" style="padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:12px;cursor:pointer">編集</button>
         <button onclick="event.stopPropagation();deleteCard(${k.id})" style="padding:6px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--home-danger);font-size:12px;cursor:pointer">削除</button>
@@ -2338,12 +2404,28 @@ function renderCardList(){
     </div>${contractRows}`;
   }).join('');
 }
+// APP-CARD-ASSET-MERGE(v101): カードフォームの「家族に見せる/見せない」トグル状態（既定=見せない）
+let cardFormVisibility='private';
+function setCardFormVisibility(mode){
+  cardFormVisibility=(mode==='all')?'all':'private';
+  const base='flex:1;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid;font-size:12px;cursor:pointer;';
+  const on='background:var(--color-accent,#185FA5);color:#fff;border-color:var(--color-accent,#185FA5);';
+  const off='background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary);';
+  const pv=document.getElementById('cardvis-private'),al=document.getElementById('cardvis-all');
+  if(pv)pv.style.cssText=base+(cardFormVisibility==='private'?on:off);
+  if(al)al.style.cssText=base+(cardFormVisibility==='all'?on:off);
+  const hint=document.getElementById('cardvis-hint');
+  if(hint)hint.textContent=cardFormVisibility==='all'
+    ?'カード会社名・下4桁を、ご家族の閲覧時にも表示します。'
+    :'カード会社名・下4桁は、ご本人だけが見られます（ご家族には表示しません）。';
+}
 function openCardForm(id){
   editingCardId=id||null;
-  const k=id?cards.find(x=>x.id===id):null;
+  const k=id?findCardAsset(id):null;
   document.getElementById('f-cardreg-brand').value=k?k.brand:'';
   document.getElementById('f-cardreg-last4').value=k?k.last4:'';
   document.getElementById('f-cardreg-payday').value=k?k.payDay:'';
+  setCardFormVisibility(k?getVisibility(k).mode:'private'); // 新規は既定=見せない
   document.getElementById('card-form-title').innerHTML=`<i class="ti ti-credit-card"></i> ${k?'カードを編集':'新しいカードを登録'}`;
   document.getElementById('cardreg-submit').textContent=k?'保存する':'登録する';
   ['f-cardreg-brand','f-cardreg-payday'].forEach(clearFieldError);
@@ -2367,11 +2449,12 @@ function saveCardForm(){
   if(looksLikeSensitiveNumber(brand)){alert('カード番号とみられる数字が含まれています。番号は保存できません。カード会社名と下4桁だけを登録してください。');return;}
   const wasNew=!editingCardId; // closeCardForm() が editingCardId を消す前に確定させる
   let savedId;
+  const vis={mode:cardFormVisibility,liveViewers:[],afterViewers:[]};
   if(editingCardId){
-    const k=cards.find(x=>x.id===editingCardId);
+    const k=findCardAsset(editingCardId);
     if(!k)return;
     const oldPayDay=k.payDay;
-    Object.assign(k,{brand,last4,payDay});
+    Object.assign(k,{brand,last4,payDay,name:brand,visibility:vis});
     savedId=k.id;
     // 引き落とし日が変わったら、このカードに紐づく契約の支払日も一括更新できる
     const linked=contracts.filter(c=>!c.archived&&c.cardId===k.id&&payMethodOf(c)==='credit_card');
@@ -2381,12 +2464,14 @@ function saveCardForm(){
     }
     showToast('カード情報を保存しました','success');
   } else {
-    savedId=nextCardId++;
-    cards.push({id:savedId,ownerId:MY_ID,brand,last4,payDay});
+    // APP-CARD-ASSET-MERGE(v101): カードは type:'card' 資産として登録（β5件上限の対象外）
+    savedId=nextAssetId++;
+    assets.push({id:savedId,type:'card',ownerId:MY_ID,name:brand,brand,last4,payDay,location:'',tel:'',url:'',note:'',visibility:vis,archived:false});
     showToast('カードを登録しました','success');
   }
   persistState();
   renderCardList();
+  renderAssetList();syncMainTabUI(); // カード資産が保有資産リストに反映されるよう再描画
   closeCardForm();
   // 契約フォーム発の登録なら、モーダルを閉じてそのカードを選択＋自動入力
   if(cardModalFromForm&&wasNew){
@@ -2397,14 +2482,15 @@ function saveCardForm(){
   }
 }
 function deleteCard(id){
-  const k=cards.find(x=>x.id===id);
+  const k=findCardAsset(id);
   if(!k)return;
   const n=contracts.filter(c=>c.cardId===id).length;
   if(!confirm(`「${k.brand}」を削除しますか？${n?`\nこのカードを使う契約 ${n}件の情報（カード会社名・下4桁・支払日）は契約側にそのまま残ります。`:''}`))return;
-  cards=cards.filter(x=>x.id!==id);
+  assets=assets.filter(a=>!(a.type==='card'&&a.id===id)); // APP-CARD-ASSET-MERGE(v101): カード資産を削除
   contracts.forEach(c=>{if(c.cardId===id)c.cardId=null;});
   persistState();
   renderCardList();
+  renderAssetList();syncMainTabUI();
   showToast('カードを削除しました','');
 }
 // 契約フォームの「使用カード」select を描画（credit_card 選択時のみ表示＝setPayMethod が制御）
@@ -2422,7 +2508,7 @@ function onCardSelect(v){
   if(v==='__new'){openCardModal(true);return;}
   cardSelectPrev=v;
   if(!v)return; // 「選ばない」＝既存の手入力は消さない
-  const k=cards.find(x=>x.id===Number(v));
+  const k=findCardAsset(v);
   if(!k)return;
   if(formCycle==='monthly'){
     document.getElementById('f-day').value=k.payDay;clearFieldError('f-day');
@@ -2845,6 +2931,18 @@ function detailSecretHtml(c,owner,seeSecret,ownerName){
     } else if(seeSecret){
       // 家族閲覧（開示ON）
       if(isCardPayment){
+        // APP-CARD-ASSET-MERGE(v101): 紐付けカードが「見せない」設定なら、開示済でもカード会社・下4桁はマスク（契約の存在・金額は別セクションで共有済）。
+        // secret があればそれは出す・カード情報が無くなり secret も無ければセクションごと省略。
+        const cardA=cardAssetOf(c);
+        const cardHidden=cardA&&!canViewContract(cardA,currentViewerId());
+        if(cardHidden){
+          secretHtml=c.secret?`
+          <div class="section">
+            <div class="section-title"><span><i class="ti ti-shield" style="font-size:10px;margin-right:3px"></i>支払い情報（開示済）</span></div>
+            <div class="info-row"><i class="ti ti-key info-icon"></i><div><div class="info-label">メモ（保管場所等）</div><div class="info-val">${esc(c.secret)}</div></div></div>
+            <div class="sealed-note"><i class="ti ti-shield-lock" style="font-size:12px"></i>お支払いカードの情報は、ご本人の設定によりご家族には表示されません。</div>
+          </div>`:'';
+        } else {
         secretHtml=`
           <div class="section">
             <div class="section-title"><span><i class="ti ti-shield" style="font-size:10px;margin-right:3px"></i>支払い情報（開示済）</span></div>
@@ -2852,6 +2950,7 @@ function detailSecretHtml(c,owner,seeSecret,ownerName){
             ${c.cardLast4?`<div class="info-row"><i class="ti ti-credit-card-pay info-icon"></i><div><div class="info-label">カード番号</div><div class="info-val masked">**** **** **** ${esc(c.cardLast4)}</div></div></div>`:''}
             <div class="sealed-note"><i class="ti ti-info-circle" style="font-size:12px"></i>カード番号フルはアプリに保管していません。カード会社にお問い合わせください。</div>
           </div>`;
+        }
       } else {
         // 銀行系・現金で開示ONの場合は、口座情報・機密メモはマスクして種別のみ表示
         secretHtml=`
@@ -3712,6 +3811,11 @@ function loadPersistentState(){
       cards=data.cards.map(coerceCardNums);
       nextCardId=data.nextCardId||(cards.reduce((m,k)=>Math.max(m,Number(k.id)||0),0)+1);
     }
+    // APP-CARD-ASSET-MERGE(v101): 旧 cards[] を type:'card' 資産へ移行（assets 読込後＝nextAssetId 確定済）。
+    // 移行が実際に走った時のみ 1回 persist して cards=[] を書き戻す＝毎起動の再移行/ID増殖を防ぐ。
+    const didMigrateCards=Array.isArray(cards)&&cards.length>0;
+    migrateCardsToAssets();
+    if(didMigrateCards)persistState();
   }catch(e){
     console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
     // パース失敗時はサンプルデータのまま継続。破損データを上書きしないため persistState() は呼ばない
@@ -3870,11 +3974,11 @@ function renderCloudAccountModal(view){
   if(!el)return;
   // 実プロジェクト未設定かつエミュレータ環境でもない → 準備中表示（フォームを出さない）
   if(!firebaseConfigured()&&!isCloudDevHost()){
-    el.innerHTML=`<div class="beta-info-box">この機能は<strong>準備中</strong>です。もうしばらくお待ちください。<br>いまはこれまでどおり、この端末だけでお使いいただけます。</div>`;
+    el.innerHTML=`<div class="beta-info-box">この機能は<strong>準備中</strong>です。もうしばらくお待ちください。<br>いまはこの端末だけでお使いいただけます。</div>`;
     return;
   }
   const err=`<div id="cloud-err" style="display:none;color:#A32D2D;font-size:12px;line-height:1.6;margin:6px 0"></div>`;
-  const note=`<div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:10px"><i class="ti ti-lock"></i> パスワードはこのアプリには保存されません。メールアドレスはログインのためだけに使います。</div>`;
+  const note=`<div class="cloud-fineprint" style="margin-top:10px"><i class="ti ti-lock"></i> パスワードはこのアプリには保存されません。メールアドレスはログインのためだけに使います。</div>`;
   let html='';
   if(view==='signedin'){
     const em=esc((cloudUser&&cloudUser.email)||(getCloudLink()||{}).email||'');
@@ -3888,20 +3992,20 @@ function renderCloudAccountModal(view){
         <button class="plan-cta" style="margin-top:6px" onclick="disableCloudSync()">クラウドへの保存をやめる</button>
         <div style="font-size:11px;line-height:1.7;margin-top:8px"><a href="javascript:void(0)" onclick="confirmDeleteCloudData()" style="color:var(--color-text-tertiary)">クラウドに保存した記録をすべて削除する</a></div>`;
     }else{
-      syncBlock=`<div class="beta-info-box">大切な記録を、この端末だけでなく<strong>安全な保管場所（クラウド）にも保存</strong>できます。スマホの故障や買い替えに備えられます。</div>
-        <button class="btn-primary" style="width:100%" onclick="renderCloudAccountModal('syncsetup')"><i class="ti ti-cloud-up"></i> クラウドにも保存する</button>`;
+      syncBlock=`<button class="btn-primary" style="width:100%;font-size:15px;padding:12px" onclick="renderCloudAccountModal('syncsetup')"><i class="ti ti-cloud-up"></i> クラウドにも保存する</button>
+        <div class="beta-info-box" style="margin-top:8px">スマホの故障・買い替えに備えて、この端末の記録を安全に保存できます。</div>`;
     }
     html=`<div class="beta-info-box"><strong>${em}</strong> でログインしています。<br>ご家族のスマホとつながる機能は、次のアップデートで届きます。</div>
       ${syncBlock}
       ${err}
       <button class="plan-cta" style="margin-top:10px" onclick="confirmCloudSignout()">この端末でログアウトする</button>
-      <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.7;margin-top:8px">ログアウトしても、記録した内容はこの端末に残ります。</div>
-      <div style="font-size:11px;line-height:1.7;margin-top:8px"><a href="javascript:void(0)" onclick="closeCloudAccountModal();openAccountDeleteModal()" style="color:var(--color-text-tertiary)">アカウントを削除する（クラウドの記録もすべて削除）</a></div>`;
+      <div class="cloud-fineprint">ログアウトしても、この端末の記録は消えません。</div>
+      <div class="cloud-fineprint"><a href="javascript:void(0)" onclick="closeCloudAccountModal();openAccountDeleteModal()" style="color:var(--color-text-tertiary)">アカウントを削除する（クラウドの記録もすべて削除）</a></div>`;
   }else if(view==='syncsetup'){
     // P2b(v96): 同意つき有効化（何が・どこに・やめられることを明示。メモ/引き継ぎメッセージ/カード下4桁の開示は消さない）
     html=`<div class="beta-info-box"><strong>クラウド保存について</strong><br>
       ・この端末で記録した<strong>すべての内容</strong>（契約・資産の在りか・カードの下4桁・メモ・ご家族への引き継ぎメッセージを含む）が保存されます<br>
-      ・保存先は、<strong>あなたのアカウントだけが見られる</strong>保管場所です<br>
+      ・これは、スマホの故障・買い替えに備える<strong>ご本人専用のバックアップ</strong>です（ご家族との共有は今後のアップデートで別途ご案内します）<br>
       ・以後の変更も自動で保存されます（この端末の内容がそのまま写されます）<br>
       ・いつでもやめられ、クラウド側の記録はいつでも削除できます</div>
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.7;margin:10px 0;cursor:pointer">
@@ -3933,7 +4037,7 @@ function renderCloudAccountModal(view){
       <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudReset()"><i class="ti ti-mail"></i>ご案内メールを送る</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">ログインにもどる</button>`;
   }else{ // menu
-    html=`<div class="beta-info-box">アカウントは<strong>任意</strong>です。つくらなくても、これまでどおりこの端末だけでお使いいただけます。<br>将来のアップデートで、ご家族のスマホと安全につながるための準備です。</div>
+    html=`<div class="beta-info-box"><strong>アカウント作成は任意</strong>です。つくらなくても、この端末だけでお使いいただけます。<br>将来のアップデートで、ご家族のスマホと安全につながるための準備です。</div>
       <div class="btn-row"><button class="btn-primary" onclick="renderCloudAccountModal('signup')"><i class="ti ti-user-plus"></i>はじめて登録する</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">すでにお持ちの方（ログイン）</button>
       ${note}`;
@@ -4069,8 +4173,15 @@ function buildCloudDocs(state){
   const docs={contracts:{},assets:{},cards:{},members:{},categories:{}};
   const manifest={contracts:[],assets:[],cards:[],members:[],categories:[]};
   (state.contracts||[]).forEach(c=>{const k=String(c.id);const d=clean(c);d.visibility=clean(getVisibility(c));docs.contracts[k]=d;manifest.contracts.push(k);});
-  (state.assets||[]).forEach(a=>{const k=String(a.id);const d=clean(a);d.visibility=clean(getVisibility(a));docs.assets[k]=d;manifest.assets.push(k);});
-  (state.cards||[]).forEach(cd=>{const k=String(cd.id);docs.cards[k]=clean(cd);manifest.cards.push(k);});
+  // APP-CARD-ASSET-MERGE(v101): カード型資産は owner-only の cards コレクションへ振り分ける。
+  // firestore rules で assets は visibility.mode=='all' で家族可読・cards は本人のみ。カードの last4 を
+  // 家族へ出さないため（#4 cloud は v2・今回はローカルマスク先行）、assets には決して入れない。
+  (state.assets||[]).forEach(a=>{
+    const k=String(a.id);const d=clean(a);d.visibility=clean(getVisibility(a));
+    if(a.type==='card'){docs.cards[k]=d;manifest.cards.push(k);}
+    else{docs.assets[k]=d;manifest.assets.push(k);}
+  });
+  (state.cards||[]).forEach(cd=>{const k=String(cd.id);docs.cards[k]=clean(cd);manifest.cards.push(k);}); // 後方互換: 移行前の旧 cards[] が残っていた場合
   (state.members||[]).forEach(m=>{const k=String(m.id);docs.members[k]=clean(m);manifest.members.push(k);});
   docs.categories.list=clean({
     list:state.categories||[],
@@ -4410,6 +4521,15 @@ function startFresh(){
   persistState();    // 以降は自分の入力を保存
   renderAll();       // renderList 内で renderDemoBanner() が走りバナーは消える
   showToast('自分のデータで始めます');
+}
+// v101: テスト用リセット＝この端末の全 localStorage キー（STORAGE_KEYS）を消してリロード。
+// リロード後は localStorage 空＝サンプル（デモ）＋再同意モーダルの初期状態に戻る。
+// クラウド側の記録は消さない（別途「アカウントを削除する」で削除）。2段確認＋破壊的操作の明示。
+function resetAllToDemoTest(){
+  if(!confirm('【テスト用】この端末に保存したすべての記録（契約・保有資産・カード・設定）を消して、最初のサンプル状態に戻します。よろしいですか？'))return;
+  if(!confirm('本当に消してよろしいですか？この操作は取り消せません。\n（クラウドに保存した記録は消えません。必要なら先に「アカウントを削除する」で消してください）'))return;
+  try{ for(const k of STORAGE_KEYS){lsRemove(k);} }catch(e){}
+  location.reload();
 }
 
 function isDarkMode(){return document.documentElement.classList.contains('dark');}
@@ -5089,18 +5209,18 @@ function doExportJSON(){
   const me=getMember(MY_ID);
   const myContracts=contracts.filter(c=>c.ownerId===MY_ID);
   // APP-ASSET-EXPORT: 本人所有の資産の在りかも書き出す（doBackup と整合・契約と同じ本人スコープ）
+  // APP-CARD-ASSET-MERGE(v101): カードは type:'card' 資産へ統合済＝myAssets に含まれる。
+  // 旧 cards フィールドは廃止（重複出力を防ぐ）→ schemaVersion 3→4
   const myAssets=assets.filter(a=>a.ownerId===MY_ID);
-  // APP-CARD-REG(v94): 本人の支払いカードも書き出す（doBackup と整合）→ schemaVersion 2→3
   const data={
-    schemaVersion:3,
+    schemaVersion:4,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v94',
+    appVersion:'kizuna-baton-prototype-v101',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
     contracts:myContracts,
-    assets:myAssets,
-    cards:myCards()
+    assets:myAssets
   };
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
@@ -5682,9 +5802,38 @@ function renderAssetList(){
     </div>`;
   }).join('');
 }
+// APP-CARD-ASSET-MERGE(v101): カード型資産の閲覧専用ディテール（家族プレビュー/リモート）。
+// last4 は契約側と同じく **** マスク表記。アクションボタンは出さない。
+function showCardAssetDetailReadonly(a){
+  const ti=assetTypeInfo(a);
+  const ownerName=getOwnerName(a);
+  const row=(label,val)=>val?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:2px">${esc(label)}</div><div style="font-size:13px;color:var(--color-text-primary);white-space:pre-wrap;word-break:break-word">${esc(val)}</div></div>`:'';
+  editingAssetId=null;
+  document.getElementById('asset-detail-content').innerHTML=`<div style="padding:14px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="icon-circle" style="background:${ti.color}"><i class="ti ${ti.icon}" style="color:${ti.tcolor}"></i></div>
+      <div>
+        <div style="font-size:17px;font-weight:600;color:var(--color-text-primary)">${esc(a.name||a.brand||'カード')}</div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${esc(ti.label)} · ${esc(ownerName)}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary,#F4F2EC);padding:7px 10px;border-radius:6px;margin-bottom:12px"><i class="ti ti-users"></i> ${esc(ownerName)}さんから共有（閲覧のみ）</div>
+    ${row('カード会社',a.brand)}
+    ${a.last4?`<div style="margin-bottom:10px"><div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:2px">カード下4桁</div><div style="font-size:13px;color:var(--color-text-primary)">**** ${esc(a.last4)}</div></div>`:''}
+    ${row('引き落とし日',a.payDay?('毎月'+a.payDay+'日'):'')}
+  </div>`;
+  document.getElementById('screen-list').classList.add('hidden');
+  document.getElementById('screen-asset-detail').classList.remove('hidden');
+  document.getElementById('screen-asset-detail').scrollTop=0;
+}
 function showAssetDetail(id){
   const a=currentAssets().find(x=>x.id===id);
   if(!a)return;
+  // APP-CARD-ASSET-MERGE(v101): カード型資産は専用導線。本人＝カード管理モーダルでフルCRUD／家族・リモート＝閲覧専用マスク。
+  if(a.type==='card'){
+    if(!isRemoteView()&&!isPreviewing()&&a.ownerId===MY_ID){openCardModal(false);return;}
+    showCardAssetDetailReadonly(a);return;
+  }
   editingAssetId=id;
   const ti=assetTypeInfo(a);
   const vl=visibilityLabel(a);
@@ -5752,7 +5901,8 @@ function toggleAssetAfterViewer(id,checked){assetFormAfterViewers=toggledIdList(
 
 function fillAssetTypeSelect(val){
   const sel=document.getElementById('f-asset-type');
-  sel.innerHTML=ASSET_TYPE_ORDER.map(k=>`<option value="${k}"${k===val?' selected':''}>${esc(ASSET_TYPES[k].label)}</option>`).join('');
+  // APP-CARD-ASSET-MERGE(v101): カードは「支払いカードの管理」からのみ作成＝汎用資産フォームの種別からは除外
+  sel.innerHTML=ASSET_TYPE_ORDER.filter(k=>k!=='card').map(k=>`<option value="${k}"${k===val?' selected':''}>${esc(ASSET_TYPES[k].label)}</option>`).join('');
 }
 function onAssetTypeChange(){
   const t=document.getElementById('f-asset-type').value;
@@ -6234,6 +6384,9 @@ function applyRestore(){
   nextMemberId=(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0))+1;
   nextAssetId=(assets.reduce((m,a)=>Math.max(m,Number(a.id)||0),0))+1;
   nextCardId=(cards.reduce((m,k)=>Math.max(m,Number(k.id)||0),0))+1;
+  // APP-CARD-ASSET-MERGE(v101): 旧バックアップの cards[] を type:'card' 資産へ移行（nextAssetId 確定後）。
+  // 復元 id 空間は restored assets の max 上から続くので衝突なし。下の persistState で cards=[] が書き戻る。
+  migrateCardsToAssets();
   pendingRestore=null;
   closeModalById('restore-confirm-modal');
   // 詳細画面を閉じてリストへ
@@ -6510,13 +6663,41 @@ window.addEventListener('kizunaActive', ()=>{
 });
 
 // P4-pre A: iOSキーボード表示時に下部シート入力欄が隠れないよう、フォーカス時にモーダル内で自動スクロール
+// ＋ 項目10: 入力確定（キーボードを閉じる）「完了」ボタンをキーボード直上に表示（タッチ端末のみ・text系入力のみ）
+const kbDoneBtn=document.getElementById('kb-done');
+const kbIsTouch=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+function dismissKeyboard(){const a=document.activeElement;if(a&&typeof a.blur==='function')a.blur();}
+function placeKbDone(){
+  if(!kbDoneBtn||!kbDoneBtn.classList.contains('show'))return;
+  const vv=window.visualViewport;
+  if(vv){
+    const kbTop=window.innerHeight-(vv.height+vv.offsetTop); // キーボードのおおよその高さ
+    kbDoneBtn.style.bottom=(Math.max(kbTop,0)+8)+'px';
+  }else{kbDoneBtn.style.bottom='8px';}
+}
 document.addEventListener('focusin',(e)=>{
   const el=e.target;
-  if(!el.matches('input,select,textarea'))return;
+  if(!el.matches||!el.matches('input,select,textarea'))return;
   const modal=el.closest('.modal-bg.open .modal');
   if(!modal)return;
   setTimeout(()=>el.scrollIntoView({block:'center',behavior:'smooth'}),300);
+  if(kbDoneBtn&&kbIsTouch&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA')){
+    kbDoneBtn.classList.add('show');
+    setTimeout(placeKbDone,300);
+  }
 });
+document.addEventListener('focusout',()=>{
+  if(!kbDoneBtn)return;
+  // 別の入力欄へ移った場合は表示を維持（activeElement を次tickで確認）
+  setTimeout(()=>{
+    const a=document.activeElement;
+    if(!a||(a.tagName!=='INPUT'&&a.tagName!=='TEXTAREA'))kbDoneBtn.classList.remove('show');
+  },120);
+});
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',placeKbDone);
+  window.visualViewport.addEventListener('scroll',placeKbDone);
+}
 
 // === PWA Service Worker registration (v21) ===
 // native(Capacitor) では SW を登録しない（webDir 同梱の index.html と precache 対象がずれ、配信に干渉し得る）。

@@ -77,10 +77,14 @@ service cloud.firestore {
       }
 
       // 資産: 契約と同じ visibility モデル（§5.1 は contracts のみ列挙だが assets も必要＝補完）
+      // APP-CARD-ASSET-MERGE(v101): カード型資産（type=='card'）は last4 を持つため家族へは非公開。
+      //   クライアント（buildCloudDocs）は card 資産を cards コレクションへ振り分けるが、万一 assets に
+      //   紛れても last4 が漏れないよう family read（get/list）を type!='card' で二重防御する。
       match /assets/{aid} {
         allow read, write: if isSelf(uid);
-        allow get: if hasAcceptedShare(uid) && canViewLive(uid, resource.data);
+        allow get: if hasAcceptedShare(uid) && resource.data.type != 'card' && canViewLive(uid, resource.data);
         allow list: if hasAcceptedShare(uid)
+          && resource.data.type != 'card'
           && (resource.data.visibility.mode == 'all'
               || (resource.data.visibility.mode == 'selected'
                   && resource.data.visibility.liveViewers.hasAny(

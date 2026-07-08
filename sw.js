@@ -1,9 +1,9 @@
-// きずなbaton Service Worker (v100)
+// きずなbaton Service Worker (v101)
 // 戦略: cache-first + background refresh（SWR 風）
 // キャッシュ対象: 同一オリジン + Tabler Icons CDN のみ
 // 将来 /api/* を追加する場合は明示的に除外すること（センシティブデータをキャッシュしない）
 
-const CACHE_NAME = 'kizuna-baton-v100';
+const CACHE_NAME = 'kizuna-baton-v101';
 
 const LOCAL_PRECACHE = [
   './shukatsu-prototype.html',
