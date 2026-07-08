@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v105</title>
+<title>きずなbaton プロトタイプ v106</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -3873,6 +3873,7 @@ let cloudDbInitPromise=null;   // initCloudFirestore の memoize（失敗時 nul
 let cloudSyncTimer=null;       // debounce タイマー
 let cloudSyncRunning=false;    // single-flight ガード
 let cloudSyncLastError=null;   // 直近の同期エラー（status 表示用・alert しない）
+let cloudSigninInProgress=false; // 対話ログイン中フラグ。onAuthStateChanged の restore 経路の自動pullを、adopt が走る対話sign-in時に二重発火させないためのガード。
 function getCloudLink(){
   const raw=lsGet(CLOUD_KEY);
   if(!raw)return null;
@@ -3909,7 +3910,11 @@ async function initCloudAuth(){
       // stage-2b: ログイン確立で自分宛て shares を取得（失敗は握り潰し＝次の契機で再試行）。
       // 保留中の招待受諾があれば受諾フローへ（モーダル開放中は各閉じ処理から再試行される）。
       // ログアウトでリモートデータをメモリから破棄し、リモートビュー中なら自分ビューへ退避。
-      if(u){loadMyShares().catch(()=>{});maybeOpenPendingInviteAccept();}
+      if(u){loadMyShares().catch(()=>{});maybeOpenPendingInviteAccept();
+        // APP-V2-SYNC-PULL(v106): ログイン済み端末の起動（セッション復元）でも最新を自動反映。
+        // 対話sign-in時は adopt が担うので二重発火を避ける。未backed/未送信編集ありのときは安全のため走らせない。
+        if(!cloudSigninInProgress&&typeof maybeBackgroundPullOnRestore==='function')maybeBackgroundPullOnRestore(u);
+      }
       else{
         remoteShares=[];remoteData={};
         if(typeof isRemoteView==='function'&&isRemoteView()){viewOwnerId=MY_ID;renderAll();}
@@ -4080,6 +4085,7 @@ async function submitCloudSignup(){
   // 新アカウントへ持ち込まない（no-bleed）。非switch（この端末で初アカウント）はローカル維持＝バックアップ経路。
   const prevUid=(getCloudLink()||{}).uid;
   cloudSubmitBusy(true);
+  cloudSigninInProgress=true; // restore 経路の自動pullを抑止
   try{
     await cloudSignUp(email,pass);
     if(prevUid&&cloudUser&&prevUid!==cloudUser.uid){
@@ -4094,7 +4100,7 @@ async function submitCloudSignup(){
     renderCloudAccountModal('signedin');
     renderSettingsModal();
   }catch(e){showCloudError(cloudAuthErrorMessage(e));}
-  finally{cloudSubmitBusy(false);}
+  finally{cloudSubmitBusy(false);cloudSigninInProgress=false;}
 }
 async function submitCloudSignin(){
   const {email,pass}=cloudFormValues();
@@ -4105,6 +4111,7 @@ async function submitCloudSignin(){
   const ps=getCloudSync();
   const prevBacked=!!(ps&&ps.enabled&&ps.uid&&ps.uid===prevUid);
   cloudSubmitBusy(true);
+  cloudSigninInProgress=true; // restore 経路の自動pullを抑止（採用は adopt が担う）
   try{
     const user=await cloudSignIn(email,pass); // cred.user を明示的に受ける（cloudUser は onAuthStateChanged 待ちで null のことがある）
     // ログイン契機の pull＋アカウント束ね（採用/警告/ミラー自動ON）。中止時はローカル無傷でここで終える。
@@ -4113,7 +4120,7 @@ async function submitCloudSignin(){
     renderCloudAccountModal('signedin');
     renderSettingsModal();
   }catch(e){showCloudError(cloudAuthErrorMessage(e));}
-  finally{cloudSubmitBusy(false);}
+  finally{cloudSubmitBusy(false);cloudSigninInProgress=false;}
 }
 async function submitCloudReset(){
   const {email}=cloudFormValues();
@@ -4565,6 +4572,28 @@ async function adoptCloudOnLogin(prevUid,prevBacked,user){
     }
   }
   return {aborted:false};
+}
+
+// --- 起動時（セッション復元）の自動 pull: ログイン済み端末でも最新を反映（v106）---
+// 安全ガード: ①mirror backed（＝この端末のデータはクラウドにある）②dirty でない（未送信のローカル編集を上書きしない）
+// ③クラウドにデータがある。全て満たすときだけ静かに置換（backed+clean＝ローカルは last-push と一致＝損失なし）。
+async function maybeBackgroundPullOnRestore(u){
+  try{
+    let s=getCloudSync();
+    if(!s||!s.enabled||s.uid!==u.uid)return;   // 未backed端末は自動pullしない（未同期データ保護）
+    if(s.dirty)return;                          // 未送信のローカル編集あり→push優先・pullで上書きしない
+    const snap=await fetchOwnCloudSnapshot(u);
+    const hasData=!!((snap.contracts&&snap.contracts.length)||(snap.assets&&snap.assets.length)||(snap.cards&&snap.cards.length)||(snap.members&&snap.members.length));
+    if(!hasData)return;                         // クラウド空なら何もしない
+    s=getCloudSync();
+    if(!s||!s.enabled||s.uid!==u.uid||s.dirty)return; // fetch 中に状態が変わったら中止（編集/ログアウト）
+    applyOwnCloudSnapshot(snap);                // ローカルをクラウド最新へ（backed+clean＝差分は remote 由来のみ）
+    // manifest をクラウド実 doc 集合に合わせ、applyOwnCloudSnapshot の persist が予約した再push を打ち消す（同一データの無駄書き防止）
+    const built=buildCloudDocs({contracts,members,categories,assets,cards,icons:ICONS,colors:COLORS,tcolors:TCOLORS});
+    setCloudSync({dirty:false,lastSyncAt:snap.userLastSyncAt||(getCloudSync()||{}).lastSyncAt||null,manifest:built.manifest,mirrorSchema:CLOUD_MIRROR_SCHEMA});
+    if(cloudSyncTimer){clearTimeout(cloudSyncTimer);cloudSyncTimer=null;}
+    refreshCloudSyncStatusLine();
+  }catch(e){/* 静かに握り潰し＝次の契機（手動ボタン等）で再試行 */}
 }
 
 // --- 手動再取得（signedin モーダルのボタン）: クラウドの最新をこの端末へ（ローカル未保存分は上書きされ得る）---
@@ -5427,7 +5456,7 @@ function doExportJSON(){
   const data={
     schemaVersion:4,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v105',
+    appVersion:'kizuna-baton-prototype-v106',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
