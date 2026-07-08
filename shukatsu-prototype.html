@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v102</title>
+<title>きずなbaton プロトタイプ v103</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -4007,6 +4007,7 @@ function renderCloudAccountModal(view){
     if(syncOn){
       syncBlock=`<div class="beta-info-box"><i class="ti ti-cloud-check"></i> <strong>クラウドにも保存中</strong><br><span id="cloud-sync-status">${esc(cloudSyncStatusText(sync,cloudSyncLastError))}</span></div>
         <button class="plan-cta" onclick="runCloudSync().catch(()=>{})">いますぐ保存する</button>
+        <button class="plan-cta" style="margin-top:6px" onclick="manualPullCloud()"><i class="ti ti-cloud-download"></i> クラウドから最新を読み込む</button>
         <button class="plan-cta" style="margin-top:6px" onclick="disableCloudSync()">クラウドへの保存をやめる</button>
         <div style="font-size:11px;line-height:1.7;margin-top:8px"><a href="javascript:void(0)" onclick="confirmDeleteCloudData()" style="color:var(--color-text-tertiary)">クラウドに保存した記録をすべて削除する</a></div>`;
     }else{
@@ -4017,7 +4018,7 @@ function renderCloudAccountModal(view){
       ${syncBlock}
       ${err}
       <button class="plan-cta" style="margin-top:10px" onclick="confirmCloudSignout()">この端末でログアウトする</button>
-      <div class="cloud-fineprint">ログアウトしても、この端末の記録は消えません。</div>
+      <div class="cloud-fineprint">${syncOn?'ログアウトすると、この端末ではアカウントの記録が表示されなくなります（記録はクラウドに安全に保存されています）。':'ログアウトしても、この端末の記録は消えません。'}</div>
       <div class="cloud-fineprint"><a href="javascript:void(0)" onclick="closeCloudAccountModal();openAccountDeleteModal()" style="color:var(--color-text-tertiary)">アカウントを削除する（クラウドの記録もすべて削除）</a></div>`;
   }else if(view==='syncsetup'){
     // P2b(v96): 同意つき有効化（何が・どこに・やめられることを明示。メモ/引き継ぎメッセージ/カード下4桁の開示は消さない）
@@ -4075,9 +4076,20 @@ async function submitCloudSignup(){
   const {email,pass}=cloudFormValues();
   if(!email){showCloudError('メールアドレスを入力してください。');return;}
   if(!pass){showCloudError('パスワードを入力してください。');return;}
+  // APP-V2-SYNC-PULL(v103): 別アカウントに紐付いた端末で新規作成する場合、前アカウントのデータを
+  // 新アカウントへ持ち込まない（no-bleed）。非switch（この端末で初アカウント）はローカル維持＝バックアップ経路。
+  const prevUid=(getCloudLink()||{}).uid;
   cloudSubmitBusy(true);
   try{
     await cloudSignUp(email,pass);
+    if(prevUid&&cloudUser&&prevUid!==cloudUser.uid){
+      if(deviceHasUnlinkedRealData()&&!confirm('別のアカウントを新しく作成します。\nこの端末に表示されている記録は、新しいアカウントには引き継がれません。\n続けますか？')){
+        try{await cloudSignOut();}catch(e){}
+        showToast('作成を中止しました。この端末の記録はそのままです');
+        renderCloudAccountModal('menu');renderSettingsModal();return;
+      }
+      resetLocalToClean(); // 新アカウントは空から開始（前アカウントのデータを持ち込まない）
+    }
     showToast('アカウントを登録しました','success');
     renderCloudAccountModal('signedin');
     renderSettingsModal();
@@ -4088,10 +4100,16 @@ async function submitCloudSignin(){
   const {email,pass}=cloudFormValues();
   if(!email){showCloudError('メールアドレスを入力してください。');return;}
   if(!pass){showCloudError('パスワードを入力してください。');return;}
+  // APP-V2-SYNC-PULL(v103): 認証前に直前アカウント情報を捕捉（onAuthStateChanged の clearCloudSync レース回避）
+  const prevUid=(getCloudLink()||{}).uid;
+  const ps=getCloudSync();
+  const prevBacked=!!(ps&&ps.enabled&&ps.uid&&ps.uid===prevUid);
   cloudSubmitBusy(true);
   try{
     await cloudSignIn(email,pass);
-    showToast('ログインしました','success');
+    // ログイン契機の pull＋アカウント束ね（採用/警告/ミラー自動ON）。中止時はローカル無傷でここで終える。
+    const r=await adoptCloudOnLogin(prevUid,prevBacked);
+    if(r&&r.aborted){renderCloudAccountModal('menu');renderSettingsModal();return;}
     renderCloudAccountModal('signedin');
     renderSettingsModal();
   }catch(e){showCloudError(cloudAuthErrorMessage(e));}
@@ -4109,10 +4127,34 @@ async function submitCloudReset(){
   finally{cloudSubmitBusy(false);}
 }
 async function confirmCloudSignout(){
-  if(!confirm('この端末でログアウトしますか？\n記録した内容はこの端末に残ります。クラウドに保存済みの内容もそのまま残ります。'))return;
+  // APP-V2-SYNC-PULL(v103): backed（クラウド保存済み）ならログアウトでローカル表示をクリア＝アカウント記録を隠す。
+  // 未同期の端末固有データは残す（損失回避）＋その旨を注意喚起。
+  const uid=cloudUser&&cloudUser.uid;
+  const backed=mirrorBackedForUid(uid);
+  const hasLocal=deviceHasUnlinkedRealData();
+  let msg;
+  if(backed){
+    msg='ログアウトします。\nこの端末では、アカウントの記録が表示されなくなります。\n記録はクラウドに安全に保存されています（次回ログインでまた表示できます）。\n続けますか？';
+  }else if(hasLocal){
+    msg='⚠️ この端末の記録は、まだクラウドに保存されていません。\nログアウトしてもこの端末には残りますが、万一に備えて「データをバックアップ」での書き出しをおすすめします。\nログアウトしますか？';
+  }else{
+    msg='この端末でログアウトしますか？\n記録した内容はこの端末に残ります。';
+  }
+  if(!confirm(msg))return;
   try{
+    let stillDirty=false;
+    if(backed){
+      try{await runCloudSync();}catch(e){}
+      const s=getCloudSync();stillDirty=!!(s&&s.dirty); // cloudSignOut が sync を消す前に読む
+    }
     await cloudSignOut();
+    if(backed&&!stillDirty){
+      lsRemove(DATA_KEY); // クリーン再初期化＝デモ/空へ戻り、アカウント記録が非表示に
+      location.reload();
+      return;
+    }
     showToast('ログアウトしました','success');
+    if(backed&&stillDirty)showToast('最後の変更はまだ保存できていません。電波の良い場所でもう一度お試しください。');
     renderCloudAccountModal('menu');
     renderSettingsModal();
   }catch(e){showCloudError(cloudAuthErrorMessage(e));}
@@ -4392,6 +4434,132 @@ function cloudOnAuthChangedForSync(u){
 function refreshCloudSyncStatusLine(){
   const el=document.getElementById('cloud-sync-status');
   if(el)el.textContent=cloudSyncStatusText(getCloudSync(),cloudSyncLastError);
+}
+
+// ==================== APP-V2-SYNC-PULL(v103): ログイン時の本人クラウドデータ取得＋アカウント束ね ====================
+// 設計思想: ログイン＝この端末をアカウントに束ねる（クラウドの本人データを採用）／ログアウト＝アカウント記録を隠す。
+// ただしクラウド未同期の“端末固有データ”は決して失わせない（採用前に破壊的 confirm・ログアウトは backed のみ wipe）。
+// pull は明示ログイン(sign-in)契機のみ＝セッション復元(onAuthStateChanged)では走らせない（offline 編集を潰さない）。
+
+// この端末に「デモでも空でもない実データ」があるか（採用/ログアウトで失われ得る対象の判定）
+function deviceHasUnlinkedRealData(){return !isShowingDemo() && (contracts.length>0 || assets.length>0);}
+// この端末のデータが uid のクラウドに保存済みか（＝ローカルを損失なく消せる）
+function mirrorBackedForUid(uid){const s=getCloudSync();return !!(s&&s.enabled&&s.uid===uid);}
+
+// --- 本人 users/{uid} の全コレクションを取得（own uid ＝ rules isSelf で list 許可）---
+async function fetchOwnCloudSnapshot(){
+  const db=await initCloudFirestore();
+  const m=cloudDbMod;
+  const uid=cloudUser.uid;
+  const getAll=async coll=>{const snap=await m.getDocs(m.collection(db,'users',uid,coll));const arr=[];snap.forEach(d=>arr.push(d.data()));return arr;};
+  const [rc,ra,rk,rm,rcat]=await Promise.all([
+    getAll('contracts'),getAll('assets'),getAll('cards'),getAll('members'),getAll('categories')
+  ]);
+  let userLastSyncAt=null;
+  try{const ud=await m.getDoc(m.doc(db,'users',uid));if(ud.exists())userLastSyncAt=(ud.data()||{}).lastSyncAt||null;}catch(e){}
+  return {contracts:rc,assets:ra,cards:rk,members:rm,categories:rcat.length?rcat[0]:null,userLastSyncAt};
+}
+
+// --- スナップショット → ローカルグローバル再構築（applyRestore と同型）---
+function applyOwnCloudSnapshot(snap){
+  contracts=(snap.contracts||[]).map(coerceContractNums);
+  // cloud は card 型資産を cards コレクションへ振り分け済み。ローカルモデル（v101: card は type:'card' 資産）へ合流。
+  const mergedAssets=(snap.assets||[]).slice();
+  const legacyCards=[];
+  (snap.cards||[]).forEach(cd=>{if(cd&&cd.type==='card')mergedAssets.push(cd);else legacyCards.push(cd);});
+  assets=mergedAssets.map(coerceAssetNums);
+  cards=legacyCards.map(coerceCardNums);
+  members=(snap.members&&snap.members.length)?snap.members.slice():[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
+  // categories doc {list,icons,colors,tcolors} を反映（loadPersistentState/applyRestore と同じ backfill）
+  const cat=snap.categories;
+  if(cat&&Array.isArray(cat.list)&&cat.list.length){
+    categories=cat.list.slice();
+    categories.forEach(c=>{
+      ICONS[c]=(cat.icons&&cat.icons[c])||ICONS[c]||'ti-tag';
+      COLORS[c]=(cat.colors&&cat.colors[c])||COLORS[c]||'#D3D1C7';
+      TCOLORS[c]=(cat.tcolors&&cat.tcolors[c])||TCOLORS[c]||'#444441';
+    });
+  }
+  // 次ID再計算（衝突回避・applyRestore と同型）
+  nextId=(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0))+1;
+  nextMemberId=(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0))+1;
+  nextAssetId=(assets.reduce((m,a)=>Math.max(m,Number(a.id)||0),0))+1;
+  nextCardId=(cards.reduce((m,k)=>Math.max(m,Number(k.id)||0),0))+1;
+  migrateCardsToAssets(); // 旧 card doc（type 無し）が混じっていた場合のみ変換。post-v101 は no-op
+  // 整合性リセット（applyRestore と同型）
+  selectedId=null;viewOwnerId=MY_ID;activeCat='すべて';searchQuery='';mainTab='contracts';
+  const si=document.getElementById('search-input');if(si)si.value='';
+  const sc=document.getElementById('search-clear');if(sc)sc.style.display='none';
+  persistState();
+  renderAll();
+}
+
+// --- ローカルをクリーン（空＋既定 m1）に戻す（startFresh 本体 confirm 抜き＋資産/カードも初期化）---
+function resetLocalToClean(){
+  contracts=[];
+  members=[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
+  invitations=[];assets=[];cards=[];
+  nextId=1;nextMemberId=2;nextAssetId=1;nextCardId=1;
+  selectedId=null;viewOwnerId=MY_ID;
+  persistState();
+  renderAll();
+}
+
+// --- 採用後: この端末のミラーを clean 状態で自動ON（以後 push）。manifest はクラウド実 doc 集合と一致させ誤削除を防ぐ ---
+function enableMirrorClean(uid,snap){
+  const built=buildCloudDocs({contracts,members,categories,assets,cards,icons:ICONS,colors:COLORS,tcolors:TCOLORS});
+  setCloudSync({version:1,uid:uid,enabled:true,dirty:false,lastSyncAt:(snap&&snap.userLastSyncAt)||new Date().toISOString(),manifest:built.manifest,mirrorSchema:CLOUD_MIRROR_SCHEMA});
+  // 監査: 採用による同期開始をローカル＋サーバ consentLogs へ best-effort 追記（submitEnableCloudSync と同型）
+  try{let log=[];const raw=lsGet(CONSENT_LOG_KEY);if(raw)log=JSON.parse(raw)||[];log.push({ts:new Date().toISOString(),tosVersion:TERMS_VERSION,ppVersion:PRIVACY_VERSION,actor:'owner',action:'cloud-sync-adopted'});lsSet(CONSENT_LOG_KEY,JSON.stringify(log));}catch(e){}
+  try{const m=cloudDbMod;if(m&&cloudDb)m.addDoc(m.collection(cloudDb,'consentLogs',uid,'entries'),{ts:new Date().toISOString(),action:'cloud-sync-adopted',tosVersion:TERMS_VERSION,ppVersion:PRIVACY_VERSION}).catch(()=>{});}catch(e){}
+}
+
+// --- ログイン契機の採用オーケストレータ（submitCloudSignin から await 呼出）---
+// prevUid/prevBacked は認証前に捕捉した値（onAuthStateChanged の clearCloudSync レースを避けるため引数で受ける）。
+async function adoptCloudOnLogin(prevUid,prevBacked){
+  if(!cloudUser)return {aborted:false};
+  const newUid=cloudUser.uid;
+  const sameAccount=!!(prevUid&&prevUid===newUid);
+  if(deviceHasUnlinkedRealData()&&!sameAccount){
+    const msg=prevBacked
+      ? '別のアカウントでログインします。\nこの端末には、これからログインするアカウントの記録が表示されます。\n（今の記録は前のアカウントのクラウドに保存されています）\n続けますか？'
+      : 'この端末にある、アカウントに結び付いていない記録は、ログインすると表示されなくなります（元に戻せません）。\n先に「データをバックアップ」で書き出すこともできます。\nログインを続けますか？';
+    if(!confirm(msg)){
+      try{await cloudSignOut();}catch(e){}
+      showToast('ログインを中止しました。この端末の記録はそのままです');
+      return {aborted:true};
+    }
+  }
+  let snap;
+  try{snap=await fetchOwnCloudSnapshot();}
+  catch(e){showCloudError(cloudSyncErrorMessage(e));return {aborted:false,error:e};}
+  const hasData=!!((snap.contracts&&snap.contracts.length)||(snap.assets&&snap.assets.length)||(snap.cards&&snap.cards.length)||(snap.members&&snap.members.length));
+  if(hasData)applyOwnCloudSnapshot(snap);
+  else resetLocalToClean();
+  enableMirrorClean(newUid,snap);
+  showToast(hasData?'クラウドから記録を読み込みました':'ログインしました','success');
+  return {aborted:false};
+}
+
+// --- 手動再取得（signedin モーダルのボタン）: クラウドの最新をこの端末へ（ローカル未保存分は上書きされ得る）---
+async function manualPullCloud(){
+  if(!cloudUser){showCloudError('先にログインしてください。');return;}
+  if(!confirm('クラウドの最新の記録をこの端末に読み込みます。\nこの端末の未保存の変更は上書きされることがあります。よろしいですか？'))return;
+  cloudSubmitBusy(true);
+  try{
+    const snap=await fetchOwnCloudSnapshot();
+    const hasData=!!((snap.contracts&&snap.contracts.length)||(snap.assets&&snap.assets.length)||(snap.cards&&snap.cards.length)||(snap.members&&snap.members.length));
+    if(hasData){
+      applyOwnCloudSnapshot(snap);
+      const built=buildCloudDocs({contracts,members,categories,assets,cards,icons:ICONS,colors:COLORS,tcolors:TCOLORS});
+      setCloudSync({enabled:true,uid:cloudUser.uid,dirty:false,lastSyncAt:snap.userLastSyncAt||new Date().toISOString(),manifest:built.manifest,mirrorSchema:CLOUD_MIRROR_SCHEMA});
+      showToast('クラウドから最新を読み込みました','success');
+    }else{
+      showToast('クラウドに保存された記録はありません');
+    }
+    renderCloudAccountModal('signedin');renderSettingsModal();
+  }catch(e){showCloudError(cloudSyncErrorMessage(e));}
+  finally{cloudSubmitBusy(false);}
 }
 
 // ==================== APP-V2 stage-2b: cross-account read（受諾者が owner の共有契約を読む） ====================
