@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v101</title>
+<title>きずなbaton プロトタイプ v102</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1146,7 +1146,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
       <!-- v100(C5・M-3(i)＝PP v4.0 第18条第8項): 最上部の安心文言 -->
       <div class="beta-info-box" style="margin-bottom:10px">
-        <i class="ti ti-device-mobile"></i> <strong>データの保存場所はこれまでと変わりません。お使いの端末の中だけに保存されます。</strong><br>ご自身で「アカウントの作成」と「クラウド保存の有効化」の両方を行ったときにのみ、クラウド（外部）にも保存されます。
+        <i class="ti ti-device-mobile"></i> <strong>アプリのデータは、お使いの端末の中だけに保存されます。</strong><br>ご自身で「アカウントの作成」と「クラウド保存の有効化」の両方を行ったときにのみ、クラウド（外部）にも保存されます。
       </div>
 
       <!-- ウェルカム文言 -->
@@ -3526,18 +3526,40 @@ function openConsentModal(inviterName,inviteeLabel,inviteId){
 function closeConsentModal(){
   closeModalById('consent-modal');
 }
+// APP-CONSENT-UX(v102): 未チェック項目が折返し下にあると「同意して開始」を押しても無反応に見える問題の解消。
+// ボタンは常に押せる（disabled にしない）＝押した時点で最初の未チェック項目へスクロール＋一時ハイライトして気づかせる。
+// 全チェック時は false（＝先へ進める）を返す。
+function firstUncheckedConsent(ids){
+  for(const id of ids){
+    const cb=document.getElementById(id);
+    if(cb&&!cb.checked){
+      const label=cb.closest('label')||cb;
+      label.scrollIntoView({block:'center',behavior:'smooth'});
+      const prev=label.style.background;
+      label.style.transition='background 0.25s';
+      label.style.background='#FDECEC';
+      setTimeout(()=>{label.style.background=prev||'';},1300);
+      showToast('チェックが必要な項目があります（赤くなった項目をご確認ください）','');
+      return cb;
+    }
+  }
+  return null;
+}
+function setConsentBtnState(btnId,allChecked){
+  const btn=document.getElementById(btnId);
+  if(!btn)return;
+  btn.disabled=false; // 常に押せる＝未チェックでも押すと該当項目へ誘導（無反応を避ける）
+  btn.style.cursor='pointer';
+  btn.style.opacity=allChecked?'1':'0.55'; // 未完了は薄め表示（ヒント）だが押下は可能
+}
 function onConsentChange(){
-  const tos=document.getElementById('consent-tos').checked;
-  const pp=document.getElementById('consent-pp').checked;
-  const residency=document.getElementById('consent-residency').checked;
-  const age=document.getElementById('consent-age').checked;
-  const btn=document.getElementById('consent-accept-btn');
-  const ok=tos&&pp&&residency&&age;
-  btn.disabled=!ok;
-  btn.style.opacity=ok?'1':'0.4';
-  btn.style.cursor=ok?'pointer':'not-allowed';
+  const ok=document.getElementById('consent-tos').checked&&document.getElementById('consent-pp').checked
+    &&document.getElementById('consent-residency').checked&&document.getElementById('consent-age').checked;
+  setConsentBtnState('consent-accept-btn',ok);
 }
 function acceptConsent(){
+  // APP-CONSENT-UX(v102): 未チェックがあれば先へ進めず、該当項目へ誘導
+  if(firstUncheckedConsent(['consent-tos','consent-pp','consent-residency','consent-age']))return;
   // APP-V2 stage-2b: クラウド実受諾（同意4件取得済み→acceptInvite callable がサーバ側 consentLogs を記録）
   if(pendingCloudAccept){acceptCloudInvite();return;}
   closeConsentModal();
@@ -3594,17 +3616,13 @@ function openOwnerConsentModal(){
   openModalById('owner-consent-modal');
 }
 function onOwnerConsentChange(){
-  const tos=document.getElementById('owner-consent-tos').checked;
-  const pp=document.getElementById('owner-consent-pp').checked;
-  const residency=document.getElementById('owner-consent-residency').checked;
-  const age=document.getElementById('owner-consent-age').checked;
-  const btn=document.getElementById('owner-consent-accept-btn');
-  const ok=tos&&pp&&residency&&age;
-  btn.disabled=!ok;
-  btn.style.opacity=ok?'1':'0.4';
-  btn.style.cursor=ok?'pointer':'not-allowed';
+  const ok=document.getElementById('owner-consent-tos').checked&&document.getElementById('owner-consent-pp').checked
+    &&document.getElementById('owner-consent-residency').checked&&document.getElementById('owner-consent-age').checked;
+  setConsentBtnState('owner-consent-accept-btn',ok);
 }
 function acceptOwnerConsent(){
+  // APP-CONSENT-UX(v102): 未チェックがあれば先へ進めず、該当項目へ誘導（隠れチェックで無反応に見える問題の解消）
+  if(firstUncheckedConsent(['owner-consent-tos','owner-consent-pp','owner-consent-residency','owner-consent-age']))return;
   const nowIso=new Date().toISOString();
   // PP 18条第6項対応: 同意取得時刻・バージョンを記録
   let log=[];
@@ -5901,11 +5919,17 @@ function toggleAssetAfterViewer(id,checked){assetFormAfterViewers=toggledIdList(
 
 function fillAssetTypeSelect(val){
   const sel=document.getElementById('f-asset-type');
-  // APP-CARD-ASSET-MERGE(v101): カードは「支払いカードの管理」からのみ作成＝汎用資産フォームの種別からは除外
-  sel.innerHTML=ASSET_TYPE_ORDER.filter(k=>k!=='card').map(k=>`<option value="${k}"${k===val?' selected':''}>${esc(ASSET_TYPES[k].label)}</option>`).join('');
+  // APP-CARD-ASSET-MERGE(v102): カードも種別に表示。選択時は専用カード管理へ誘導（会社/下4桁/引落日＋見せる見せない1トグルは専用フォーム）。
+  sel.innerHTML=ASSET_TYPE_ORDER.map(k=>`<option value="${k}"${k===val?' selected':''}>${esc(ASSET_TYPES[k].label)}</option>`).join('');
 }
 function onAssetTypeChange(){
   const t=document.getElementById('f-asset-type').value;
+  // APP-CARD-ASSET-MERGE(v102): カードは専用フォームへ誘導（この汎用フォームでは作らない）
+  if(t==='card'){
+    closeAssetModal();
+    openCardModal(false);
+    return;
+  }
   const hint=(ASSET_TYPES[t]||ASSET_TYPES.bank).locHint;
   document.getElementById('f-asset-location').placeholder=hint;
 }
@@ -6695,7 +6719,14 @@ document.addEventListener('focusout',()=>{
   },120);
 });
 if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',placeKbDone);
+  window.visualViewport.addEventListener('resize',()=>{
+    placeKbDone();
+    // APP-KBDONE-FIX(v102): キーボードが閉じたら（vv がほぼ全画面＝kbTop 小）「完了」を隠す。
+    // iOS/アプリ内ブラウザで focus が入力欄に残り focusout が発火せず「完了」が出っぱなしになる対策。
+    const vv=window.visualViewport;
+    const kbTop=window.innerHeight-(vv.height+vv.offsetTop);
+    if(kbTop<100&&kbDoneBtn)kbDoneBtn.classList.remove('show');
+  });
   window.visualViewport.addEventListener('scroll',placeKbDone);
 }
 
