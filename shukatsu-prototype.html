@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v104</title>
+<title>きずなbaton プロトタイプ v105</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -4524,7 +4524,9 @@ async function adoptCloudOnLogin(prevUid,prevBacked,user){
   if(!u)return {aborted:false};
   const newUid=u.uid;
   const sameAccount=!!(prevUid&&prevUid===newUid);
-  if(deviceHasUnlinkedRealData()&&!sameAccount){
+  const localReal=deviceHasUnlinkedRealData(); // 採用前に評価（この端末の実データの有無）
+  // 別アカウント/未紐付けデータが消える場合の警告（switch or unlinked）
+  if(localReal&&!sameAccount){
     const msg=prevBacked
       ? '別のアカウントでログインします。\nこの端末には、これからログインするアカウントの記録が表示されます。\n（今の記録は前のアカウントのクラウドに保存されています）\n続けますか？'
       : 'この端末にある、アカウントに結び付いていない記録は、ログインすると表示されなくなります（元に戻せません）。\n先に「データをバックアップ」で書き出すこともできます。\nログインを続けますか？';
@@ -4538,10 +4540,30 @@ async function adoptCloudOnLogin(prevUid,prevBacked,user){
   try{snap=await fetchOwnCloudSnapshot(u);}
   catch(e){showCloudError(cloudSyncErrorMessage(e));return {aborted:false,error:e};}
   const hasData=!!((snap.contracts&&snap.contracts.length)||(snap.assets&&snap.assets.length)||(snap.cards&&snap.cards.length)||(snap.members&&snap.members.length));
-  if(hasData)applyOwnCloudSnapshot(snap);
-  else resetLocalToClean();
-  enableMirrorClean(newUid,snap);
-  showToast(hasData?'クラウドから記録を読み込みました':'ログインしました','success');
+  if(hasData){
+    // 同一アカウントで、この端末に実データ（未push編集を含み得る）がある場合は、置換前に確認して保護
+    if(sameAccount&&localReal){
+      if(!confirm('クラウドに保存された記録をこの端末に読み込みますか？\nこの端末に表示中の記録は、クラウドの内容に置き換わります。')){
+        showToast('この端末の記録をそのまま使います');
+        return {aborted:false}; // ローカル維持（既存の同期状態は変更しない）
+      }
+    }
+    applyOwnCloudSnapshot(snap);   // 採用＝置換（device B の pull／確認済みの同一アカウント）
+    enableMirrorClean(newUid,snap);// ミラー自動ON（クラウドに実データがある＝同期は既に同意済みと解釈）
+    showToast('クラウドから記録を読み込みました','success');
+  }else{
+    // クラウド空
+    if(!sameAccount){
+      // 別アカウント（上の警告を通過済 or localReal=false）→ 空アカウント＝クリーン開始（no-bleed）
+      resetLocalToClean();
+      enableMirrorClean(newUid,snap);
+      showToast('ログインしました','success');
+    }else{
+      // 同一アカウント・クラウド空＝まだバックアップされていない。ローカルは絶対に消さない・自動ONもしない。
+      // （バックアップしたい場合は「クラウドにも保存する」で同意のうえ push＝損失なし）
+      showToast('ログインしました','success');
+    }
+  }
   return {aborted:false};
 }
 
@@ -5405,7 +5427,7 @@ function doExportJSON(){
   const data={
     schemaVersion:4,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v104',
+    appVersion:'kizuna-baton-prototype-v105',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
