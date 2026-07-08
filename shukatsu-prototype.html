@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v106</title>
+<title>きずなbaton プロトタイプ v107</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -3764,8 +3764,11 @@ async function flushNativeWrites(){
 }
 
 // === v20: 契約・メンバーの localStorage 永続化 ===
+// suppressPersist: 端末データ全消去→reload の直前に true にし、pagehide/visibilitychange 安全網が
+// メモリ上のデータを DATA_KEY へ書き戻すのを止める（v106 実機バグ＝ログアウトでデータが消えない の根因）。
+let suppressPersist=false;
 function persistState(){
-  if(isPrivateMode)return;
+  if(isPrivateMode||suppressPersist)return;
   lsSet(DATA_KEY,JSON.stringify({
     version:'v20',
     savedAt:new Date().toISOString(),
@@ -4156,7 +4159,8 @@ async function confirmCloudSignout(){
     }
     await cloudSignOut();
     if(backed&&!stillDirty){
-      lsRemove(DATA_KEY); // クリーン再初期化＝デモ/空へ戻り、アカウント記録が非表示に
+      suppressPersist=true; // pagehide/visibilitychange 安全網の書き戻しを止める（消したDATA_KEYが復活しないように）
+      lsRemove(DATA_KEY);   // クリーン再初期化＝デモ/空へ戻り、アカウント記録が非表示に
       location.reload();
       return;
     }
@@ -4770,6 +4774,7 @@ function resetAllToDemoTest(){
   if(!confirm('【テスト用】この端末に保存したすべての記録（契約・保有資産・カード・設定）を消して、最初のサンプル状態に戻します。よろしいですか？'))return;
   if(!confirm('本当に消してよろしいですか？この操作は取り消せません。\n（クラウドに保存した記録は消えません。必要なら先に「アカウントを削除する」で消してください）'))return;
   try{ for(const k of STORAGE_KEYS){lsRemove(k);} }catch(e){}
+  suppressPersist=true; // 同上: pagehide 安全網が消したキーを書き戻すのを止める（reset が効かない同型バグの是正）
   location.reload();
 }
 
@@ -5456,7 +5461,7 @@ function doExportJSON(){
   const data={
     schemaVersion:4,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v106',
+    appVersion:'kizuna-baton-prototype-v107',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
