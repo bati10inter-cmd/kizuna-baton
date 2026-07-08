@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v103</title>
+<title>きずなbaton プロトタイプ v104</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -4106,9 +4106,9 @@ async function submitCloudSignin(){
   const prevBacked=!!(ps&&ps.enabled&&ps.uid&&ps.uid===prevUid);
   cloudSubmitBusy(true);
   try{
-    await cloudSignIn(email,pass);
+    const user=await cloudSignIn(email,pass); // cred.user を明示的に受ける（cloudUser は onAuthStateChanged 待ちで null のことがある）
     // ログイン契機の pull＋アカウント束ね（採用/警告/ミラー自動ON）。中止時はローカル無傷でここで終える。
-    const r=await adoptCloudOnLogin(prevUid,prevBacked);
+    const r=await adoptCloudOnLogin(prevUid,prevBacked,user);
     if(r&&r.aborted){renderCloudAccountModal('menu');renderSettingsModal();return;}
     renderCloudAccountModal('signedin');
     renderSettingsModal();
@@ -4447,10 +4447,11 @@ function deviceHasUnlinkedRealData(){return !isShowingDemo() && (contracts.lengt
 function mirrorBackedForUid(uid){const s=getCloudSync();return !!(s&&s.enabled&&s.uid===uid);}
 
 // --- 本人 users/{uid} の全コレクションを取得（own uid ＝ rules isSelf で list 許可）---
-async function fetchOwnCloudSnapshot(){
+// user は sign-in 直後の cred.user（onAuthStateChanged 未発火で cloudUser が null のレースを避けるため引数優先）。
+async function fetchOwnCloudSnapshot(user){
   const db=await initCloudFirestore();
   const m=cloudDbMod;
-  const uid=cloudUser.uid;
+  const uid=(user||cloudUser).uid;
   const getAll=async coll=>{const snap=await m.getDocs(m.collection(db,'users',uid,coll));const arr=[];snap.forEach(d=>arr.push(d.data()));return arr;};
   const [rc,ra,rk,rm,rcat]=await Promise.all([
     getAll('contracts'),getAll('assets'),getAll('cards'),getAll('members'),getAll('categories')
@@ -4516,9 +4517,12 @@ function enableMirrorClean(uid,snap){
 
 // --- ログイン契機の採用オーケストレータ（submitCloudSignin から await 呼出）---
 // prevUid/prevBacked は認証前に捕捉した値（onAuthStateChanged の clearCloudSync レースを避けるため引数で受ける）。
-async function adoptCloudOnLogin(prevUid,prevBacked){
-  if(!cloudUser)return {aborted:false};
-  const newUid=cloudUser.uid;
+// user は cloudSignIn が返す cred.user。cloudUser（グローバル）は onAuthStateChanged 経由のため sign-in 直後は
+// まだ null のことがある＝それに依存すると採用が丸ごとスキップされる（v103 実機バグ）。必ず引数の user を正とする。
+async function adoptCloudOnLogin(prevUid,prevBacked,user){
+  const u=user||cloudUser;
+  if(!u)return {aborted:false};
+  const newUid=u.uid;
   const sameAccount=!!(prevUid&&prevUid===newUid);
   if(deviceHasUnlinkedRealData()&&!sameAccount){
     const msg=prevBacked
@@ -4531,7 +4535,7 @@ async function adoptCloudOnLogin(prevUid,prevBacked){
     }
   }
   let snap;
-  try{snap=await fetchOwnCloudSnapshot();}
+  try{snap=await fetchOwnCloudSnapshot(u);}
   catch(e){showCloudError(cloudSyncErrorMessage(e));return {aborted:false,error:e};}
   const hasData=!!((snap.contracts&&snap.contracts.length)||(snap.assets&&snap.assets.length)||(snap.cards&&snap.cards.length)||(snap.members&&snap.members.length));
   if(hasData)applyOwnCloudSnapshot(snap);
@@ -5401,7 +5405,7 @@ function doExportJSON(){
   const data={
     schemaVersion:4,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v101',
+    appVersion:'kizuna-baton-prototype-v104',
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
     categories:categories.slice(),
