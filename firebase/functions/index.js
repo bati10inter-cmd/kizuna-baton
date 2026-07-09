@@ -197,7 +197,9 @@ exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) =>
 });
 
 // ---- acceptInvite（invitee が OTP＋同意で受諾）--------------------------------
-exports.acceptInvite = onCall(async (request) => {
+// APP-INVITE-ACCEPT-NOTIFY(v108): 受諾成功後に招待元本人へ実メール通知するため
+// SENDGRID_API_KEY を bind（issueInvite と同型）。忘れると本番で Secret 参照不可＝送信失敗。
+exports.acceptInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) => {
   const viewerUid = requireUid(request);
   const data = request.data || {};
 
@@ -303,7 +305,7 @@ exports.acceptInvite = onCall(async (request) => {
       read: false,
     });
 
-    return { ok: true, ownerUid, viewerMemberId, ownerName };
+    return { ok: true, ownerUid, viewerMemberId, ownerName, suggestedName: invite.suggestedName };
   });
 
   if (!result.ok) {
@@ -317,6 +319,22 @@ exports.acceptInvite = onCall(async (request) => {
       throw new HttpsError('not-found', result.message);
     }
     throw new HttpsError('failed-precondition', result.message);
+  }
+
+  // APP-INVITE-ACCEPT-NOTIFY(v108・Fable A-2・ToS6条5項4号): 受諾を招待元本人へメール通知
+  // （＋誤配受諾の検知網）。best-effort＝送信失敗は確定済みの受諾を妨げない。owner のメールは
+  // Auth から取得（members には持たない）。呼び名は招待発行時に owner が設定した suggestedName。
+  try {
+    const ownerRecord = await admin.auth().getUser(result.ownerUid);
+    const ownerEmail = ownerRecord && ownerRecord.email;
+    if (ownerEmail) {
+      const { sendInviteAcceptedEmail } = require('./lib/email');
+      await sendInviteAcceptedEmail({ to: ownerEmail, viewerName: result.suggestedName });
+    }
+  } catch (e) {
+    // 通知は補助的＝失敗しても受諾は確定済み。ログのみ（受諾レスポンスは成功で返す）。
+    // eslint-disable-next-line no-console
+    console.error('[acceptInvite] owner notify email failed', e && e.message);
   }
 
   return {

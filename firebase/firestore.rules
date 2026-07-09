@@ -80,11 +80,18 @@ service cloud.firestore {
       // APP-CARD-ASSET-MERGE(v101): カード型資産（type=='card'）は last4 を持つため家族へは非公開。
       //   クライアント（buildCloudDocs）は card 資産を cards コレクションへ振り分けるが、万一 assets に
       //   紛れても last4 が漏れないよう family read（get/list）を type!='card' で二重防御する。
+      // type 参照は type 欠落に頑健化する（(!('type' in …) || … != 'card')）:
+      //   list は候補 doc を型付けせず評価するため（新しめのエミュレータでは
+      //   query が拘束しない resource.data.type は undefined＝評価エラーになる）、
+      //   また type 未設定の旧 assets を card 扱いで誤って弾かないため。
+      //   card 型のみ family-deny を維持（type=='card' のときだけ false）。
       match /assets/{aid} {
         allow read, write: if isSelf(uid);
-        allow get: if hasAcceptedShare(uid) && resource.data.type != 'card' && canViewLive(uid, resource.data);
+        allow get: if hasAcceptedShare(uid)
+          && (!('type' in resource.data) || resource.data.type != 'card')
+          && canViewLive(uid, resource.data);
         allow list: if hasAcceptedShare(uid)
-          && resource.data.type != 'card'
+          && (!('type' in resource.data) || resource.data.type != 'card')
           && (resource.data.visibility.mode == 'all'
               || (resource.data.visibility.mode == 'selected'
                   && resource.data.visibility.liveViewers.hasAny(
@@ -93,6 +100,12 @@ service cloud.firestore {
 
       // カード: visibility を持たない（last4 のみ）＝本人 owner-only。家族には非公開
       match /cards/{cardId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      // 所在メモ(secret): 契約から分離した owner-only。第三者（招待家族）には get/list とも非公開。
+      // APP-INVITE-SECRET-SPLIT(v108・Fable A-1/オーナー決定B'案)。cards と同型。
+      match /contractSecrets/{cid} {
         allow read, write: if isSelf(uid);
       }
 

@@ -85,7 +85,7 @@ npm install                                          # 初回のみ（@firebase/
 npm run test:rules                                   # Firestore エミュレータ(8080)を起動しルールテストを実行
 ```
 
-`test/firestore.rules.test.mjs` が canViewContract 写像の全分岐（all/selected/private/after_only・未設定=all・未承諾share・viewer write 拒否・assets 同型・cards owner-only・consentLogs 追記のみ・invitations/shares 書込禁止）を検証。**全 29 ケース PASS が受け入れ基準**（stage-2b v99 で list クエリ系を追加＝viewer の 2クエリ〔mode=='all' ／ 'selected'＋array-contains〕許可・フィルタ無し全件 list 拒否・shares のフィールドベース list・assets 同型）。実行中に出る `PERMISSION_DENIED` ログは拒否系テスト（assertFails）が意図的に発生させたもの。
+`test/firestore.rules.test.mjs` が canViewContract 写像の全分岐（all/selected/private/after_only・未設定=all・未承諾share・viewer write 拒否・assets 同型・cards owner-only・consentLogs 追記のみ・invitations/shares 書込禁止）を検証。**全 30 ケース PASS が受け入れ基準**（stage-2b v99 で list クエリ系を追加＝viewer の 2クエリ〔mode=='all' ／ 'selected'＋array-contains〕許可・フィルタ無し全件 list 拒否・shares のフィールドベース list・assets 同型／**v108 で 12b＝contractSecrets owner-only〔家族 get・list とも不可〕を追加**）。実行中に出る `PERMISSION_DENIED` ログは拒否系テスト（assertFails）が意図的に発生させたもの。**※既知の別件**: 「17. assets Q-A list」は本 v108 作業前から新しめのエミュレータ/Java 環境で失敗する（assets list rule の `resource.data.type` 参照が `type undefined` 評価エラー）。P0 とは無関係の別タスク。
 
 ## 招待サーバ化（Cloud Functions）（P3-core・APP-V2-INVITE-SERVER）
 
@@ -114,7 +114,7 @@ npm run test:functions:deps    # 初回のみ（functions/ の firebase-admin・
 npm run test:functions         # Functions+Firestore+Auth エミュレータで結合テスト
 ```
 
-`test/functions.test.mjs` が issueInvite（正常/不正入力/1日3件超/pending5件超/未認証）・acceptInvite（正常で share/consentLog/member/通知生成・誤OTP・5回ロック・期限切れ・revoked・自己受諾不可）・revokeInvite・unlinkShare（rules 経由で家族 read が遮断されることまで）・listInvites（OTP 非返却）・**deleteAccount（未認証拒否／本人の全データ・共有・招待・Auth の完全削除＋家族 read 遮断＋再サインイン不可／viewer 側削除の owner 非干渉＋member unlinked 化）**を検証。**全 20 ケース PASS が受け入れ基準**（削除系は専用 Auth ユーザーを都度作成＝共有 owner/viewer 非破壊。stage-2b v99 で acceptInvite の ownerName 転写 2件＋inviteLink 形式検証を追加）。
+`test/functions.test.mjs` が issueInvite（正常/不正入力/1日3件超/pending5件超/未認証）・acceptInvite（正常で share/consentLog/member/通知生成・誤OTP・5回ロック・期限切れ・revoked・自己受諾不可）・revokeInvite・unlinkShare（rules 経由で家族 read が遮断されることまで）・listInvites（OTP 非返却）・**deleteAccount（未認証拒否／本人の全データ・共有・招待・Auth の完全削除＋家族 read 遮断＋再サインイン不可／viewer 側削除の owner 非干渉＋member unlinked 化）**を検証。**全 22 ケース PASS が受け入れ基準**（削除系は専用 Auth ユーザーを都度作成＝共有 owner/viewer 非破壊。stage-2b v99 で acceptInvite の ownerName 転写 2件＋inviteLink 形式検証を追加／**v108 で受諾通知メール〔APP-INVITE-ACCEPT-NOTIFY〕の `email.js` log プロバイダ挙動を in-process で検証する2件を追加**）。なお `acceptInvite` は v108 で onCall に `secrets:[SENDGRID_API_KEY]` を bind し、tx 成功後に owner のメールへ受諾通知を送る（実送信は functions runtime の別プロセス＝結合テストからは非観測のため email.js を直接検証）。
 
 > ⚠️ **`.env.local`（エミュレータ専用・deploy 非同梱）**: O4 deploy 用の `.env` が `EMAIL_PROVIDER=sendgrid` を持つため、エミュレータではそのままだと Secret 不在で issueInvite が throw する。`functions/.env.local` が `EMAIL_PROVIDER=log` で上書きしテストを成立させる（firebase emulators は `.env.local` を優先）。
 

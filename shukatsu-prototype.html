@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v107</title>
+<title>きずなbaton プロトタイプ v108</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -4238,12 +4238,22 @@ async function initCloudFunctions(){
 //   家族の list read は where('visibility.mode',…) クエリ（firestore.rules の allow list と対）で行うため、
 //   visibility 未設定のままミラーすると mode=='all' クエリに載らず「見えるはずの契約が見えない」。
 // ミラースキーマ版数（CLOUD_MIRROR_SCHEMA）: 出力形を変えたら +1 → 既存有効ユーザーは自動フル再同期。
-const CLOUD_MIRROR_SCHEMA=2; // v99: visibility 正規化
+const CLOUD_MIRROR_SCHEMA=3; // v108: 所在メモ(secret)を contractSecrets へ owner-only 分離（APP-INVITE-SECRET-SPLIT）
 function buildCloudDocs(state){
   const clean=x=>JSON.parse(JSON.stringify(x));
-  const docs={contracts:{},assets:{},cards:{},members:{},categories:{}};
-  const manifest={contracts:[],assets:[],cards:[],members:[],categories:[]};
-  (state.contracts||[]).forEach(c=>{const k=String(c.id);const d=clean(c);d.visibility=clean(getVisibility(c));docs.contracts[k]=d;manifest.contracts.push(k);});
+  const docs={contracts:{},contractSecrets:{},assets:{},cards:{},members:{},categories:{}};
+  const manifest={contracts:[],contractSecrets:[],assets:[],cards:[],members:[],categories:[]};
+  // APP-INVITE-SECRET-SPLIT(v108・Fable A-1/オーナー決定B'案): 所在メモ(secret)は第三者(招待家族)が
+  // クラウドで読めないよう contract doc から剥がし、owner-only の contractSecrets/{cid} へ退避する
+  // （rules=本人のみ・cards と同型）。カード会社/下4桁(cardBrand/cardLast4)は家族可視（現UI「支払い情報（開示済）」）
+  // のため契約docに残す。secret が空の契約は secret doc を作らない（manifest 差分で自動掃去）。
+  (state.contracts||[]).forEach(c=>{
+    const k=String(c.id);const d=clean(c);d.visibility=clean(getVisibility(c));
+    const sec=typeof d.secret==='string'?d.secret:'';
+    delete d.secret; // 契約docからは secret を除去＝第三者read経路(cross-account)に載せない
+    docs.contracts[k]=d;manifest.contracts.push(k);
+    if(sec){docs.contractSecrets[k]={cid:k,secret:sec};manifest.contractSecrets.push(k);}
+  });
   // APP-CARD-ASSET-MERGE(v101): カード型資産は owner-only の cards コレクションへ振り分ける。
   // firestore rules で assets は visibility.mode=='all' で家族可読・cards は本人のみ。カードの last4 を
   // 家族へ出さないため（#4 cloud は v2・今回はローカルマスク先行）、assets には決して入れない。
@@ -4266,9 +4276,9 @@ function buildCloudDocs(state){
 
 // --- 純関数（特性テスト T25）: manifest 差分 → 削除対象 id 群（prev null 対応）---
 function diffCloudManifest(prev,current){
-  const out={contracts:[],assets:[],cards:[],members:[],categories:[]};
+  const out={contracts:[],contractSecrets:[],assets:[],cards:[],members:[],categories:[]};
   if(!prev)return out;
-  ['contracts','assets','cards','members','categories'].forEach(coll=>{
+  ['contracts','contractSecrets','assets','cards','members','categories'].forEach(coll=>{
     const cur=new Set(current&&current[coll]||[]);
     (prev[coll]||[]).forEach(id=>{if(!cur.has(id))out[coll].push(id);});
   });
@@ -4325,7 +4335,7 @@ async function runCloudSync(){
     const built=buildCloudDocs({contracts,members,categories,assets,cards,icons:ICONS,colors:COLORS,tcolors:TCOLORS});
     const dels=diffCloudManifest(s.manifest,built.manifest);
     const ops=[];
-    ['contracts','assets','cards','members','categories'].forEach(coll=>{
+    ['contracts','contractSecrets','assets','cards','members','categories'].forEach(coll=>{
       Object.keys(built.docs[coll]).forEach(id=>ops.push({ref:m.doc(db,'users',uid,coll,id),data:built.docs[coll][id]}));
       dels[coll].forEach(id=>ops.push({ref:m.doc(db,'users',uid,coll,id),del:true}));
     });
@@ -4367,7 +4377,7 @@ async function deleteAllCloudDocs(){
   const m=cloudDbMod;
   const uid=cloudUser.uid;
   const refs=[];
-  for(const coll of ['contracts','assets','cards','members','categories']){
+  for(const coll of ['contracts','contractSecrets','assets','cards','members','categories']){
     const snap=await m.getDocs(m.collection(db,'users',uid,coll));
     snap.forEach(d=>refs.push(d.ref));
   }
@@ -4399,7 +4409,7 @@ async function submitEnableCloudSync(){
     try{const raw=lsGet(CONSENT_LOG_KEY);if(raw)log=JSON.parse(raw)||[];}catch(e){log=[];}
     log.push({ts:nowIso,tosVersion:TERMS_VERSION,ppVersion:PRIVACY_VERSION,actor:'owner',action:'cloud-sync-enabled'});
     try{lsSet(CONSENT_LOG_KEY,JSON.stringify(log));}catch(e){}
-    setCloudSync({version:1,uid:cloudUser.uid,enabled:true,dirty:true,lastSyncAt:null,manifest:{contracts:[],assets:[],cards:[],members:[],categories:[]}});
+    setCloudSync({version:1,uid:cloudUser.uid,enabled:true,dirty:true,lastSyncAt:null,manifest:{contracts:[],contractSecrets:[],assets:[],cards:[],members:[],categories:[]}});
     await runCloudSync();
     showToast('クラウドへの保存をはじめました','success');
     renderCloudAccountModal('signedin');
@@ -4464,17 +4474,21 @@ async function fetchOwnCloudSnapshot(user){
   const m=cloudDbMod;
   const uid=(user||cloudUser).uid;
   const getAll=async coll=>{const snap=await m.getDocs(m.collection(db,'users',uid,coll));const arr=[];snap.forEach(d=>arr.push(d.data()));return arr;};
-  const [rc,ra,rk,rm,rcat]=await Promise.all([
-    getAll('contracts'),getAll('assets'),getAll('cards'),getAll('members'),getAll('categories')
+  const [rc,rcs,ra,rk,rm,rcat]=await Promise.all([
+    getAll('contracts'),getAll('contractSecrets'),getAll('assets'),getAll('cards'),getAll('members'),getAll('categories')
   ]);
   let userLastSyncAt=null;
   try{const ud=await m.getDoc(m.doc(db,'users',uid));if(ud.exists())userLastSyncAt=(ud.data()||{}).lastSyncAt||null;}catch(e){}
-  return {contracts:rc,assets:ra,cards:rk,members:rm,categories:rcat.length?rcat[0]:null,userLastSyncAt};
+  return {contracts:rc,contractSecrets:rcs,assets:ra,cards:rk,members:rm,categories:rcat.length?rcat[0]:null,userLastSyncAt};
 }
 
 // --- スナップショット → ローカルグローバル再構築（applyRestore と同型）---
 function applyOwnCloudSnapshot(snap){
-  contracts=(snap.contracts||[]).map(coerceContractNums);
+  // APP-INVITE-SECRET-SPLIT(v108): 所在メモは contractSecrets へ分離済み。pull 時に契約へマージ復元し、
+  // 端末間同期で本人の所在メモを失わせない（データ生存則）。secret doc が無い契約は '' 既定。
+  const secretMap={};
+  (snap.contractSecrets||[]).forEach(s=>{if(s&&s.cid!=null)secretMap[String(s.cid)]=(typeof s.secret==='string'?s.secret:'');});
+  contracts=(snap.contracts||[]).map(coerceContractNums).map(c=>{c.secret=secretMap[String(c.id)]||'';return c;});
   // cloud は card 型資産を cards コレクションへ振り分け済み。ローカルモデル（v101: card は type:'card' 資産）へ合流。
   const mergedAssets=(snap.assets||[]).slice();
   const legacyCards=[];

@@ -171,6 +171,26 @@ test('12. カードは承諾 share を持つ家族でも read できない（own
   await assertSucceeds(getDoc(doc(ownerDb(), `users/${OWNER}/cards/card1`)));
 });
 
+// ---- contractSecrets（所在メモ・owner-only／APP-INVITE-SECRET-SPLIT v108） ----
+async function seedContractSecret(cid) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), `users/${OWNER}/contractSecrets/${cid}`), {
+      cid, secret: '引落口座は通帳に記載',
+    });
+  });
+}
+test('12b. 所在メモ(contractSecrets)は承諾 share を持つ家族でも read できない（owner-only）', async () => {
+  await seedShare('accepted');
+  await seedContractSecret('c1');
+  // 家族は get も list も不可・本人は read/write 可
+  await assertFails(getDoc(doc(famDb(), `users/${OWNER}/contractSecrets/c1`)));
+  await assertFails(getDocs(query(collection(famDb(), `users/${OWNER}/contractSecrets`))));
+  await assertSucceeds(getDoc(doc(ownerDb(), `users/${OWNER}/contractSecrets/c1`)));
+  await assertSucceeds(
+    setDoc(doc(ownerDb(), `users/${OWNER}/contractSecrets/c2`), { cid: 'c2', secret: 'x' })
+  );
+});
+
 // ---- consentLogs（追記のみ） ----
 test('13. consentLogs は本人 create 可・update/delete 不可', async () => {
   const ref = doc(ownerDb(), `consentLogs/${OWNER}/entries/e1`);

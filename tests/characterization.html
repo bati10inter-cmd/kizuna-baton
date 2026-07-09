@@ -156,7 +156,7 @@
           input.contracts[1].visibility.afterViewers === undefined  // 正規化が入力へ波及しない
         ], [
           ['1','2'], false, true, true,
-          {contracts:['1','2'],assets:['5'],cards:['3'],members:['m1'],categories:['list']},
+          {contracts:['1','2'],contractSecrets:[],assets:['5'],cards:['3'],members:['m1'],categories:['list']},
           {mode:'all',liveViewers:[],afterViewers:[]},
           {mode:'selected',liveViewers:['m2'],afterViewers:[]},
           {mode:'all',liveViewers:[],afterViewers:[]},
@@ -171,8 +171,8 @@
         ),
         W.diffCloudManifest(null, {contracts:['1'],assets:[],cards:[],members:[],categories:['list']})
       ], [
-        {contracts:['2'],assets:['5'],cards:[],members:['m2'],categories:[]},
-        {contracts:[],assets:[],cards:[],members:[],categories:[]}
+        {contracts:['2'],contractSecrets:[],assets:['5'],cards:[],members:['m2'],categories:[]},
+        {contracts:[],contractSecrets:[],assets:[],cards:[],members:[],categories:[]}
       ]));
       // APP-V2-SYNC P2b(v96): 同期status/エラー文言（純関数・引数のみに依存）
       add('T26', () => assertDeepEqual([
@@ -209,6 +209,34 @@
           TOK, TOK, TOK, null, null,
           true, true, true, true,
           true, true
+        ]);
+      });
+
+      // APP-INVITE-SECRET-SPLIT(v108): buildCloudDocs は所在メモ(secret)を契約docから剥がし、
+      // owner-only の contractSecrets へ退避する（空secretはdoc化しない＝manifest差分で掃去）。
+      // 家族可視の cardBrand/cardLast4 は契約docに残す。cross-account read 経路に secret を載せない。
+      add('T28', () => {
+        const input = {
+          contracts: [
+            {id:1,name:'A',ownerId:'m1',secret:'金庫の中',cardBrand:'VISA',cardLast4:'1234'},
+            {id:2,name:'B',ownerId:'m1',secret:''}
+          ],
+          members: [], categories: [], assets: [], cards: [],
+          icons: {}, colors: {}, tcolors: {}
+        };
+        const out = W.buildCloudDocs(input);
+        assertDeepEqual([
+          ('secret' in out.docs.contracts['1']),   // 契約docから除去
+          ('secret' in out.docs.contracts['2']),   // 空でも除去
+          out.docs.contracts['1'].cardBrand,       // カード会社は残す（家族可視）
+          out.docs.contracts['1'].cardLast4,       // 下4桁は残す（家族可視）
+          out.docs.contractSecrets['1'],           // owner-only へ退避
+          ('2' in out.docs.contractSecrets),       // 空secretはdoc作らない
+          out.manifest.contractSecrets,            // manifest にも id1 のみ
+          input.contracts[0].secret === '金庫の中' // 入力へ波及しない（deep-copy）
+        ], [
+          false, false, 'VISA', '1234',
+          {cid:'1',secret:'金庫の中'}, false, ['1'], true
         ]);
       });
 

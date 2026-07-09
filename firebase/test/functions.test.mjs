@@ -34,6 +34,7 @@ import { getFunctions, connectFunctionsEmulator, httpsCallable } from 'firebase/
 import { doc, getDoc, setDoc, getDocs, collection } from 'firebase/firestore';
 import otpLib from '../functions/lib/otp.js';
 import constantsLib from '../functions/lib/constants.js';
+import emailLib from '../functions/lib/email.js';
 
 const { hashOtp } = otpLib;
 const { USER_SUBCOLLECTIONS } = constantsLib;
@@ -243,6 +244,26 @@ test('acceptInvite: 正しい OTP＋同意で share/consentLog/member/notificati
 
   const notifN = await adminCount(`users/${ownerUid}/notifications`);
   assert.equal(notifN, 1, 'owner 通知が1件作られる');
+});
+
+// ---- 受諾通知メール（APP-INVITE-ACCEPT-NOTIFY v108・email.js を in-process で検証）----
+// acceptInvite の実送信は別プロセス（functions runtime）の in-memory outbox に積まれ、
+// エミュレータ越しの結合テストからは観測できない。email.js の 'log' プロバイダ挙動を
+// この test プロセス内で直接検証する（FIRESTORE_EMULATOR_HOST 設定下＝isEmulator()true）。
+test('email: sendInviteAcceptedEmail は log プロバイダで受諾通知を acceptOutbox に積む', async () => {
+  emailLib._clearAcceptOutbox();
+  const r = await emailLib.sendInviteAcceptedEmail({ to: 'owner@example.com', viewerName: '花子' });
+  assert.equal(r.ok, true);
+  assert.equal(r.provider, 'log');
+  const ob = emailLib._getAcceptOutbox();
+  assert.equal(ob.length, 1, '受諾通知が1件積まれる');
+  assert.equal(ob[0].to, 'owner@example.com', '宛先は招待元本人（owner）のメール');
+  assert.equal(ob[0].viewerName, '花子', '受諾家族の呼び名を含む');
+});
+test('email: sendInviteAcceptedEmail は呼び名未指定でも「ご家族」で送る', async () => {
+  emailLib._clearAcceptOutbox();
+  await emailLib.sendInviteAcceptedEmail({ to: 'o@example.com' });
+  assert.equal(emailLib._getAcceptOutbox()[0].viewerName, 'ご家族');
 });
 
 // ---- acceptInvite（ownerName スナップショット・stage-2b）----
