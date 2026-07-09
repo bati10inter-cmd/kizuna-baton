@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v108</title>
+<title>きずなbaton プロトタイプ v109</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -832,17 +832,19 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <p style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:6px;line-height:1.4">この契約に関する家族へのメモや想いを残せます。公開範囲（下記）に従って表示されます。</p>
       <div class="form-row"><textarea id="f-family-message" placeholder="例: 楽しい時間をありがとう。解約手続きはよろしくね。" rows="2" style="resize:vertical;min-height:48px"></textarea></div>
 
-      <button type="button" class="collapse-toggle" id="opt2-toggle" aria-expanded="false" aria-controls="opt2-section" onclick="toggleFormSection('opt2')"><i class="ti ti-chevron-right collapse-chevron"></i>機密情報を追加（任意・本人以外には非表示）</button>
+      <button type="button" class="collapse-toggle" id="opt2-toggle" aria-expanded="false" aria-controls="opt2-section" onclick="toggleFormSection('opt2')"><i class="ti ti-chevron-right collapse-chevron"></i>支払い情報・所在メモを追加（任意）</button>
       <div class="collapse-section" id="opt2-section" hidden>
-        <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 機密情報（本人以外には非表示）</div>
+        <div class="form-section-title" id="secret-section-title"><i class="ti ti-lock"></i> 支払い情報・所在メモ（任意）</div>
         <p style="font-size:12px;color:#A32D2D;background:#FCEBEB;padding:6px 8px;border-radius:4px;margin-bottom:8px;line-height:1.5"><i class="ti ti-alert-triangle"></i> <strong>カード番号フル・口座番号・暗証番号は記入しないでください。</strong>「証券番号は金庫内」「引落口座は通帳記載」のように<strong>保管場所のメモ</strong>としてご利用ください。</p>
         <div id="secret-card-fields">
           <div class="form-grid">
             <div class="form-row"><label>カード会社</label><input type="text" id="f-card-brand" placeholder="例: 三井住友VISA"></div>
             <div class="form-row"><label>カード下4桁</label><input type="text" id="f-card-last4" placeholder="例: 1234" maxlength="4"></div>
           </div>
+          <p style="font-size:11px;color:var(--color-text-tertiary);margin:2px 0 8px;line-height:1.4"><i class="ti ti-users" style="font-size:11px"></i> カード会社・下4桁は、この契約を見せるご家族の画面に表示されます（どの家族に見せるかは下の「家族からの見え方」で選べます）。</p>
         </div>
-        <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
+        <div class="form-row" id="secret-memo-row"><label id="secret-memo-label">その他のメモ（保管場所等・ご本人だけに表示）</label><input type="text" id="f-secret" placeholder="例: 証券番号は金庫内 / 引落口座は通帳に記載"></div>
+        <p style="font-size:11px;color:var(--color-text-tertiary);margin:2px 0 0;line-height:1.4"><i class="ti ti-lock" style="font-size:11px"></i> このメモはご家族には表示されません（ご本人だけが見られます）。</p>
       </div>
 
       <div class="form-section-title" style="border-top:none;margin-top:8px;padding-top:0"><i class="ti ti-users-group"></i> 家族からの見え方</div>
@@ -3933,6 +3935,10 @@ async function cloudSignUp(email,pass){
   const auth=await initCloudAuth();
   const cred=await cloudAuthMod.createUserWithEmailAndPassword(auth,email,pass);
   setCloudLink(cred.user);
+  // APP-AUTH-EMAIL-VERIFY(v109・ToS5条1項「メールアドレスの確認手続き」): 確認メールを
+  // 非ブロッキングで送信（確認未完了でも利用可＝高齢ユーザーのフリクション回避・PP v5.0 第2条(A)記載）。
+  // fire-and-forget＝登録フローを遅らせず、失敗しても登録は成立（best-effort・握り潰し）。
+  try{ if(cloudAuthMod.sendEmailVerification) cloudAuthMod.sendEmailVerification(cred.user).catch(()=>{}); }catch(e){}
   return cred.user;
 }
 async function cloudSignIn(email,pass){
@@ -4982,6 +4988,12 @@ function issueInvitation(){
     const email=(document.getElementById('invite-email').value||'').trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('招待先のメールアドレスを入力してください');return;}
     const memberId=(document.getElementById('invite-member').value||'').trim();
+    // APP-INVITE-ISSUE-CONSENT(v109・18条9項要点): 受諾されると「全員に見せる」契約がこの家族に
+    // 開示されることを、発行前に件数提示して確認する（附則v5.0「発行時の個別同意」の実装裏付け）。
+    const allCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&getVisibility(c).mode==='all').length;
+    if(!confirm(`いま「全員に見せる」に設定している契約が ${allCount} 件あります。\nこの方が招待を受諾すると、その ${allCount} 件をご家族の画面で見られるようになります。\n（「選んだ家族だけ」「表示しない」「もしもの時だけ」の契約は含まれません。これから追加する契約も、既定では「全員に見せる」です。）\n\n招待を送りますか？`)){
+      return;
+    }
     const btn=document.getElementById('invite-issue-btn');
     if(btn){btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';}
     (async()=>{

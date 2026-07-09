@@ -1,5 +1,24 @@
 'use strict';
 
+const {
+  OPERATOR_NAME,
+  OPERATOR_CONTACT_EMAIL,
+  PRIVACY_POLICY_URL,
+} = require('./constants');
+
+// APP-INVITE-EMAIL-BODY(v109): 招待メールは「家族招待の確認」だけを目的とする
+// トランザクショナルメールとして扱う。**広告・宣伝・キャンペーン等の営業要素は本文に一切含めない**
+// （特定電子メール法のオプトイン規制の対象外に留める自制ルール）。本文末尾には送信者（運営者）情報・
+// 問い合わせ/削除依頼窓口・プライバシーポリシーへのリンクを必ず付す（非利用者＝招待相手の権利経路確保）。
+function inviteMailFooter() {
+  return (
+    '――――――\n' +
+    `送信元: ${OPERATOR_NAME}（本メールは家族招待の確認のみを目的としたご連絡です）\n` +
+    `お問い合わせ・登録情報の削除依頼: ${OPERATOR_CONTACT_EMAIL}\n` +
+    `プライバシーポリシー: ${PRIVACY_POLICY_URL}`
+  );
+}
+
 // ============================================================================
 // 招待 OTP メール送信アダプタ（差替可能）
 // ----------------------------------------------------------------------------
@@ -76,7 +95,8 @@ async function sendInviteOtpEmail({ to, otp, inviterName, link }) {
       `確認コード（6桁）: ${otp}\n` +
       `招待リンク: ${link || ''}\n\n` +
       'このコードは、招待リンクを開いた画面で入力してください。\n' +
-      'お心当たりがない場合は、このメールを破棄してください。';
+      'お心当たりがない場合は、このメールを破棄してください。\n\n' +
+      inviteMailFooter();
     await sgMail.send({ to, from, subject, text });
     return { ok: true, provider: 'sendgrid' };
   }
@@ -126,7 +146,8 @@ async function sendInviteAcceptedEmail({ to, viewerName }) {
       'あなたが送った家族招待が受諾されました。\n\n' +
       `受諾した方（あなたが設定した呼び名）: ${who}\n\n` +
       'きずなbaton アプリを開くと、共有した契約の一覧に反映されています。\n' +
-      'お心当たりのない受諾の場合は、アプリの家族管理から共有の解除ができます。';
+      'お心当たりのない受諾の場合は、アプリの家族管理から共有の解除ができます。\n\n' +
+      inviteMailFooter();
     await sgMail.send({ to, from, subject, text });
     return { ok: true, provider: 'sendgrid' };
   }

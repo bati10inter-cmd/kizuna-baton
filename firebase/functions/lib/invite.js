@@ -114,6 +114,37 @@ function evaluateAcceptable(doc, nowMs, maxAttempts) {
   return { ok: true };
 }
 
+// 失効・取消の招待のうち保持期間を過ぎたもの（＝機械削除対象）の doc id を選ぶ純関数。
+// PP第14条1項（失効・取消から30日以内の削除）の履行判定。docs は {id, data} の配列。
+//   対象＝revoked（revokedAtMs 起点・無ければ expiresAtMs で代替）／
+//         期限切れ（status==='pending' かつ expiresAtMs 経過・expiresAtMs 起点）。
+//   accepted は「家族関係の記録」であり本タスクの対象外（別の保持方針）＝削除しない。
+// nowMs - anchor >= retentionMs（＝保持期間を過ぎた）ものだけを返す。
+function selectExpiredInviteIdsToDelete(docs, nowMs, retentionMs) {
+  const out = [];
+  for (const d of docs || []) {
+    if (!d || !d.id) continue;
+    const data = d.data || {};
+    let anchor = null;
+    if (data.status === 'revoked') {
+      anchor =
+        typeof data.revokedAtMs === 'number'
+          ? data.revokedAtMs
+          : typeof data.expiresAtMs === 'number'
+          ? data.expiresAtMs
+          : null;
+    } else if (
+      data.status === 'pending' &&
+      typeof data.expiresAtMs === 'number' &&
+      nowMs > data.expiresAtMs
+    ) {
+      anchor = data.expiresAtMs; // 未受諾のまま期限切れ
+    }
+    if (anchor !== null && nowMs - anchor >= retentionMs) out.push(d.id);
+  }
+  return out;
+}
+
 module.exports = {
   stripUndefined,
   buildInviteDoc,
@@ -121,4 +152,5 @@ module.exports = {
   buildShareDoc,
   buildConsentEntry,
   evaluateAcceptable,
+  selectExpiredInviteIdsToDelete,
 };

@@ -12,6 +12,7 @@
 // ============================================================================
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
@@ -20,7 +21,12 @@ const admin = require('firebase-admin');
 // 実送信を行う issueInvite にのみ bind する（下記 onCall options）。
 const SENDGRID_API_KEY = defineSecret('SENDGRID_API_KEY');
 
-const { INVITE_EXPIRY_MS, OTP_MAX_ATTEMPTS, OWNER_MEMBER_ID } = require('./lib/constants');
+const {
+  INVITE_EXPIRY_MS,
+  OTP_MAX_ATTEMPTS,
+  OWNER_MEMBER_ID,
+  INVITE_CLEANUP_RETENTION_MS,
+} = require('./lib/constants');
 const { genInviteToken, genOtp6, hashOtp, verifyOtp } = require('./lib/otp');
 const {
   validateEmail,
@@ -37,6 +43,7 @@ const {
   buildShareDoc,
   buildConsentEntry,
   evaluateAcceptable,
+  selectExpiredInviteIdsToDelete,
 } = require('./lib/invite');
 
 setGlobalOptions({ region: 'asia-northeast1', maxInstances: 10 });
@@ -493,3 +500,27 @@ exports.deleteAccount = onCall(async (request) => {
 
   return { ok: true };
 });
+
+// ---- cleanupExpiredInvites（失効・取消招待の30日以内 機械削除・PP第14条1項）----------
+// APP-INVITE-EXPIRE-CLEANUP: 毎日実行。invitations のうち revoked／期限切れ（pending 経過）で
+// 保持期間（30日）を過ぎた doc を削除＝招待先メール・OTPハッシュ・呼び名・関係性の PII を消去。
+// accepted（家族関係の記録）は対象外。選定は純関数 selectExpiredInviteIdsToDelete（テスト済）。
+// TTL ではなく scheduled function 方式＝Timestamp 追加や TTL ポリシー設定（コンソール作業）不要で
+// 選定ロジックを単体テストできる。region は setGlobalOptions（asia-northeast1）を継承。
+exports.cleanupExpiredInvites = onSchedule(
+  { schedule: 'every 24 hours', timeZone: 'Asia/Tokyo' },
+  async () => {
+    const now = nowMs();
+    const snap = await db.collection('invitations').get();
+    const docs = [];
+    snap.forEach((d) => docs.push({ id: d.id, data: d.data() }));
+    const ids = selectExpiredInviteIdsToDelete(docs, now, INVITE_CLEANUP_RETENTION_MS);
+    for (let i = 0; i < ids.length; i += 400) {
+      const batch = db.batch();
+      ids.slice(i, i + 400).forEach((id) => batch.delete(db.collection('invitations').doc(id)));
+      await batch.commit();
+    }
+    // eslint-disable-next-line no-console
+    console.log(`[cleanupExpiredInvites] deleted ${ids.length} expired/revoked invitations`);
+  }
+);

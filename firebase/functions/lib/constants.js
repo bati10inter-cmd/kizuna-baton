@@ -30,6 +30,13 @@ const USER_SUBCOLLECTIONS = [
   'categories',
   'notifications',
 ];
+// 招待メール本文の送信者表示・権利経路（APP-INVITE-EMAIL-BODY・特電法/非利用者の権利対応）。
+const OPERATOR_NAME = 'きずなbaton';
+const OPERATOR_CONTACT_EMAIL = 'kizunabaton.official@gmail.com';
+const PRIVACY_POLICY_URL =
+  'https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.html';
+// 失効・取消招待の保持期間（PP第14条1項＝30日以内に機械削除）。
+const INVITE_CLEANUP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
 module.exports = {
   INVITE_MAX_PENDING_ACCEPTED,
@@ -39,4 +46,8 @@ module.exports = {
   ALLOWED_RELATIONS,
   OWNER_MEMBER_ID,
   USER_SUBCOLLECTIONS,
+  OPERATOR_NAME,
+  OPERATOR_CONTACT_EMAIL,
+  PRIVACY_POLICY_URL,
+  INVITE_CLEANUP_RETENTION_MS,
 };
