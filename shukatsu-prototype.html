@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v111</title>
+<title>きずなbaton プロトタイプ v112</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1915,7 +1915,13 @@ function migrateCardsToAssets(){
 // ユーザー入力（契約名・メモ・url・メンバー名・カテゴリ・import復元データ等）を
 // 出力する箇所では必ず通すこと。JS文字列in属性のonclickは data属性+dataset で回避する。
 // ==================== 純関数ヘルパー ====================
-function openModalById(id){document.getElementById(id).classList.add('open');}
+// v112: .modal は overflow-y:auto のまま DOM に残るため、前回閉じたときのスクロール位置
+// （＝末尾の「追加する」付近）が次に開いたときも残る。開くたび先頭へ戻す。
+function openModalById(id){
+  const bg=document.getElementById(id);
+  bg.classList.add('open');
+  bg.querySelectorAll('.modal').forEach(m=>{m.scrollTop=0;});
+}
 function closeModalById(id){document.getElementById(id).classList.remove('open');}
 function esc(v){return String(v==null?'':v)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -4029,7 +4035,7 @@ function renderCloudAccountModal(view){
       syncBlock=`<button class="btn-primary" style="width:100%;font-size:15px;padding:12px" onclick="renderCloudAccountModal('syncsetup')"><i class="ti ti-cloud-up"></i> クラウドにも保存する</button>
         <div class="beta-info-box" style="margin-top:8px">スマホの故障・買い替えに備えて、この端末の記録を安全に保存できます。</div>`;
     }
-    html=`<div class="beta-info-box"><strong>${em}</strong> でログインしています。<br>ご家族のスマホとつながる機能は、次のアップデートで届きます。</div>
+    html=`<div class="beta-info-box"><strong>${em}</strong> でログインしています。<br>ご家族を招待すると、公開範囲に合わせて記録を見ていただけます。</div>
       ${syncBlock}
       ${err}
       <button class="plan-cta" style="margin-top:10px" onclick="confirmCloudSignout()">この端末でログアウトする</button>
@@ -4039,7 +4045,8 @@ function renderCloudAccountModal(view){
     // P2b(v96): 同意つき有効化（何が・どこに・やめられることを明示。メモ/引き継ぎメッセージ/カード下4桁の開示は消さない）
     html=`<div class="beta-info-box"><strong>クラウド保存について</strong><br>
       ・この端末で記録した<strong>すべての内容</strong>（契約・資産の在りか・カードの下4桁・メモ・ご家族への引き継ぎメッセージを含む）が保存されます<br>
-      ・これは、スマホの故障・買い替えに備える<strong>ご本人専用のバックアップ</strong>です（ご家族との共有は今後のアップデートで別途ご案内します）<br>
+      ・これは、スマホの故障・買い替えに備える<strong>ご本人専用のバックアップ</strong>です（保存しただけでは、ご家族には何も表示されません）<br>
+      ・ご家族に表示されるのは、その方を招待し受諾いただいたうえで、公開範囲を「全員に見せる」「選んだ家族だけ」に設定した契約だけです（所在メモはご本人だけがご覧になれます）<br>
       ・以後の変更も自動で保存されます（この端末の内容がそのまま写されます）<br>
       ・いつでもやめられ、クラウド側の記録はいつでも削除できます</div>
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.7;margin:10px 0;cursor:pointer">
