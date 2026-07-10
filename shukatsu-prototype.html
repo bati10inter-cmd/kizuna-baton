@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v110</title>
+<title>きずなbaton プロトタイプ v111</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -1119,11 +1119,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.0）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.1）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v4.0）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.0）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1160,17 +1160,17 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- データ取扱いの簡潔説明（v100: PP v4.0＝既定は端末内のみ／任意オプトインでクラウド保存） -->
       <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
         ※ 記録は既定で<strong>お使いの端末の中だけ</strong>に保存されます。<strong>アカウント作成とクラウド保存の有効化（どちらも任意）</strong>を行ったときに限り、端末間で同期するためのコピーが Google（Firebase・東京リージョン）にも保管されます。その他の外部送信（サービスロゴ取得・アイコン表示・任意送信の感想フォーム）を含む詳細は、プライバシーポリシー第2条をご確認ください。<br>
-        ※ 今回の改定（利用規約 v3.3.0・プライバシーポリシー v4.0）は、この<strong>クラウド保存機能（任意）の追加</strong>と、規約変更手続き（利用規約 第17条）の整理によるものです。
+        ※ 今回の改定（利用規約 v3.3.1・プライバシーポリシー v5.0）は、<strong>ご家族を招待して、指定した記録だけを見てもらえる機能（任意）の追加</strong>によるものです。記録は、ご自身が招待を発行し、お相手が受諾したときにのみ、お相手にも表示されます。招待を発行すると、お相手のメールアドレスは招待メールをお届けするためにメール配信事業者（Twilio SendGrid・米国）を経由します。詳細はプライバシーポリシー第2条・第7条をご確認ください。
       </div>
 
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.0）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.1）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v4.0）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.0）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -1641,10 +1641,11 @@ const FEATURES={
   //   開栓範囲は「本人アカウント＋本人クラウド保存（端末間同期）」のみ＝PP v4.0 第2条の宣言と一致。
   //   完全オプトイン＝アカウントを作らないユーザーは従来どおり端末内のみで動作（SDK 読込もログイン導線利用時のみ）。
   cloudSync:true,
-  // v100(C5・Fable B-1): クラウド招待（SendGrid 実メール発行・受諾・cross-account 閲覧）は PP v4.0 の明示的な対象外。
-  //   ⚠️ 解禁条件＝「PP再改訂（招待先メール・shares・SendGrid委託先開示・越境整理）＋実メール実端末E2E」完了まで false 固定
-  //   （APP-V2-INVITE-RELEASE）。false の間は招待モーダルのメール欄非表示・#invite= 受け口無視＝端末内モック（デモ）経路のみ動作。
-  cloudInvite:false
+  // v111(APP-V2-INVITE-RELEASE): クラウド招待（SendGrid 実メール発行・受諾・cross-account 閲覧）を解禁。
+  //   解禁条件を充足＝PP v5.0（招待先メール・shares・SendGrid 委託先の実名開示・越境整理）発効／ToS v3.3.1／
+  //   CONSENT_KEY:v27 再同意／OPS-SENDGRID-DOMAIN（kizuna-baton.com の Domain Authentication＋Click Tracking OFF）完了。
+  //   本人が招待を発行したときにのみ、招待先メールアドレスが SendGrid（米国）経由で送信される＝完全オプトイン。
+  cloudInvite:true
 };
 
 // =========== 無料プラン: 契約件数上限（APPSTORE-IAP v82: 5→10）===========
@@ -1749,8 +1750,8 @@ let members=[
 ];
 
 const MY_ID='m1';
-const TERMS_VERSION='v3.3.0';  // v100(C5): 第17条3項を実装（完全ブロッキング）に整合＝548条の4整理
-const PRIVACY_VERSION='v4.0'; // v100(C5): クラウド保存（任意オプトイン）対応＝APP-V2-PP-PRIVACY 発効
+const TERMS_VERSION='v3.3.1';  // v111(APP-V2-INVITE-RELEASE): 第6条5項2号「保留中＋受諾済みで計5件」へ実装整合 patch
+const PRIVACY_VERSION='v5.0'; // v111(APP-V2-INVITE-RELEASE): クラウド招待・cross-account 閲覧 対応＝PP 再改訂 発効
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: β版公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
@@ -3690,7 +3691,7 @@ const DATA_KEY='kizuna-baton:data:v20';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はβ版デフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 // === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
-const CONSENT_KEY='kizuna-baton:consent-shown:v26'; // v100(C5): PP v4.0/ToS v3.3.0 発効＝material change 再同意（:v25→:v26）
+const CONSENT_KEY='kizuna-baton:consent-shown:v27'; // v111: PP v5.0/ToS v3.3.1 発効＝material change 再同意（:v26→:v27）
 const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
 // === v16: オンボーディング画面 ===
 const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
@@ -4921,8 +4922,8 @@ function checkInvitationLimits(){
 }
 
 // APP-V2 stage-2a: クラウド招待（cloudSync＋cloudInvite＋アカウント有）時は招待をサーバ callable で実発行。
-// v100(C5・Fable B-1): cloudInvite=false の間は cloudSync=true でも従来どおり端末内モック（デモ）で動作
-// ＝PP v4.0 が招待・家族共有を対象外と宣言しているため（解禁＝APP-V2-INVITE-RELEASE）。
+// v111(APP-V2-INVITE-RELEASE): PP v5.0 発効により解禁＝cloudInvite=true。
+// cloudInvite=false に戻せば従来どおり端末内モック（デモ）経路のみで動作する（休眠フラグとして維持）。
 function isCloudInviteMode(){return !!(FEATURES.cloudSync && FEATURES.cloudInvite && cloudUser);}
 function populateInviteMemberSelect(){
   const sel=document.getElementById('invite-member');
