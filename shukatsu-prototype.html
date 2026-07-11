@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton プロトタイプ v113</title>
+<title>きずなbaton v114</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -942,7 +942,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <div id="member-list"></div>
       <!-- 招待で追加（Step 6: invitation-flow-design.md v3.2） -->
       <button onclick="openInviteIssueModal()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--accent-warm);background:transparent;color:var(--accent-warm);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;margin-bottom:10px"><i class="ti ti-mail"></i>招待で追加（推奨）</button>
-      <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:4px">手動追加（プロトタイプ動作確認用）</div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:4px">手動追加</div>
       <div class="add-member-row">
         <input type="text" id="new-member-name" placeholder="新しいメンバー名" maxlength="20">
         <button onclick="addMember()" style="padding:7px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-text-primary);color:var(--color-background-primary);font-size:12px;cursor:pointer">追加</button>
@@ -1115,11 +1115,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.1）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.0）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.1）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1162,11 +1162,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.1）</a>に同意します</span>
+        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.0）</a>に同意します</span>
+        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.1）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -1427,7 +1427,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeWorkflowModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-heart-handshake"></i>もしもの時の発動シミュレーション</h2>
-      <p class="wf-intro">ご家族にバトンが手渡されるまでの手順を、時間を早送りしながら確認できます。<br>これはプロトタイプ用のシミュレーション画面です。</p>
+      <p class="wf-intro">ご家族にバトンが手渡されるまでの手順を、時間を早送りしながら確認できます。<br>これは実際の通知を行わないシミュレーション画面です。</p>
 
       <div class="wf-status" id="wf-status"></div>
 
@@ -3610,7 +3610,7 @@ function acceptConsent(){
     }
   }
   // プレビュー起動など、招待非経由のパス
-  showToast('同意を受け付けました（プロトタイプ動作）','success');
+  showToast('同意を受け付けました','success');
 }
 
 function openOwnerConsentModal(){
@@ -5371,7 +5371,7 @@ function deleteOwnAccount(){
   members=members.filter(m=>m.id!==MY_ID);
   if(viewOwnerId===MY_ID)viewOwnerId='all'; // 本人 member 消滅後のピル表示先（renderUserPill の再帰防止）
   closeAccountDeleteModal();
-  alert('アカウントを削除しました（プロトタイプ動作）。');
+  alert('アカウントを削除しました。');
   renderAll();
 }
 
@@ -6537,7 +6537,6 @@ function renderPlanModal(){
         <li><i class="ti ti-check"></i>契約の登録 無制限</li>
         <li><i class="ti ti-check"></i>ご家族との共有 無制限</li>
         <li><i class="ti ti-check"></i>ご家族への一言 無制限</li>
-        <li><i class="ti ti-check"></i>お支払い日のリマインダー</li>
       </ul>
       ${takeCta}
     </div>
