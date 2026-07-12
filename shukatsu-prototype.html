@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton v114</title>
+<title>きずなbaton v119</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -137,10 +137,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item.active{background:var(--color-background-secondary)}
 .switch-item .av{width:30px;height:30px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
 .switch-item .info{flex:1}
-.switch-item .name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-.switch-item .sub{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
+.switch-item .name{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.switch-item .sub{font-size:13px;color:var(--color-text-secondary);margin-top:1px}
 .switch-item .check{color:var(--color-text-primary);font-size:16px}
-.switch-section-header{padding:8px 16px;font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
+.switch-section-header{padding:8px 16px;font-size:12px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;border-top:1px solid var(--color-border-tertiary);margin-top:2px}
 .switch-section-header:first-child{border-top:none;margin-top:0}
 .switch-migrate-note{margin:0 12px 6px;padding:8px 10px;font-size:13px;line-height:1.7;color:var(--color-text-secondary);background:var(--accent-warm-bg);border:1px solid var(--accent-warm-border);border-radius:8px}
 .switch-migrate-note i{color:var(--accent-warm);margin-right:4px}
@@ -355,9 +355,6 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .app-lock-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-warm);color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:600;cursor:pointer}
 .app-lock-altbtn{background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:8px;text-decoration:underline}
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
-/* 項目10: 入力中にキーボード直上へ出す「完了」ボタン（タッチ端末のみ・JSで表示制御） */
-#kb-done{display:none;position:fixed;right:12px;bottom:8px;z-index:60;background:var(--accent-warm);color:#fff;border:none;border-radius:22px;padding:9px 18px;font-size:15px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,0.28);align-items:center;gap:6px;cursor:pointer}
-#kb-done.show{display:inline-flex}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
 .modal-close-text{position:absolute;top:2px;right:2px;background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:14px 12px;min-height:44px;line-height:1;z-index:2}
@@ -445,7 +442,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .color-picker div{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent}
 .color-picker div.selected{border-color:var(--color-text-primary)}
 .add-member-row{display:flex;gap:6px;margin-top:8px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)}
-.add-member-row input{flex:1;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.add-member-row input{flex:1;font-size:16px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)}
 
 .export-opt{padding:12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:8px;cursor:pointer}
 .export-opt.selected{border:2px solid var(--accent-warm);background:var(--accent-warm-bg)}
@@ -1115,11 +1112,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（v3.3.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.1）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.1）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1162,11 +1159,11 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/terms-of-service.html" target="_blank" style="color:#185FA5;text-decoration:underline">利用規約（v3.3.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（v3.3.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a href="docs/privacy-policy.html" target="_blank" style="color:#185FA5;text-decoration:underline">プライバシーポリシー（v5.1）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.1）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -1214,7 +1211,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <!-- APP-V2 stage-2a: クラウド接続時のみ表示（公開範囲「選択した家族」の紐付け先スロット） -->
         <div class="form-row" id="invite-member-row" style="display:none">
           <label>どの家族として招待するか（任意）</label>
-          <select id="invite-member" style="width:100%;padding:8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background);color:var(--color-text-primary);font-size:13px"></select>
+          <select id="invite-member" style="width:100%;padding:8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background);color:var(--color-text-primary);font-size:16px"></select>
           <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:3px;line-height:1.6">公開範囲を「選択した家族」にした契約は、ここで選んだ家族にだけ表示されます。未選択でも「すべての家族に表示」の契約は共有されます。</div>
         </div>
         <!-- §4.1.2 注記 -->
@@ -1259,7 +1256,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- stage-2b: クラウド接続時のみ表示（リンクから自動取得できなかった場合の手動貼り付けフォールバック） -->
       <div class="form-row" id="invite-accept-token-row" style="display:none">
         <label>招待リンク（メールに記載）</label>
-        <input type="text" id="invite-accept-token" placeholder="メールのリンクをそのまま貼り付け" style="font-size:12px">
+        <input type="text" id="invite-accept-token" placeholder="メールのリンクをそのまま貼り付け" style="font-size:16px">
       </div>
       <div class="form-row">
         <label id="invite-accept-otp-label">OTP（6桁）</label>
@@ -1280,19 +1277,13 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeAccountDeleteModal()" aria-label="閉じる">閉じる</button>
       <h2 style="color:#DC2626"><i class="ti ti-alert-triangle"></i>アカウントを削除</h2>
-      <div style="font-size:13px;color:var(--color-text-primary);line-height:1.7;margin-bottom:10px">
-        ご本人のアカウントを削除すると以下が起こります：
-      </div>
-      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:18px;margin-bottom:10px">
-        <li>ご家族からあなたの契約一覧が見えなくなります（ふだんの共有も解除されます）</li>
-        <li>クラウドに保存した記録とログイン用アカウントは完全に削除されます</li>
-        <li>この端末の中の記録は消えません</li>
-        <li><strong>削除は取り消せません</strong>（利用規約第18条）。削除の前に JSON エクスポートでのバックアップをおすすめします</li>
-      </ul>
+      <!-- APPSTORE-IAP(v117): ログイン状態で説明を出し分け（未ログイン時はクラウドではなく端末の本人記録を削除するため、文言を実態に一致させる） -->
+      <div id="account-delete-intro" style="font-size:13px;color:var(--color-text-primary);line-height:1.7;margin-bottom:10px"></div>
+      <ul id="account-delete-effects" style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:18px;margin-bottom:10px"></ul>
       <div style="font-size:13px;color:#DC2626;background:#FEF2F2;border-left:3px solid #DC2626;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.7">
         ご確認のため「<strong>アカウントを削除する</strong>」と一字一句正確に入力してください。
       </div>
-      <input type="text" id="account-delete-confirm" placeholder="アカウントを削除する" oninput="onAccountDeleteConfirmInput()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;margin-bottom:10px">
+      <input type="text" id="account-delete-confirm" placeholder="アカウントを削除する" oninput="onAccountDeleteConfirmInput()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:16px;margin-bottom:10px">
       <div class="btn-row">
         <button id="account-delete-exec" onclick="deleteOwnAccount()" disabled style="background:#DC2626;color:#fff;border:0;padding:10px 16px;border-radius:var(--border-radius-md);font-size:14px;cursor:not-allowed;opacity:0.4"><i class="ti ti-trash"></i> 削除を確定する</button>
       </div>
@@ -1382,7 +1373,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <h2><i class="ti ti-tag"></i>カテゴリ管理</h2>
       <div id="cat-list" style="display:flex;flex-direction:column;gap:5px;margin:8px 0"></div>
       <div style="display:flex;gap:6px;margin-top:6px">
-        <input type="text" id="new-cat-input" placeholder="新カテゴリ" style="flex:1;font-size:12px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)">
+        <input type="text" id="new-cat-input" placeholder="新カテゴリ" style="flex:1;font-size:16px;padding:7px 9px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)">
         <button onclick="addCategory()" style="padding:7px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-text-primary);color:var(--color-background-primary);font-size:12px;cursor:pointer">追加</button>
       </div>
     </div>
@@ -1499,6 +1490,39 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
+  <!-- v119: ご意見・フィードバック（設定＞アプリ情報）。v49非機能モックの後継＝選択式のみ・実送信。
+       送信データは reaction（3択）＋固定選択タグ＋source のみ＝自由記述欄なし（PP v5.1 第2条③の開示範囲内・機密混入経路なし） -->
+  <div class="modal-bg center" id="feedback-modal">
+    <div class="modal notice">
+      <div class="notice-icon"><i class="ti ti-message"></i></div>
+      <h3>ご意見・フィードバック</h3>
+      <p>より使いやすいアプリにするため、使い心地をお聞かせください。<br>送信されるのは選んだ項目だけです（文章の入力欄はありません）。</p>
+      <div class="beta-survey" id="fb-survey" style="border-top:0;padding-top:2px">
+        <div class="survey-q">いまの使い心地に近いものをひとつ選んでください</div>
+        <div class="survey-chips">
+          <div class="survey-chip" id="fb-chip-good" onclick="setFbReaction('good')">使いやすい</div>
+          <div class="survey-chip" id="fb-chip-soso" onclick="setFbReaction('soso')">ふつう</div>
+          <div class="survey-chip" id="fb-chip-hard" onclick="setFbReaction('hard')">わかりにくいところがある</div>
+        </div>
+        <div class="survey-q survey-q-tags">伝えたいことに近いものを選んでください（いくつでも・任意）</div>
+        <div class="survey-tags" id="fb-tags">
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">文字の大きさ・読みやすさ</div>
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">操作のわかりやすさ</div>
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">ほしい機能がある</div>
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">家族との共有について</div>
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">料金・プランについて</div>
+          <div class="survey-chip" onclick="toggleSurveyTag(this)">不具合かもしれない動きがあった</div>
+        </div>
+        <div class="survey-q" style="margin-bottom:0">文章でのご意見はメールで受け付けています。<br><a href="mailto:kizunabaton.official@gmail.com" style="color:#185FA5;text-decoration:underline;word-break:break-all">kizunabaton.official@gmail.com</a></div>
+      </div>
+      <div class="btn-row" id="fb-actions">
+        <button onclick="closeFeedbackModal()">閉じる</button>
+        <button class="btn-primary" id="fb-send-btn" onclick="submitFeedback()">送信する</button>
+      </div>
+      <div class="btn-row" id="fb-done" style="display:none"><button class="btn-primary" onclick="closeFeedbackModal()">わかりました</button></div>
+    </div>
+  </div>
+
   <!-- v48: 商標・ライセンスについて（独立ページ・Logo.dev帰属の正式化） -->
   <div class="modal-bg" id="legal-modal">
     <div class="modal">
@@ -1520,19 +1544,13 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     </div>
   </div>
 
-  <!-- v49: ご意見・フィードバック（非機能モック・送信は今後のアップデート予定） -->
-  <div class="modal-bg" id="feedback-modal">
-    <div class="modal">
-      <button class="modal-close-text" onclick="closeFeedbackModal()" aria-label="閉じる">閉じる</button>
-      <h2><i class="ti ti-message"></i>ご意見・フィードバック</h2>
-      <div class="beta-info-box warn">
-        <strong>これは表示見本です。</strong><br>
-        いただいたご意見を送信する機能は、今後のアップデートで予定しています。現在は入力内容は送信・保存されません。
-      </div>
-      <div class="form-row"><label>ご意見・お気づきの点</label><textarea id="fb-message" placeholder="例: ○○の画面がわかりにくい／こんな機能がほしい など&#10;※カード番号・口座番号・パスワードは入力しないでください"></textarea></div>
-      <div class="form-row"><label>連絡先（任意）</label><input id="fb-contact" type="email" placeholder="返信が必要な場合のみ・メールアドレス"></div>
-      <div class="btn-row"><button class="btn-primary" onclick="submitFeedbackMock()">送信</button></div>
+  <!-- v115: 規約/ポリシー アプリ内表示オーバーレイ（iOS WKWebView で target=_blank が無反応な問題の恒久対応。バンドル同梱HTMLを iframe 表示＝オフライン可・同意画面から離脱しない。z-index:40＝モーダル20より上・自動ロック50より下＝背景マスク優先を維持） -->
+  <div id="legal-doc-overlay" style="display:none;position:absolute;inset:0;z-index:40;background:var(--color-background-primary);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--color-border-tertiary);flex-shrink:0">
+      <button onclick="closeLegalDoc()" aria-label="戻る" style="background:transparent;border:none;color:#185FA5;font-size:14px;cursor:pointer;padding:8px;min-height:44px;display:flex;align-items:center;gap:2px"><i class="ti ti-chevron-left" style="font-size:18px"></i>戻る</button>
+      <div id="legal-doc-title" style="font-size:15px;font-weight:600;color:var(--color-text-primary)"></div>
     </div>
+    <iframe id="legal-doc-frame" title="規約" style="flex:1;width:100%;border:none;background:#fff"></iframe>
   </div>
 
   <!-- v19: 並び替えモーダル -->
@@ -1600,7 +1618,6 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
   <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
 
   <!-- 項目10: 入力確定（キーボードを閉じる）ボタン。タッチ端末で入力欄フォーカス時のみ表示 -->
-  <button id="kb-done" type="button" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="dismissKeyboard()"><i class="ti ti-check"></i> 完了</button>
 </div>
 
 <script>
@@ -2335,11 +2352,11 @@ function renderSettingsModal(){
     <div class="info"><div class="name">カテゴリを管理</div><div class="sub">カテゴリの追加・名前変更・削除</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
-  // アプリ情報（v48: 商標・ライセンスについて / v49: ご意見・フィードバック）
+  // アプリ情報（v48: 商標・ライセンスについて。v115: ご意見・フィードバック〔v49非機能モック〕を撤去→v119: 選択式・実送信版で復活〔自由記述欄なし＝PP v5.1 第2条③の開示範囲内〕）
   html+=`<div class="switch-section-header">アプリ情報</div>`;
   html+=`<div class="switch-item" onclick="openFeedbackModal()">
     <div class="av" style="background:#185FA5"><i class="ti ti-message" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">ご意見・フィードバック</div><div class="sub">お気づきの点をお寄せください（送信は今後のアップデートで対応）</div></div>
+    <div class="info"><div class="name">ご意見・フィードバック</div><div class="sub">使い心地を選択式でお送りいただけます</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   html+=`<div class="switch-item" onclick="openLegalModal()">
@@ -3272,6 +3289,53 @@ function submitBetaSurvey(){
   });
 }
 
+// v119: 設定＞アプリ情報「ご意見・フィードバック」（v49非機能モック→v115撤去の後継＝選択式・実送信版）
+// 送信データは reaction（3択）＋固定選択タグ＋source='settings_feedback' のみ。自由記述欄なし＝機密情報の混入経路なし（PP v5.1 第2条③の開示範囲内・規約改訂不要）。
+// 契約データ・番号類・メール・localStorage 保存は一切なし。送信済みフラグも永続化しない（後日の再送信を許容）。
+let fbReaction=null;
+let fbSubmitting=false; // 送信中の二重POST防止（セッション内のみ）
+function setFbReaction(v){
+  fbReaction=v;
+  ['good','soso','hard'].forEach(k=>{
+    document.getElementById('fb-chip-'+k).classList.toggle('active',k===v);
+  });
+}
+function openFeedbackModal(){
+  // 開く度に状態リセット
+  fbReaction=null;
+  ['good','soso','hard'].forEach(k=>document.getElementById('fb-chip-'+k).classList.remove('active'));
+  document.querySelectorAll('#fb-tags .survey-chip.active').forEach(el=>el.classList.remove('active'));
+  document.getElementById('fb-survey').style.display='';
+  document.getElementById('fb-actions').style.display='';
+  document.getElementById('fb-done').style.display='none';
+  openModalById('feedback-modal');
+}
+function closeFeedbackModal(){closeModalById('feedback-modal');}
+function submitFeedback(){
+  if(fbSubmitting)return;
+  if(!fbReaction){showToast('使い心地をひとつ選んでください','');return;}
+  const tags=[...document.querySelectorAll('#fb-tags .survey-chip.active')].map(el=>el.textContent.trim());
+  const sendBtn=document.getElementById('fb-send-btn');
+  fbSubmitting=true;
+  if(sendBtn)sendBtn.disabled=true;
+  fetch('https://formspree.io/f/xredoben',{
+    method:'POST',
+    headers:{'Accept':'application/json','Content-Type':'application/json'},
+    body:JSON.stringify({reaction:fbReaction,tags:tags,source:'settings_feedback'})
+  }).then(res=>{
+    if(!res.ok)throw new Error('bad response');
+    document.getElementById('fb-survey').style.display='none';
+    document.getElementById('fb-actions').style.display='none';
+    document.getElementById('fb-done').style.display='';
+    showToast('送信しました。ありがとうございます。','success');
+  }).catch(()=>{
+    showToast('送信できませんでした。通信環境をご確認ください。','');
+  }).finally(()=>{
+    fbSubmitting=false;
+    if(sendBtn)sendBtn.disabled=false;
+  });
+}
+
 function openModal(){
   if(contractLimitReached()){
     showBetaLimitModal();
@@ -3496,6 +3560,24 @@ function closeMemberModal(){closeModalById('member-modal');renderAll();}
 // === アカウント削除（PP 13.1 / App Store 5.1.1(v)） ===
 function openAccountDeleteModal(){
   closeModalById('member-modal');
+  // APPSTORE-IAP(v117): 削除の実挙動はログイン状態で分岐（deleteOwnAccount と一致させる）。
+  //   ログイン中＝サーバでクラウド記録＋アカウント削除・端末の記録は残す
+  //   未ログイン＝クラウドは無関係・この端末の本人記録を削除
+  // 旧・固定文言は未ログイン時に「この端末の記録は消えません」と実態と逆の案内をしていた不整合を是正。
+  const isCloud=!!(FEATURES.cloudSync&&cloudUser);
+  const intro=document.getElementById('account-delete-intro');
+  const effects=document.getElementById('account-delete-effects');
+  if(intro)intro.textContent=isCloud
+    ? 'ご本人のアカウントを削除すると以下が起こります：'
+    : 'この端末に保存された、ご本人の記録を削除します。以下が起こります：';
+  if(effects)effects.innerHTML=isCloud
+    ? `<li>ご家族からあなたの契約一覧が見えなくなります（ふだんの共有も解除されます）</li>
+       <li>クラウドに保存した記録とログイン用アカウントは完全に削除されます</li>
+       <li>この端末の中の記録は消えません</li>
+       <li><strong>削除は取り消せません</strong>（利用規約第18条）。削除の前に「データをバックアップ」での書き出しをおすすめします</li>`
+    : `<li><strong>この端末に保存された、ご本人（あなた）の契約記録がすべて削除されます</strong></li>
+       <li>いまはクラウドに接続していないため、クラウド側の削除は行われません</li>
+       <li><strong>削除は取り消せません</strong>（利用規約第18条）。削除の前に「データをバックアップ」での書き出しをおすすめします</li>`;
   const inp=document.getElementById('account-delete-confirm');
   if(inp)inp.value='';
   const btn=document.getElementById('account-delete-exec');
@@ -3910,7 +3992,14 @@ async function initCloudAuth(){
     const app=appMod.initializeApp(cfg);
     cloudApp=app; // P2b(v96): getFirestore 用に保持
     cloudAuthMod=authMod;
-    cloudAuth=authMod.getAuth(app);
+    // APPSTORE-IAP(v118) native WKWebView 対策: 既定の getAuth は IndexedDB 永続化を探りにいき、
+    // capacitor://localhost の WKWebView で初回サインイン(signInWithEmailAndPassword)が無限ハングする。
+    // localStorage ベースの browserLocalPersistence を明示した initializeAuth で回避（実機で確定・修正確認済み）。
+    try{
+      cloudAuth=authMod.initializeAuth(app,{persistence:authMod.browserLocalPersistence});
+    }catch(e){ // 既に初期化済み等はフォールバック
+      cloudAuth=authMod.getAuth(app);
+    }
     cloudAuth.languageCode='ja'; // 再設定メール等を日本語で
     if(dev){try{authMod.connectAuthEmulator(cloudAuth,'http://127.0.0.1:9099',{disableWarnings:true});}catch(e){}}
     authMod.onAuthStateChanged(cloudAuth,u=>{
@@ -4127,6 +4216,11 @@ async function submitCloudSignin(){
   const prevBacked=!!(ps&&ps.enabled&&ps.uid&&ps.uid===prevUid);
   cloudSubmitBusy(true);
   cloudSigninInProgress=true; // restore 経路の自動pullを抑止（採用は adopt が担う）
+  // APPSTORE-IAP(v118): 通信不調等での無限待ち回避（ログインボタンが押せないまま固まるのを防ぐ安全網）
+  const loginTimeout=setTimeout(()=>{
+    showCloudError('時間がかかっています。電波の良い場所で、もう一度お試しください。');
+    cloudSubmitBusy(false);
+  },20000);
   try{
     const user=await cloudSignIn(email,pass); // cred.user を明示的に受ける（cloudUser は onAuthStateChanged 待ちで null のことがある）
     // ログイン契機の pull＋アカウント束ね（採用/警告/ミラー自動ON）。中止時はローカル無傷でここで終える。
@@ -4135,7 +4229,7 @@ async function submitCloudSignin(){
     renderCloudAccountModal('signedin');
     renderSettingsModal();
   }catch(e){showCloudError(cloudAuthErrorMessage(e));}
-  finally{cloudSubmitBusy(false);cloudSigninInProgress=false;}
+  finally{clearTimeout(loginTimeout);cloudSubmitBusy(false);cloudSigninInProgress=false;}
 }
 async function submitCloudReset(){
   const {email}=cloudFormValues();
@@ -5389,7 +5483,7 @@ function renderMemberList(){
     return `<div class="member-row">
       <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
       <div class="name">
-        <input type="text" value="${esc(m.name)}" data-mid="${mid}" onchange="renameMember(this.dataset.mid,this.value)" style="font-size:13px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
+        <input type="text" value="${esc(m.name)}" data-mid="${mid}" onchange="renameMember(this.dataset.mid,this.value)" style="font-size:16px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
         <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:2px">契約 ${contractCount}件${isMyself?' · あなた':''}${revokable?' · 24h取消可':''}</div>
       </div>
       <div class="color-dot" style="background:${esc(m.color)}" data-mid="${mid}" onclick="openColorModal(this.dataset.mid)" title="色を変える"></div>
@@ -6426,17 +6520,22 @@ function closePlanModal(){closeModalById('plan-modal');}
 function openLegalModal(){closeSettingsModal();openModalById('legal-modal');}
 function closeLegalModal(){closeModalById('legal-modal');}
 
-// --- v49: ご意見・フィードバック（非機能モック・送信/保存はしない）---
-function openFeedbackModal(){closeSettingsModal();openModalById('feedback-modal');}
-function closeFeedbackModal(){closeModalById('feedback-modal');}
-function submitFeedbackMock(){
-  // 非機能モック: 入力内容はどこにも送信・保存しない（保存スキーマ不変・機密保持）
-  const msg=document.getElementById('fb-message');
-  const contact=document.getElementById('fb-contact');
-  if(msg)msg.value='';
-  if(contact)contact.value='';
-  showToast('ご意見ありがとうございます。送信は今後のアップデートで対応予定です','success');
-  closeFeedbackModal();
+// --- v115: 規約/ポリシーをアプリ内 iframe で表示（iOS WKWebView で target=_blank が無反応な問題の恒久対応。バンドル同梱HTML＝オフライン可）---
+function openLegalDoc(name){
+  const titles={'terms-of-service':'利用規約','privacy-policy':'プライバシーポリシー'};
+  const ov=document.getElementById('legal-doc-overlay');
+  const frame=document.getElementById('legal-doc-frame');
+  const ttl=document.getElementById('legal-doc-title');
+  if(!ov||!frame)return;
+  if(ttl)ttl.textContent=titles[name]||'規約';
+  frame.src='docs/'+name+'.html';
+  ov.style.display='flex';
+}
+function closeLegalDoc(){
+  const ov=document.getElementById('legal-doc-overlay');
+  const frame=document.getElementById('legal-doc-frame');
+  if(ov)ov.style.display='none';
+  if(frame)frame.src='about:blank';
 }
 function setPlanCycle(c){planCycle=c;renderPlanModal();}
 
@@ -6495,6 +6594,17 @@ async function planManage(){
   if(!IAP){showToast('解約のお手続きはアプリ版（App Store）から行えます','');return;}
   try{await IAP.manageSubscriptions();}
   catch(e){showToast('解約画面を開けませんでした','warn');}
+  finally{
+    // APPSTORE-IAP(v117): 解約シートは showManageSubscriptions によるアプリ内提示＝アプリは背面化せず、
+    // visibilitychange('visible') の復帰フック（フォア復帰時 refreshEntitlement）が発火しない。
+    // そのためシートを閉じた直後にここで StoreKit を正に取り直し、表示を最新化する
+    // （実機で「解約したのにアプリ側が『ご利用中のプラン』のまま」だった不具合の是正）。
+    // ※解約直後は期間満了まで currentEntitlements が active を返す＝「ご利用中」表示は Apple 仕様どおり正。
+    //   満了時は Transaction.updates→entitlementChanged リスナーが無料へ切替える。
+    await refreshEntitlement();
+    if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal();
+    renderAll();
+  }
 }
 function renderPlanModal(){
   // 課金稼働(native)時は「表示見本」案内を隠す。Web/非稼働は従来の案内を残す（後方互換）
@@ -6549,7 +6659,7 @@ function renderPlanModal(){
       ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「きずなbaton の解約・プラン変更」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
     </div>
     <div style="font-size:13px;line-height:1.6;margin-top:8px;text-align:center">
-      <a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">利用規約</a>　・　<a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline">プライバシーポリシー</a>
+      <a onclick="openLegalDoc('terms-of-service');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">利用規約</a>　・　<a onclick="openLegalDoc('privacy-policy');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー</a>
     </div>`;
 }
 
@@ -6946,48 +7056,17 @@ window.addEventListener('kizunaActive', ()=>{
 });
 
 // P4-pre A: iOSキーボード表示時に下部シート入力欄が隠れないよう、フォーカス時にモーダル内で自動スクロール
-// ＋ 項目10: 入力確定（キーボードを閉じる）「完了」ボタンをキーボード直上に表示（タッチ端末のみ・text系入力のみ）
-const kbDoneBtn=document.getElementById('kb-done');
-const kbIsTouch=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
-function dismissKeyboard(){const a=document.activeElement;if(a&&typeof a.blur==='function')a.blur();}
-function placeKbDone(){
-  if(!kbDoneBtn||!kbDoneBtn.classList.contains('show'))return;
-  const vv=window.visualViewport;
-  if(vv){
-    const kbTop=window.innerHeight-(vv.height+vv.offsetTop); // キーボードのおおよその高さ
-    kbDoneBtn.style.bottom=(Math.max(kbTop,0)+8)+'px';
-  }else{kbDoneBtn.style.bottom='8px';}
-}
+// 項目10改(v118): 入力欄フォーカス時に、モーダル内の入力欄をキーボード上へ中央寄せして見やすくする。
+// 旧・カスタム「完了」ボタン(#kb-done)は native WKWebView で position:fixed+visualViewport の位置制御が
+// 破綻し「押しても効かない／スクロールで一緒に動く」状態だったため撤去（オーナー実機FB）。
+// iOS 標準キーボードに閉じる手段（QuickTypeバーの✓・枠外タップ）があるため代替は不要。
 document.addEventListener('focusin',(e)=>{
   const el=e.target;
   if(!el.matches||!el.matches('input,select,textarea'))return;
   const modal=el.closest('.modal-bg.open .modal');
   if(!modal)return;
   setTimeout(()=>el.scrollIntoView({block:'center',behavior:'smooth'}),300);
-  if(kbDoneBtn&&kbIsTouch&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA')){
-    kbDoneBtn.classList.add('show');
-    setTimeout(placeKbDone,300);
-  }
 });
-document.addEventListener('focusout',()=>{
-  if(!kbDoneBtn)return;
-  // 別の入力欄へ移った場合は表示を維持（activeElement を次tickで確認）
-  setTimeout(()=>{
-    const a=document.activeElement;
-    if(!a||(a.tagName!=='INPUT'&&a.tagName!=='TEXTAREA'))kbDoneBtn.classList.remove('show');
-  },120);
-});
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize',()=>{
-    placeKbDone();
-    // APP-KBDONE-FIX(v102): キーボードが閉じたら（vv がほぼ全画面＝kbTop 小）「完了」を隠す。
-    // iOS/アプリ内ブラウザで focus が入力欄に残り focusout が発火せず「完了」が出っぱなしになる対策。
-    const vv=window.visualViewport;
-    const kbTop=window.innerHeight-(vv.height+vv.offsetTop);
-    if(kbTop<100&&kbDoneBtn)kbDoneBtn.classList.remove('show');
-  });
-  window.visualViewport.addEventListener('scroll',placeKbDone);
-}
 
 // === PWA Service Worker registration (v21) ===
 // native(Capacitor) では SW を登録しない（webDir 同梱の index.html と precache 対象がずれ、配信に干渉し得る）。

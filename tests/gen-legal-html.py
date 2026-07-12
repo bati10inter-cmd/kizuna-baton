@@ -73,6 +73,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     margin:0 -18px 14px; padding:10px 18px; font-size:14px;
   }}
   .topbar a{{color:var(--link); text-decoration:none}}
+  .embedded .topbar{{display:none}}
   h1{{font-size:21px; line-height:1.5; margin:.4em 0 .5em}}
   h2{{font-size:17px; line-height:1.6; margin:1.6em 0 .5em; padding-top:.3em; border-top:.5px solid var(--line)}}
   h3{{font-size:15.5px; line-height:1.6; margin:1.2em 0 .4em}}
@@ -89,6 +90,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 </style>
 </head>
 <body>
+<script>if(window.self!==window.top){{document.documentElement.classList.add('embedded')}}</script>
 <div class="wrap">
 <div class="topbar"><a href="javascript:history.back()">‹ 戻る</a></div>
 {body}

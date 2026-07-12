@@ -50,5 +50,8 @@
 	<!-- APPSTORE-NATIVE-LOCK / APPSTORE-META-FACEID(v79): Face ID 利用目的（高齢者向けに柔らかい文言） -->
 	<key>NSFaceIDUsageDescription</key>
 	<string>アプリを開くときに、あなたの記録を他の人に見られにくくするために使います。</string>
+	<!-- 輸出コンプライアンス: 標準暗号(HTTPS/TLS/OS標準)のみ＝適用免除。毎回の暗号化質問を回避（ASC回答＝標準暗号→免除・フランス配信なしと整合） -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
