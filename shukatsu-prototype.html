@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton v119</title>
+<title>きずなbaton v120</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -6542,6 +6542,7 @@ function setPlanCycle(c){planCycle=c;renderPlanModal();}
 // === APPSTORE-IAP(v82): 実課金（StoreKit2）===
 let planBusy=false;            // 購入/復元中の二重操作防止
 let iapPriceText={};           // {monthly,yearly} ストアから取得したローカライズ価格表示（任意・取得失敗時は規定文言）
+let iapPriceAmount={};         // {monthly,yearly} 同・数値（年額注記の「月あたり」「おトク%」を実価格で算出するため。v120）
 // IAP 非稼働（Web/プレビュー or FEATURES.iap=false）時の共通フォールバック
 function planCtaNotice(){showToast('お支払いはアプリ版（App Store）でご利用いただけます','');}
 // プラン画面を開いたら（稼働時のみ）ストアから実価格を取得して再描画
@@ -6551,8 +6552,8 @@ async function loadIapPrices(){
     const r=await IAP.getProducts({productIds:[IAP_PRODUCTS.monthly,IAP_PRODUCTS.yearly]});
     const list=(r&&r.products)||[];
     list.forEach(p=>{
-      if(p.id===IAP_PRODUCTS.monthly)iapPriceText.monthly=p.price;
-      if(p.id===IAP_PRODUCTS.yearly)iapPriceText.yearly=p.price;
+      if(p.id===IAP_PRODUCTS.monthly){iapPriceText.monthly=p.price;iapPriceAmount.monthly=p.priceAmount;}
+      if(p.id===IAP_PRODUCTS.yearly){iapPriceText.yearly=p.price;iapPriceAmount.yearly=p.priceAmount;}
     });
     renderPlanModal();
   }catch(e){/* 取得失敗時は規定文言のまま */}
@@ -6561,9 +6562,17 @@ async function planPurchase(cycle){
   if(planBusy)return;
   if(!IAP){planCtaNotice();return;} // Web/非稼働: 従来の案内のみ
   planBusy=true;renderPlanModal();
+  let purchased=false;
   try{
     const r=await IAP.purchase({productId:IAP_PRODUCTS[cycle]});
     if(r&&r.status==='purchased'){
+      // APPSTORE-IAP(v120): 購入成立の結果（active:true）を正として即反映する。
+      // Guideline 2.1(b) リジェクト是正＝「購入したのに有料プランに切り替わらない」の根因対策。
+      // StoreKit の currentEntitlements は購入直後（特に Sandbox 審査環境）に新トランザクションの
+      // 反映が遅延しうるため、直後の refreshEntitlement 再問い合わせで無料へ戻さない（下記 finally で skip）。
+      // 失効・返金・自動更新の検知は起動時 / フォア復帰時 / entitlementChanged リスナーが引き続き担う。
+      purchased=true;
+      isPaid=true;lsSet(PAID_FLAG_KEY,'1');
       showToast('家族プランをご利用いただけます。ありがとうございます','success');
     }else if(r&&r.status==='pending'){
       showToast('購入の承認をお待ちしています','');
@@ -6571,7 +6580,7 @@ async function planPurchase(cycle){
   }catch(e){
     showToast('購入を完了できませんでした。時間をおいてお試しください','warn');
   }finally{
-    await refreshEntitlement(); // StoreKit を正に取り直す
+    if(!purchased)await refreshEntitlement(); // 購入成立時のみ再問い合わせを skip（Sandbox 反映遅延での無料落ちを防ぐ）
     planBusy=false;renderPlanModal();renderAll();
   }
 }
@@ -6606,6 +6615,34 @@ async function planManage(){
     renderAll();
   }
 }
+// v120: 年額注記（月あたり/おトク%）をストア実価格から算出。
+// getProducts 成功時（native）は各ストアフロントの実額で正しく表示。以前は「月あたり約¥417（月額より約17%おトク）」
+// 固定文言のため、JPY 以外のストアフロント（例: 審査環境の US $）で価格と不整合になっていた。
+// 未取得時（Web/取得前）は JPY 既定の固定文言にフォールバック（後方互換）。
+function yearlyNoteText(){
+  const y=iapPriceAmount.yearly, m=iapPriceAmount.monthly;
+  if(y>0 && m>0){
+    const cur=iapCurrencyCode(iapPriceText.yearly);
+    const pct=Math.round((1-(y/(m*12)))*100);
+    if(cur){
+      let per=null;
+      try{per=new Intl.NumberFormat('ja-JP',{style:'currency',currency:cur,maximumFractionDigits:cur==='JPY'?0:2}).format(y/12).replace(/￥/g,'¥');}catch(e){}
+      if(per)return pct>0?`月あたり約${per}（月額より約${pct}%おトク）`:`月あたり約${per}`;
+    }
+    if(pct>0)return `月額より約${pct}%おトク`; // 通貨記号を判定できない場合も、通貨非依存の「おトク%」は実価格で表示
+  }
+  return '月あたり約¥417（月額より約17%おトク）'; // フォールバック（JPY 既定・¥500/月・¥5,000/年 前提）
+}
+// 表示価格文字列から Intl 整形用の通貨コードを推定。$ は表示差が小さいため USD 近似。判定不可は null。
+function iapCurrencyCode(disp){
+  if(!disp)return null;
+  if(/[¥￥]/.test(disp))return 'JPY';
+  if(disp.includes('€'))return 'EUR';
+  if(disp.includes('£'))return 'GBP';
+  if(disp.includes('₩'))return 'KRW';
+  if(disp.includes('$'))return 'USD';
+  return null;
+}
 function renderPlanModal(){
   // 課金稼働(native)時は「表示見本」案内を隠す。Web/非稼働は従来の案内を残す（後方互換）
   const intro=document.getElementById('plan-intro-box');
@@ -6613,7 +6650,7 @@ function renderPlanModal(){
   document.getElementById('plan-cycle-monthly').className=planCycle==='monthly'?'active':'';
   document.getElementById('plan-cycle-yearly').className=planCycle==='yearly'?'active':'';
   const takePrice=planCycle==='yearly'
-    ? `<strong>${esc(iapPriceText.yearly||'¥5,000')}</strong> /年<span class="yearly-note">月あたり約¥417（月額より約17%おトク）</span>`
+    ? `<strong>${esc(iapPriceText.yearly||'¥5,000')}</strong> /年<span class="yearly-note">${esc(yearlyNoteText())}</span>`
     : `<strong>${esc(iapPriceText.monthly||'¥500')}</strong> /月`;
   // 家族プランのCTA: 加入済み=利用中表示 / 処理中=disabled / 未加入=購入
   const takeCta = isPaid
