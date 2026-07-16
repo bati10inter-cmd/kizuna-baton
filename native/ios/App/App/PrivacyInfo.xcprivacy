@@ -99,6 +99,21 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
+		<!-- 購入履歴（APPSTORE-PRIVACY-PURCHASE / 2026-07-17 追記: IAP の有料プラン購入・契約状態。
+		     ASC の App Privacy ラベルには 2026-07-11（IAP 導入時）から登録済だったが本マニフェスト側が
+		     未申告＝不整合だったため是正。StoreKit の購入資格（entitlement）を uid に紐付けて保持する。 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePurchaseHistory</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
 		<!-- 写真またはビデオ（v122 APP-MEMBER-PHOTO・PP v5.2: 家族メンバーの表示アイコン写真。
 		     本人が任意で設定した場合のみ・クラウド保存有効化時に本人のみ可読の members ミラーへ複製。家族には非開示 -->
 		<dict>
