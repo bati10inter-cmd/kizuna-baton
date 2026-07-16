@@ -50,6 +50,11 @@
 	<!-- APPSTORE-NATIVE-LOCK / APPSTORE-META-FACEID(v79): Face ID 利用目的（高齢者向けに柔らかい文言） -->
 	<key>NSFaceIDUsageDescription</key>
 	<string>アプリを開くときに、あなたの記録を他の人に見られにくくするために使います。</string>
+	<!-- v122 APP-MEMBER-PHOTO: 家族メンバー写真の <input type="file" accept="image/*"> は
+	     WKWebView が「写真を撮る」経路でカメラを開くため必須（無いと TCC が強制終了＝Guideline 2.1/5.1.1）。
+	     写真ライブラリ経路は PHPicker（アウトオブプロセス）ゆえ NSPhotoLibraryUsageDescription は不要。 -->
+	<key>NSCameraUsageDescription</key>
+	<string>ご家族の写真をその場で撮って、目印として設定するときに使います。</string>
 	<!-- 輸出コンプライアンス: 標準暗号(HTTPS/TLS/OS標準)のみ＝適用免除。毎回の暗号化質問を回避（ASC回答＝標準暗号→免除・フランス配信なしと整合） -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
