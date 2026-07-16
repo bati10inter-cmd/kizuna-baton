@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton v121</title>
+<title>きずなbaton v122</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -115,6 +115,16 @@
 :root.large .visibility-preset .vp-opt .vp-title{font-size:16px}
 :root.large .visibility-preset .vp-opt .vp-sub{font-size:13px}
 :root.large .tab{font-size:16px}
+/* APP-MEMBER-PHOTO(v122): 老眼モードのアバター拡大（従来ルール無し＝新設） */
+:root.large .user-pill .av{width:40px;height:40px;font-size:16px}
+:root.large .switch-item .av{width:46px;height:46px;font-size:18px}
+:root.large .member-row .av{width:50px;height:50px;font-size:19px}
+:root.large .preview-opt .av{width:46px;height:46px;font-size:18px}
+:root.large .viewer-checks .vc-row .av{width:36px;height:36px;font-size:15px}
+:root.large .wf-approver-row .av{width:36px;height:36px;font-size:15px}
+:root.large .owner-pill .av{width:24px;height:24px;font-size:12px}
+:root.large .owner-dot{min-width:24px;height:24px;border-radius:12px;font-size:12px}
+:root.large img.owner-dot{width:24px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -123,12 +133,18 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
 .user-bar{background:var(--color-background-primary);padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:6}
 .user-pill{display:flex;align-items:center;gap:6px;flex:1;background:var(--color-background-secondary);padding:6px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);cursor:pointer;min-width:0}
-.user-pill .av{width:24px;height:24px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.user-pill .av{width:34px;height:34px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;overflow:hidden}
 .user-pill .info{flex:1;min-width:0}
 .user-pill .label{font-size:9px;color:var(--color-text-tertiary);line-height:1.1}
 .user-pill .name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-pill .arrow{font-size:14px;color:var(--color-text-tertiary)}
 .member-mgmt-icon{min-width:44px;min-height:44px;border-radius:50%;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center}
+/* APP-MEMBER-PHOTO(v122): 写真アバター（<img> が各サイトの .av 等と同クラスでサイズ継承） */
+.av-photo{object-fit:cover;padding:0;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary)}
+.member-av-btn{position:relative;cursor:pointer;flex-shrink:0;display:flex}
+.member-av-btn .member-av-badge{position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);font-size:10px;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.member-photo-preview{width:96px;height:96px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:500;color:var(--owner-on-color);overflow:hidden;border:0.5px solid var(--color-border-secondary)}
+.member-photo-preview img{width:100%;height:100%;object-fit:cover}
 
 .switch-menu{position:absolute;top:54px;left:12px;right:12px;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:30;display:none;overflow:hidden}
 .switch-menu.open{display:block}
@@ -136,7 +152,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .switch-item:last-child{border-bottom:none}
 .switch-item:hover{background:var(--color-background-secondary)}
 .switch-item.active{background:var(--color-background-secondary)}
-.switch-item .av{width:30px;height:30px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.switch-item .av{width:40px;height:40px;border-radius:50%;color:var(--owner-on-color);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex-shrink:0}
 .switch-item .info{flex:1}
 .switch-item .name{font-size:15px;font-weight:500;color:var(--color-text-primary)}
 .switch-item .sub{font-size:13px;color:var(--color-text-secondary);margin-top:1px}
@@ -239,7 +255,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .card.archived{opacity:0.7}
 .icon-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;position:relative}
 .logo-img{width:36px;height:36px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);padding:4px}
-.owner-dot{position:absolute;bottom:-2px;right:-2px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;border:1.5px solid var(--color-background-primary);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;color:var(--owner-on-color)}
+.owner-dot{position:absolute;bottom:-3px;right:-3px;min-width:20px;height:20px;padding:0 3px;border-radius:10px;border:1.5px solid var(--color-background-primary);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;color:var(--owner-on-color)}
+img.owner-dot{width:20px;padding:0}
 .card-body{flex:1;min-width:0}
 .card-name{font-size:14px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;line-height:1.35}
 .card-meta{font-size:11px;color:var(--color-text-secondary);margin-top:3px;line-height:1.4}
@@ -309,7 +326,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .detail-name{font-size:17px;font-weight:500;color:var(--color-text-primary)}
 .detail-cat{font-size:11px;color:var(--color-text-secondary);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .owner-pill{display:inline-flex;align-items:center;gap:4px;background:var(--color-background-secondary);padding:3px 8px;border-radius:8px;font-size:11px;color:var(--color-text-secondary)}
-.owner-pill .av{width:15px;height:15px;border-radius:50%;font-size:9px;color:white;display:flex;align-items:center;justify-content:center;font-weight:500}
+.owner-pill .av{width:20px;height:20px;border-radius:50%;font-size:10px;color:white;display:flex;align-items:center;justify-content:center;font-weight:500}
 .section{padding:12px 16px;border-bottom:1px solid var(--color-border-tertiary)}
 .section-title{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
 .section-title .seal{font-size:11px;color:#A32D2D;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:3px}
@@ -421,7 +438,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .viewer-checks{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:6px 8px;margin-top:4px}
 .viewer-checks .vc-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
 .viewer-checks .vc-row:last-child{border-bottom:none}
-.viewer-checks .vc-row .av{width:22px;height:22px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.viewer-checks .vc-row .av{width:30px;height:30px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
 .viewer-checks .vc-row .nm{flex:1;font-size:12px;color:var(--color-text-primary)}
 .viewer-checks .vc-row input{width:auto;margin:0}
 .viewer-checks .vc-empty{padding:8px 4px;font-size:11px;color:var(--color-text-tertiary);text-align:center}
@@ -435,7 +452,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .hidden-icon{font-size:11px;color:var(--home-private-icon);margin-left:3px}
 
 .member-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:5px}
-.member-row .av{width:28px;height:28px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.member-row .av{width:44px;height:44px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;flex-shrink:0}
 .member-row .name{flex:1;font-size:13px;color:var(--color-text-primary)}
 .member-row .color-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-tertiary);cursor:pointer}
 .member-row button{background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:14px}
@@ -450,7 +467,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .export-opt h3{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
 .export-opt p{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
 .preview-opt{padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px}
-.preview-opt .av{width:32px;height:32px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.preview-opt .av{width:40px;height:40px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;flex-shrink:0}
 .preview-opt .info{flex:1}
 .preview-opt .nm{font-size:13px;font-weight:500;color:var(--color-text-primary)}
 .preview-opt .sub{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
@@ -475,7 +492,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .wf-actions button:disabled{opacity:0.4;cursor:not-allowed}
 .wf-actions button i{font-size:13px;color:var(--color-text-secondary)}
 .wf-approver-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;margin-bottom:4px;font-size:11px}
-.wf-approver-row .av{width:22px;height:22px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.wf-approver-row .av{width:30px;height:30px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
 .wf-approver-row .nm{flex:1;color:var(--color-text-primary)}
 .wf-approver-row button{padding:4px 9px;font-size:10px;border-radius:4px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer}
 .wf-approver-row.approved{background:#E7F6EF;border-color:#1D9E75}
@@ -936,7 +953,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
     <div class="modal">
       <button class="modal-close-text" onclick="closeMemberModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-users"></i>家族メンバー管理</h2>
-      <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">名前と表示色を自由に設定できます。</p>
+      <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px">名前・表示色・写真を自由に設定できます。丸いアイコンをタップすると写真を設定できます。</p>
       <div id="member-list"></div>
       <!-- 招待で追加（Step 6: invitation-flow-design.md v3.2） -->
       <button onclick="openInviteIssueModal()" style="width:100%;padding:9px 11px;border-radius:var(--border-radius-md);border:0.5px solid var(--accent-warm);background:transparent;color:var(--accent-warm);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;margin-bottom:10px"><i class="ti ti-mail"></i>招待で追加（推奨）</button>
@@ -958,6 +975,18 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
         <button onclick="openAccountDeleteModal()" style="width:100%;padding:10px 10px;border-radius:var(--border-radius-md);border:0.5px solid #DC2626;background:transparent;color:#DC2626;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-trash"></i>アカウントを削除する</button>
       </div>
+    </div>
+  </div>
+
+  <!-- APP-MEMBER-PHOTO(v122): メンバー写真設定モーダル -->
+  <div class="modal-bg" id="member-photo-modal">
+    <div class="modal">
+      <button class="modal-close-text" onclick="closeMemberPhotoModal()" aria-label="閉じる">閉じる</button>
+      <h2 id="member-photo-title"><i class="ti ti-camera"></i>写真を設定</h2>
+      <div id="member-photo-preview" class="member-photo-preview"></div>
+      <button class="btn-primary" onclick="triggerMemberPhotoPick()" style="width:100%;padding:12px;font-size:15px;border-radius:var(--border-radius-md);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-photo"></i>写真を選ぶ</button>
+      <button id="member-photo-remove" onclick="removeMemberPhoto()" style="width:100%;margin-top:8px;padding:11px;border-radius:var(--border-radius-md);border:0.5px solid #DC2626;background:transparent;color:#DC2626;font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;gap:6px"><i class="ti ti-trash"></i>写真を削除</button>
+      <p style="font-size:12px;color:var(--color-text-tertiary);line-height:1.7;margin-top:10px">写真はお使いの端末の中に保存されます。「クラウド保存」を有効にされている場合は、ご本人だけが読み取れるクラウドの控えにも含まれます（ご家族には表示されません）。写真はいつでも削除できます。</p>
     </div>
   </div>
 
@@ -1117,7 +1146,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.1）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.2）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1154,7 +1183,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       <!-- データ取扱いの簡潔説明（v100: PP v4.0＝既定は端末内のみ／任意オプトインでクラウド保存） -->
       <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
         ※ 記録は既定で<strong>お使いの端末の中だけ</strong>に保存されます。<strong>アカウント作成とクラウド保存の有効化（どちらも任意）</strong>を行ったときに限り、端末間で同期するためのコピーが Google（Firebase・東京リージョン）にも保管されます。その他の外部送信（サービスロゴ取得・アイコン表示・任意送信の感想フォーム）を含む詳細は、プライバシーポリシー第2条をご確認ください。<br>
-        ※ 今回の改定（利用規約 v3.3.2・プライバシーポリシー v5.1）は、<strong>App Store 公開に合わせた表記の整理（β表記の終了）</strong>によるものです。<strong>機能やデータの取扱いに変更はありません</strong>。あわせて、ご家族を招待して指定した記録だけを見てもらえる機能（任意）をご利用の場合、記録はご自身が招待を発行しお相手が受諾したときにのみお相手にも表示され、招待発行時はお相手のメールアドレスが招待メールをお届けするためにメール配信事業者（Twilio SendGrid・米国）を経由します。詳細はプライバシーポリシー第2条・第7条をご確認ください。
+        ※ 今回の改定（プライバシーポリシー v5.2）は、家族メンバーの表示アイコンに<strong>お顔写真（任意）</strong>を設定できる機能の追加によるものです。写真は、ご自身で設定した場合にのみお使いの端末の中に保存され、<strong>「クラウド保存」を有効化されている場合に限り、ご本人のアカウントだけが読み取れるクラウドの控えにも含まれます</strong>（設定しなければ写真が取得・送信されることはなく、ご家族に表示されることもありません）。写真はいつでも削除できます。あわせて、ご家族を招待して指定した記録だけを見てもらえる機能（任意）をご利用の場合、記録はご自身が招待を発行しお相手が受諾したときにのみお相手にも表示され、招待発行時はお相手のメールアドレスが招待メールをお届けするためにメール配信事業者（Twilio SendGrid・米国）を経由します。詳細はプライバシーポリシー第2条・第7条をご確認ください。
       </div>
 
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
@@ -1164,7 +1193,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.1）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.2）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -1617,6 +1646,8 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 
   <!-- v19: 復元用 hidden file input -->
   <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" onchange="handleRestoreFile(this)">
+  <!-- APP-MEMBER-PHOTO(v122): 写真選択用 hidden file input -->
+  <input type="file" id="member-photo-input" accept="image/*" style="display:none" onchange="handleMemberPhotoFile(this)">
 
   <!-- 項目10: 入力確定（キーボードを閉じる）ボタン。タッチ端末で入力欄フォーカス時のみ表示 -->
 </div>
@@ -1748,6 +1779,21 @@ function ownerColorCss(color){
   return `var(${OWNER_COLOR_VARS[key]||'--owner-neutral'})`;
 }
 
+// ==================== APP-MEMBER-PHOTO(v122): 家族メンバー写真（任意） ====================
+// member.photo は data URL のみ許可（256²中央クロップ JPEG 想定・上限120KB・SVGは script 実行可能性があるため除外）。
+// 復元JSON・クラウド由来の細工文字列が <img src> に載る前に ingress（load/restore/cloud pull）で構造的に弾く。
+const MEMBER_PHOTO_MAX_LEN=120*1024;
+const MEMBER_PHOTO_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+function validMemberPhoto(p){return typeof p==='string'&&p.length<=MEMBER_PHOTO_MAX_LEN&&MEMBER_PHOTO_RE.test(p);}
+function sanitizeMemberPhoto(m){if(m&&m.photo!=null&&!validMemberPhoto(m.photo))delete m.photo;return m;}
+// 共通アバターHTML: 写真あり→丸<img>／なし→従来の頭文字丸。bgCss は既存挙動維持のため呼び出し元の表現（ownerColorCss()/生hex）をそのまま渡す。
+// 要素は span（inline）＝owner-pill 等のインライン文脈でも innerText に改行を生まない（.av 系は display:flex なので見た目は不変）
+function avatarHtml(m,cls,bgCss){
+  if(m&&validMemberPhoto(m.photo))return `<img class="${cls} av-photo" src="${esc(m.photo)}" alt="">`;
+  const bg=bgCss||ownerColorCss(m&&m.color);
+  return `<span class="${cls}" style="background:${bg}">${esc(((m&&m.name)||'？').charAt(0))}</span>`;
+}
+
 let categories=['金融・決済','ローン','通信・デジタル','保険','公共・生活','会員・SNS','その他'];
 
 // members[] に Step 6 で追加: invitedVia/joinedAt/termsAcceptedVersion/privacyAcceptedVersion
@@ -1761,7 +1807,7 @@ let members=[
 
 const MY_ID='m1';
 const TERMS_VERSION='v3.3.2';  // v113(APP-DEBETA): App Store 公開＝β終了の表記整理（「β版」→「現行版」・機能仕様の変更なし）
-const PRIVACY_VERSION='v5.1'; // v113(APP-DEBETA): App Store 公開＝β終了の表記整理（取得情報・委託先の変更なし）
+const PRIVACY_VERSION='v5.2'; // v122(APP-MEMBER-PHOTO): 家族メンバー写真（任意）追加＝クラウド保存有効時のみ本人可読ミラーへ複製
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: 公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
@@ -2057,21 +2103,27 @@ function renderUserPill(){
   if(isRemoteView()){
     const uid=currentRemoteOwnerUid();
     const nm=sharedOwnerDisplayName(uid);
-    av.style.fontSize='11px';
+    av.style.fontSize='14px';
     av.textContent=nm.charAt(0);av.style.background=ownerColorCss(sharedOwnerColor(uid));
     label.textContent=nm+'さんの契約（共有）';
     name.textContent=nm;
     return;
   }
   if(viewOwnerId==='all'){
-    av.textContent='家';av.style.background='var(--owner-neutral)';av.style.fontSize='12px';
+    av.textContent='家';av.style.background='var(--owner-neutral)';av.style.fontSize='15px';
     label.textContent='表示中';name.textContent='家族全員';
   } else {
     const m=getMember(viewOwnerId);
     // フォールバック: MY_ID 自身も不在（プロト版アカウント削除後）は 'all' へ＝無限再帰を防ぐ（v97）
     if(!m){viewOwnerId=(viewOwnerId===MY_ID?'all':MY_ID);return renderUserPill();}
-    av.style.fontSize='11px';
-    av.textContent=m.name.charAt(0);av.style.background=ownerColorCss(m.color);
+    av.style.fontSize='14px';
+    // APP-MEMBER-PHOTO(v122): 写真あり→丸<img>／なし→従来の頭文字
+    if(validMemberPhoto(m.photo)){
+      av.innerHTML=`<img src="${esc(m.photo)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+      av.style.background='transparent';
+    }else{
+      av.textContent=m.name.charAt(0);av.style.background=ownerColorCss(m.color);
+    }
     label.textContent=m.id===MY_ID?'自分の契約':m.name+'さんの契約';
     name.textContent=m.name;
   }
@@ -2139,7 +2191,7 @@ function renderSwitchMenu(){
     const meName=me?me.name:'あなた';
     const meColor=me?me.color:'#185FA5';
     html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
-      <div class="av" style="background:${ownerColorCss(meColor)}">${esc(meName.charAt(0))}</div>
+      ${avatarHtml(me||{name:meName,color:meColor},'av',ownerColorCss(meColor))}
       <div class="info"><div class="name">${esc(meName)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
       ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
     </div>`;
@@ -2161,7 +2213,7 @@ function renderSwitchMenu(){
   } else {
     const allCount=contracts.filter(c=>!c.archived&&canViewContract(c,viewer)).length;
     html+=`<div class="switch-item${viewOwnerId===MY_ID?' active':''}" onclick="selectView('${MY_ID}')">
-      <div class="av" style="background:${ownerColorCss(me.color)}">${esc(me.name.charAt(0))}</div>
+      ${avatarHtml(me,'av',ownerColorCss(me.color))}
       <div class="info"><div class="name">${esc(me.name)} <span style="font-size:9px;background:var(--color-text-primary);color:white;padding:1px 5px;border-radius:3px;margin-left:3px">あなた</span></div><div class="sub">${myCount}件の契約</div></div>
       ${viewOwnerId===MY_ID?'<i class="ti ti-check check"></i>':''}
     </div>`;
@@ -2174,7 +2226,7 @@ function renderSwitchMenu(){
       if(m.id===MY_ID)return;
       const cnt=contracts.filter(c=>c.ownerId===m.id&&!c.archived&&canViewContract(c,viewer)).length;
       html+=`<div class="switch-item${m.id===viewOwnerId?' active':''}" data-mid="${esc(m.id)}" onclick="selectView(this.dataset.mid)">
-        <div class="av" style="background:${ownerColorCss(m.color)}">${esc(m.name.charAt(0))}</div>
+        ${avatarHtml(m,'av',ownerColorCss(m.color))}
         <div class="info"><div class="name">${esc(m.name)}</div><div class="sub">${cnt}件の契約</div></div>
         ${m.id===viewOwnerId?'<i class="ti ti-check check"></i>':''}
       </div>`;
@@ -2550,7 +2602,7 @@ function openPreviewModal(){
   const el=document.getElementById('preview-member-list');
   el.innerHTML=members.filter(m=>m.id!==MY_ID).map(m=>
     `<div class="preview-opt" data-mid="${esc(m.id)}" onclick="startPreview(this.dataset.mid)">
-      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      ${avatarHtml(m,'av',esc(m.color))}
       <div class="info"><div class="nm">${esc(m.name)}さんの視点</div><div class="sub">${esc(m.name)}さんがアプリを見たときの表示を確認</div></div>
       <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
     </div>`
@@ -2755,7 +2807,8 @@ function renderList(){
     const ownerColor=getOwnerColor(c);
     const ownerInitial=ownerName.charAt(0);
     const ownerColorStyle=ownerColorCss(ownerColor);
-    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColorStyle}">${esc(ownerInitial)}</div>`:'';
+    const ownerMember=(!isRemoteView()&&getMember(c.ownerId))||{name:ownerName,color:ownerColor}; // APP-MEMBER-PHOTO(v122): 写真対応（リモートは常に頭文字）
+    const ownerDot=viewOwnerId==='all'?avatarHtml(ownerMember,'owner-dot',ownerColorStyle):'';
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     const logoDomain=inferLogoDomain(c);
     const logoUrl=logoDomain?logoDevImageUrl(logoDomain,64):'';
@@ -3051,7 +3104,7 @@ function showDetail(id){
       <div class="detail-icon" style="background:${bg}"><i class="ti ${icon}" style="color:${tc};font-size:20px"></i></div>
       <div>
         <div class="detail-name">${esc(c.name)}${cycleLabel}</div>
-        <div class="detail-cat">${esc(c.cat)} <span class="owner-pill"><span class="av" style="background:${esc(ownerColor)}">${esc(ownerInitial)}</span>${esc(ownerName)}</span>${headerVisBadge}</div>
+        <div class="detail-cat">${esc(c.cat)} <span class="owner-pill">${avatarHtml((!isRemoteView()&&getMember(c.ownerId))||{name:ownerName,color:ownerColor},'av',esc(ownerColor))}${esc(ownerName)}</span>${headerVisBadge}</div>
       </div>
     </div>
 
@@ -3201,7 +3254,7 @@ function renderViewerCheckList(containerId, ownerSelectId, selectedIds, toggleFn
   if(!others.length){el.innerHTML='<div class="vc-empty">家族メンバーを追加すると、ここで選択できます</div>';return;}
   el.innerHTML=others.map(m=>{
     const checked=selectedIds.includes(m.id)?'checked':'';
-    return `<label class="vc-row"><input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="${toggleFnName}(this.dataset.mid,this.checked)"><div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div><div class="nm">${esc(m.name)}</div></label>`;
+    return `<label class="vc-row"><input type="checkbox" ${checked} data-mid="${esc(m.id)}" onchange="${toggleFnName}(this.dataset.mid,this.checked)">${avatarHtml(m,'av',esc(m.color))}<div class="nm">${esc(m.name)}</div></label>`;
   }).join('');
 }
 
@@ -3778,7 +3831,7 @@ const DATA_KEY='kizuna-baton:data:v20';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はデフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 // === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
-const CONSENT_KEY='kizuna-baton:consent-shown:v28'; // v113: PP v5.1/ToS v3.3.2 発効＝β終了の表記整理・軽微変更の周知を兼ねた再同意（:v27→:v28）
+const CONSENT_KEY='kizuna-baton:consent-shown:v29'; // v122: PP v5.2 発効＝家族メンバー写真（任意）追加の再同意（:v28→:v29・ToS v3.3.2 不変）
 const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
 // === v16: オンボーディング画面 ===
 const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
@@ -3895,7 +3948,7 @@ function loadPersistentState(){
     const data=JSON.parse(saved);
     if(Array.isArray(data.contracts)&&Array.isArray(data.members)){
       contracts=data.contracts.map(coerceContractNums);
-      members=data.members;
+      members=data.members.map(sanitizeMemberPhoto); // v122(APP-MEMBER-PHOTO): 不正photoのingress排除
       nextId=data.nextId||(contracts.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1);
       nextMemberId=data.nextMemberId||(members.reduce((m,mb)=>{const n=Number((mb.id||'').replace(/^m/,''));return isNaN(n)?m:Math.max(m,n);},0)+1);
     }
@@ -4132,7 +4185,7 @@ function renderCloudAccountModal(view){
   }else if(view==='syncsetup'){
     // P2b(v96): 同意つき有効化（何が・どこに・やめられることを明示。メモ/引き継ぎメッセージ/カード下4桁の開示は消さない）
     html=`<div class="beta-info-box"><strong>クラウド保存について</strong><br>
-      ・この端末で記録した<strong>すべての内容</strong>（契約・資産の在りか・カードの下4桁・メモ・ご家族への引き継ぎメッセージを含む）が保存されます<br>
+      ・この端末で記録した<strong>すべての内容</strong>（契約・資産の在りか・カードの下4桁・メモ・ご家族への引き継ぎメッセージ・ご家族の写真〔設定した場合〕を含む）が保存されます<br>
       ・これは、スマホの故障・買い替えに備える<strong>ご本人専用のバックアップ</strong>です（保存しただけでは、ご家族には何も表示されません）<br>
       ・ご家族に表示されるのは、その方を招待し受諾いただいたうえで、公開範囲を「全員に見せる」「選んだ家族だけ」に設定した契約だけです（所在メモはご本人だけがご覧になれます）<br>
       ・以後の変更も自動で保存されます（この端末の内容がそのまま写されます）<br>
@@ -4345,7 +4398,7 @@ async function initCloudFunctions(){
 //   家族の list read は where('visibility.mode',…) クエリ（firestore.rules の allow list と対）で行うため、
 //   visibility 未設定のままミラーすると mode=='all' クエリに載らず「見えるはずの契約が見えない」。
 // ミラースキーマ版数（CLOUD_MIRROR_SCHEMA）: 出力形を変えたら +1 → 既存有効ユーザーは自動フル再同期。
-const CLOUD_MIRROR_SCHEMA=3; // v108: 所在メモ(secret)を contractSecrets へ owner-only 分離（APP-INVITE-SECRET-SPLIT）
+const CLOUD_MIRROR_SCHEMA=4; // v122: members に photo（家族メンバー写真・任意）追加（APP-MEMBER-PHOTO）／v108: secret を contractSecrets へ分離
 function buildCloudDocs(state){
   const clean=x=>JSON.parse(JSON.stringify(x));
   const docs={contracts:{},contractSecrets:{},assets:{},cards:{},members:{},categories:{}};
@@ -4602,7 +4655,7 @@ function applyOwnCloudSnapshot(snap){
   (snap.cards||[]).forEach(cd=>{if(cd&&cd.type==='card')mergedAssets.push(cd);else legacyCards.push(cd);});
   assets=mergedAssets.map(coerceAssetNums);
   cards=legacyCards.map(coerceCardNums);
-  members=(snap.members&&snap.members.length)?snap.members.slice():[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
+  members=(snap.members&&snap.members.length)?snap.members.slice().map(sanitizeMemberPhoto):[{id:'m1',name:'あなた',color:'#185FA5',invitedVia:null,joinedAt:null,termsAcceptedVersion:null,privacyAcceptedVersion:null}];
   // categories doc {list,icons,colors,tcolors} を反映（loadPersistentState/applyRestore と同じ backfill）
   const cat=snap.categories;
   if(cat&&Array.isArray(cat.list)&&cat.list.length){
@@ -5482,7 +5535,7 @@ function renderMemberList(){
       ?`<button data-mid="${mid}" onclick="revokeAcceptedMember(this.dataset.mid)" title="24h以内の受諾取消" style="background:#A32D2D;color:#fff;border-color:#A32D2D"><i class="ti ti-clock-x"></i></button>`
       :'';
     return `<div class="member-row">
-      <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+      <div class="member-av-btn" data-mid="${mid}" onclick="openMemberPhotoModal(this.dataset.mid)" title="写真を設定">${avatarHtml(m,'av',esc(m.color))}<i class="ti ti-camera member-av-badge"></i></div>
       <div class="name">
         <input type="text" value="${esc(m.name)}" data-mid="${mid}" onchange="renameMember(this.dataset.mid,this.value)" style="font-size:16px;padding:4px 6px;border-radius:4px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%">
         <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:2px">契約 ${contractCount}件${isMyself?' · あなた':''}${revokable?' · 24h取消可':''}</div>
@@ -5530,6 +5583,69 @@ function stopMemberViewing(id){
 }
 // 互換 alias（外部参照や旧コードからの呼び出しを生かす）
 const removeMember=stopMemberViewing;
+
+// ==================== APP-MEMBER-PHOTO(v122): メンバー写真設定 ====================
+let photoTargetId=null;
+function openMemberPhotoModal(id){
+  photoTargetId=id;
+  renderMemberPhotoModal();
+  openModalById('member-photo-modal');
+}
+function closeMemberPhotoModal(){closeModalById('member-photo-modal');photoTargetId=null;}
+function renderMemberPhotoModal(){
+  const m=getMember(photoTargetId);
+  if(!m)return;
+  document.getElementById('member-photo-title').innerHTML=`<i class="ti ti-camera"></i>${esc(m.name)} の写真`;
+  const pv=document.getElementById('member-photo-preview');
+  if(validMemberPhoto(m.photo)){
+    pv.style.background='transparent';
+    pv.innerHTML=`<img src="${esc(m.photo)}" alt="">`;
+  }else{
+    pv.style.background=m.color||'var(--owner-neutral)';
+    pv.textContent=(m.name||'？').charAt(0);
+  }
+  document.getElementById('member-photo-remove').style.display=validMemberPhoto(m.photo)?'flex':'none';
+}
+function triggerMemberPhotoPick(){
+  const inp=document.getElementById('member-photo-input');
+  inp.value='';
+  inp.click();
+}
+function handleMemberPhotoFile(input){
+  const f=input.files&&input.files[0];
+  if(!f)return;
+  const url=URL.createObjectURL(f);
+  const img=new Image();
+  img.onload=function(){
+    try{
+      const S=256;
+      const c=document.createElement('canvas');c.width=S;c.height=S;
+      const ctx=c.getContext('2d');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,S,S); // 透過PNG→JPEG変換時の黒背景化を防ぐ
+      const side=Math.min(img.naturalWidth,img.naturalHeight);
+      ctx.drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,S,S);
+      let out=c.toDataURL('image/jpeg',0.8);
+      if(out.length>MEMBER_PHOTO_MAX_LEN)out=c.toDataURL('image/jpeg',0.5); // 実測10〜40KB想定・保険の再圧縮
+      if(!validMemberPhoto(out)){showToast('この写真は使用できませんでした','error');return;}
+      const m=getMember(photoTargetId);
+      if(!m)return;
+      m.photo=out;
+      persistState();
+      renderAll();renderMemberList();renderMemberPhotoModal();
+      showToast('写真を設定しました','success');
+    }finally{URL.revokeObjectURL(url);}
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);showToast('写真を読み込めませんでした','error');};
+  img.src=url;
+}
+function removeMemberPhoto(){
+  const m=getMember(photoTargetId);
+  if(!m)return;
+  delete m.photo; // クラウドはフルdoc上書きミラーのため次回同期でフィールドごと消える
+  persistState();
+  renderAll();renderMemberList();renderMemberPhotoModal();
+  showToast('写真を削除しました','success');
+}
 
 function openColorModal(id){
   colorTargetId=id;
@@ -5585,12 +5701,13 @@ function doExportJSON(){
   // APP-CARD-ASSET-MERGE(v101): カードは type:'card' 資産へ統合済＝myAssets に含まれる。
   // 旧 cards フィールドは廃止（重複出力を防ぐ）→ schemaVersion 3→4
   const myAssets=assets.filter(a=>a.ownerId===MY_ID);
+  // v122(APP-MEMBER-PHOTO): members に photo（有効時のみ）を同梱 → schemaVersion 4→5（追加フィールドのみ＝取込側は後方互換）
   const data={
-    schemaVersion:4,
+    schemaVersion:5,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-prototype-v107',
+    appVersion:'kizuna-baton-v122',
     exporter:{id:me.id,name:me.name},
-    members:members.map(m=>({id:m.id,name:m.name,color:m.color})),
+    members:members.map(m=>({id:m.id,name:m.name,color:m.color,...(validMemberPhoto(m.photo)?{photo:m.photo}:{})})),
     categories:categories.slice(),
     contracts:myContracts,
     assets:myAssets
@@ -6054,7 +6171,7 @@ function renderWorkflowModal(){
     members.filter(m=>m.id!==MY_ID).forEach(m=>{
       const approved=wf.stage2Approvers.includes(m.id);
       apprHtml+=`<div class="wf-approver-row${approved?' approved':''}">
-        <div class="av" style="background:${esc(m.color)}">${esc(m.name.charAt(0))}</div>
+        ${avatarHtml(m,'av',esc(m.color))}
         <div class="nm">${esc(m.name)}さん${approved?'（承認済み）':''}</div>
         ${approved?'<i class="ti ti-check" style="color:#0F6E56;font-size:14px"></i>':`<button data-mid="${esc(m.id)}" onclick="approveStage2(this.dataset.mid)">承認</button>`}
       </div>`;
@@ -6154,7 +6271,7 @@ function renderAssetList(){
     const ownerName=getOwnerName(a);
     const ownerColor=getOwnerColor(a);
     const ownerColorStyle=ownerColorCss(ownerColor);
-    const ownerDot=viewOwnerId==='all'?`<div class="owner-dot" style="background:${ownerColorStyle}">${esc(ownerName.charAt(0))}</div>`:'';
+    const ownerDot=viewOwnerId==='all'?avatarHtml((!isRemoteView()&&getMember(a.ownerId))||{name:ownerName,color:ownerColor},'owner-dot',ownerColorStyle):'';
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     let visIconHtml='';
     if(!isPreviewing()&&!isRemoteView()&&a.ownerId===MY_ID){
@@ -6787,7 +6904,7 @@ function closeRestoreConfirmModal(){
 function applyRestore(){
   if(!pendingRestore){closeRestoreConfirmModal();return;}
   contracts=pendingRestore.contracts.map(coerceContractNums); // v68(APP-DATA-RESTORE-NUM): 数値フィールド強制
-  members=pendingRestore.members.slice();
+  members=pendingRestore.members.slice().map(sanitizeMemberPhoto); // v122(APP-MEMBER-PHOTO): 細工JSONのphotoを排除
   // v56(APP-DATA-BACKUP): categories も復元（loadPersistentState と同型のバックフィル）。
   // 旧バックアップ（categories 無し）は既存カテゴリ維持＝後方互換。
   if(Array.isArray(pendingRestore.categories)&&pendingRestore.categories.length){

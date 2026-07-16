@@ -240,6 +240,45 @@
         ]);
       });
 
+      // APP-MEMBER-PHOTO(v122): validMemberPhoto/sanitizeMemberPhoto＝data:image のみ許可・SVG/スキーム細工/超過を排除
+      add('T29', () => {
+        const ok = 'data:image/jpeg;base64,AAAA';
+        const big = 'data:image/jpeg;base64,' + 'A'.repeat(121*1024);
+        assertDeepEqual([
+          W.validMemberPhoto(ok),
+          W.validMemberPhoto('data:image/png;base64,AAAA'),
+          W.validMemberPhoto('data:image/webp;base64,AAAA'),
+          W.validMemberPhoto('javascript:alert(1)'),
+          W.validMemberPhoto('data:text/html;base64,AAAA'),
+          W.validMemberPhoto('data:image/svg+xml;base64,AAAA'), // SVGはscript実行可能性→拒否
+          W.validMemberPhoto(big),                              // 120KB超→拒否
+          W.validMemberPhoto(null),
+          W.sanitizeMemberPhoto({id:'m1',photo:'javascript:x'}).photo === undefined,
+          W.sanitizeMemberPhoto({id:'m1',photo:ok}).photo === ok,
+          ('photo' in W.sanitizeMemberPhoto({id:'m1'})) === false, // 無photoはno-op
+          W.avatarHtml({name:'太郎',color:'#185FA5',photo:ok},'av').startsWith('<img'),
+          W.avatarHtml({name:'太郎',color:'#185FA5'},'av').includes('太'),
+          W.avatarHtml({name:'太郎',photo:'javascript:x'},'av').startsWith('<span') // 不正photoは頭文字fallback（inline要素＝owner-pill文脈で改行を生まない）
+        ], [
+          true, true, true, false, false, false, false, false,
+          true, true, true,
+          true, true, true
+        ]);
+      });
+      // APP-MEMBER-PHOTO(v122): buildCloudDocs は member.photo をそのまま members doc へ通す（本人のみ可読・rules 側で家族非開示）
+      add('T30', () => {
+        const ok = 'data:image/jpeg;base64,BBBB';
+        const out = W.buildCloudDocs({
+          contracts: [], members: [{id:'m1',name:'あ',color:'#185FA5',photo:ok},{id:'m2',name:'い',color:'#D4537E'}],
+          categories: [], assets: [], cards: [], icons: {}, colors: {}, tcolors: {}
+        });
+        assertDeepEqual([
+          out.docs.members['m1'].photo,
+          ('photo' in out.docs.members['m2']),
+          out.manifest.members
+        ], [ok, false, ['m1','m2']]);
+      });
+
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
       snapshots.S02 = {
         totalAmount: W.document.querySelector('#total-amount').textContent,

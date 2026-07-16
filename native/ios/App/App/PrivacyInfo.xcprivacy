@@ -99,6 +99,20 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
+		<!-- 写真またはビデオ（v122 APP-MEMBER-PHOTO・PP v5.2: 家族メンバーの表示アイコン写真。
+		     本人が任意で設定した場合のみ・クラウド保存有効化時に本人のみ可読の members ミラーへ複製。家族には非開示 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
 	</array>
 
 	<!-- Required Reason API 申告 -->
