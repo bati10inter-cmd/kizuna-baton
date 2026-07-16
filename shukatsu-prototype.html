@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton v120</title>
+<title>きずなbaton v121</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
@@ -114,6 +114,7 @@
 :root.large .amount-helper{font-size:14px}
 :root.large .visibility-preset .vp-opt .vp-title{font-size:16px}
 :root.large .visibility-preset .vp-opt .vp-sub{font-size:13px}
+:root.large .tab{font-size:16px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
@@ -186,7 +187,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .stat-sub{font-size:10px;color:var(--color-text-tertiary)}
 
 .tabs{display:flex;padding:0 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);overflow-x:auto}
-.tab{font-size:11px;padding:6px 8px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+.tab{font-size:13px;padding:8px 10px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
 .tab.active{color:var(--color-text-primary);border-bottom:2px solid var(--color-text-primary);font-weight:500}
 
 .home-controls{display:flex;flex-direction:column;gap:5px;padding:6px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
@@ -216,7 +217,7 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 /* ③ 状態＝利用中(緑)/解約済み(グレー) */
 .home-controls .ctrl-status{--ctrl-accent:var(--home-active)}
 .home-controls #view-tabs #vt-active.active{border-color:var(--home-active);background:var(--home-active-bg);color:var(--home-active-strong);font-weight:600}
-.home-controls #view-tabs #vt-archived.active{border-color:var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.home-controls #view-tabs #vt-archived.active{border-color:var(--color-text-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:600}
 
 /* v17: 検索バー */
 .search-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
