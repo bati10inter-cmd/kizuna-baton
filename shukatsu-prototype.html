@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>きずなbaton v122</title>
+<title>きずなbaton v123</title>
 <link rel="manifest" href="./manifest.json">
+<!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
+     本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
+     新規の検索流入は止める＝ページ削除ではなく noindex（削除すると招待受諾フローが機能停止する）。 -->
+<meta name="robots" content="noindex, follow">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFA875">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1E1B">
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
@@ -1094,6 +1098,34 @@ img.owner-dot{width:20px;padding:0}
     </div>
   </div>
 
+  <!-- APP-POSTLAUNCH-NOTICE(v123): アプリ公開告知（Web のみ・一度きり）。
+       再同意 v29 はアプリ公開に触れていない（push が公開前だったため）＝Web を開いた既存ユーザーへの
+       唯一の全員接点。移行導線はクラウド保存＞同一アカウント pull を第一推奨、バックアップJSONを次点。 -->
+  <div class="modal-bg center" id="postlaunch-notice-modal">
+    <div class="modal notice">
+      <div class="notice-icon"><i class="ti ti-device-mobile-check"></i></div>
+      <h3>きずなbaton のアプリが公開されました</h3>
+      <p style="text-align:left">
+        いつもご利用ありがとうございます。<br>
+        きずなbaton は App Store でアプリ版をご利用いただけるようになりました。<br>
+        <strong>これまで通り、このブラウザ版もそのままお使いいただけます。</strong>
+      </p>
+      <p style="text-align:left;margin-bottom:10px">
+        アプリ版へ今の内容を引き継ぐには、次のいずれかの方法があります。
+      </p>
+      <div style="text-align:left;font-size:12px;line-height:1.8;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:14px">
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:2px">1. クラウド保存でつなぐ（おすすめ）</div>
+        設定 ＞ 家族とつなぐ準備 からクラウド保存を有効にし、アプリ版で<strong>同じメールアドレス</strong>でログインすると、登録済みの内容がそのまま表示されます。
+        <div style="font-weight:600;color:var(--color-text-primary);margin:8px 0 2px">2. バックアップで移す</div>
+        設定 ＞ データ保管 からバックアップ（JSONファイル）を書き出し、アプリ版で読み込みます。
+      </div>
+      <div class="btn-row">
+        <button onclick="closePostlaunchNotice(false)" style="font-size:12px;color:var(--color-text-tertiary)">あとで</button>
+        <button class="btn-primary" onclick="closePostlaunchNotice(true)"><i class="ti ti-cloud-heart"></i> クラウド保存を設定</button>
+      </div>
+    </div>
+  </div>
+
   <!-- v16: 受諾完了ウェルカム（家族側・invitation-flow-design.md §4.2.4） -->
   <div class="modal-bg" id="welcome-after-accept-modal">
     <div class="modal">
@@ -1283,6 +1315,11 @@ img.owner-dot{width:20px;padding:0}
       <button class="modal-close-text" onclick="closeInviteAcceptModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-link"></i>招待を受諾</h2>
       <div id="invite-accept-intro" style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った OTP（6桁）を入力してください。</div>
+      <!-- APP-POSTLAUNCH-NOTICE ②（推奨A）: アプリ版利用者が Safari に着地して戸惑う導線の緩和。Web かつクラウド受諾時のみ表示 -->
+      <div id="invite-accept-browser-note" style="display:none;font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:10px;line-height:1.6">
+        <i class="ti ti-info-circle" style="color:var(--color-text-tertiary)"></i>
+        アプリ版きずなbaton をお使いの方へ：この画面はブラウザ版です。このまま受諾いただければ、アプリ版にも同じ内容が反映されます。
+      </div>
       <!-- stage-2b: クラウド接続時のみ表示（リンクから自動取得できなかった場合の手動貼り付けフォールバック） -->
       <div class="form-row" id="invite-accept-token-row" style="display:none">
         <label>招待リンク（メールに記載）</label>
@@ -3841,6 +3878,8 @@ const DARK_MODE_KEY='kizuna-baton:dark-mode:v18';
 const LARGE_MODE_KEY='kizuna-baton:large-mode:v42';
 // v71: オンボ初回完了直後に1回だけ「家族からの見え方」プレビューへ誘導（導線追加のみ・新機能なし）
 const PREVIEW_NUDGE_KEY='kizuna-baton:preview-nudge-shown:v71';
+// APP-POSTLAUNCH-NOTICE(v123): アプリ公開告知の既読フラグ（一度きり）。Web 専用＝native では告知自体を出さない。
+const POSTLAUNCH_NOTICE_KEY='kizuna-baton:notice:app-launch:v1';
 const SORT_KEY='kizuna-baton:sort:v19';
 const PAID_FLAG_KEY='kizuna-baton:paid:v82'; // 端末キャッシュ('1'=有料)。起動時に currentEntitlement で上書き。backup JSON には含めない（端末固有）
 let isPaid=false; // 竹(家族プラン)エンタイトルメント。StoreKit currentEntitlements の結果を正とする
@@ -3864,7 +3903,7 @@ const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
 // 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
 // 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
 // NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,POSTLAUNCH_NOTICE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -5018,6 +5057,7 @@ function closeOnboarding(){
   const wasFirstTime=!forceShowOnboarding;
   forceShowOnboarding=false;
   if(wasFirstTime) maybeShowPreviewNudge();
+  maybeShowPostlaunchNotice(); // v123: ナッジが開いていれば内部の modal-bg.open 判定で自動スキップ
   // stage-2b: 起動チェーンの末尾で保留中の招待受諾を開く（ナッジ等が開いていればスキップ→そちらの閉じ処理で再試行）
   maybeOpenPendingInviteAccept();
 }
@@ -5030,7 +5070,25 @@ function closePreviewNudge(go){
   lsSet(PREVIEW_NUDGE_KEY,'1');
   closeModalById('preview-nudge-modal');
   if(go) openPreviewModal();
-  else maybeOpenPendingInviteAccept(); // stage-2b: チェーン末尾（プレビューへ進んだ場合は招待導線を邪魔しない）
+  else { maybeShowPostlaunchNotice(); maybeOpenPendingInviteAccept(); } // stage-2b: チェーン末尾（プレビューへ進んだ場合は招待導線を邪魔しない）
+}
+// APP-POSTLAUNCH-NOTICE(v123): アプリ公開告知を起動チェーンの合間に一度だけ出す。
+// native では出さない＝native/www/index.html は正本の完全コピーゆえ、ゲートしないと
+// 「アプリ版の中でアプリ版の公開を告知する」不整合になる。
+// 招待受諾が保留中のときも出さない＝受諾を最優先し、告知は次回起動へ回す。
+function maybeShowPostlaunchNotice(){
+  if(IS_NATIVE) return false;
+  if(lsGet(POSTLAUNCH_NOTICE_KEY)) return false;
+  if(pendingCloudInviteToken) return false;
+  if(document.querySelector('.modal-bg.open')) return false;
+  openModalById('postlaunch-notice-modal');
+  return true;
+}
+function closePostlaunchNotice(go){
+  lsSet(POSTLAUNCH_NOTICE_KEY,'1'); // ［あとで］でも既読＝二度は出さない
+  closeModalById('postlaunch-notice-modal');
+  if(go){openCloudAccountModal();return;}
+  maybeOpenPendingInviteAccept(); // チェーン末尾
 }
 function showWelcomeAfterAccept(inviterName){
   document.getElementById('welcome-inviter-name').textContent=inviterName;
@@ -5363,6 +5421,11 @@ function openInviteAcceptModal(){
   if(intro)intro.textContent=cloud
     ?'メールに届いた招待リンクと確認コード（6桁）をご用意ください。リンクから開いた場合は、確認コードの入力だけで進めます。'
     :'招待リンクから受け取った OTP（6桁）を入力してください。';
+  // APP-POSTLAUNCH-NOTICE ②（推奨A・2026-07-14 オーナー決定）: 招待メールは純トランザクショナルのまま
+  // （特定電子メール法の営業要素を持ち込まない）とし、混乱の発生点＝Web の受諾画面でのみ案内する。
+  // native では「この画面はブラウザ版です」が偽になるため出さない。
+  const browserNote=document.getElementById('invite-accept-browser-note');
+  if(browserNote)browserNote.style.display=(!IS_NATIVE&&cloud)?'':'none';
   if(otpLabel)otpLabel.textContent=cloud?'確認コード（6桁・メールに記載）':'OTP（6桁）';
   openModalById('invite-accept-modal');
 }
@@ -7152,6 +7215,9 @@ async function boot(){
     // 受諾処理は一切行わず（完全無視）、URL のトークンだけを除去する。
     try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
   }
+  // APP-POSTLAUNCH-NOTICE(v123): 既存ユーザー（同意済み＋オンボ済み）は上のチェーンが何も開かないため、
+  // ここが実質の発火点。招待トークン確定後に呼ぶ＝受諾保留時は内部ガードで抑止される。
+  maybeShowPostlaunchNotice();
 }
 boot();
 

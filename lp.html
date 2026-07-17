@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>きずなbaton — もしもの時、家族が契約を探せるように</title>
-  <meta name="description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。カード番号や暗証番号は預からず、無料でブラウザですぐ試せます。">
+  <meta name="description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。カード番号や暗証番号は預からず、無料でお使いいただけます。App Store 版・ブラウザ版。">
   <meta name="theme-color" content="#FAF8F2">
   <link rel="canonical" href="https://bati10inter-cmd.github.io/kizuna-baton/lp.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <meta property="og:site_name" content="きずなbaton">
   <meta property="og:title" content="もしもの時、家族が“探せる”ように。｜きずなbaton">
-  <meta property="og:description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。無料公開中。">
+  <meta property="og:description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。App Store 版・ブラウザ版とも無料公開中。">
   <meta property="og:url" content="https://bati10inter-cmd.github.io/kizuna-baton/lp.html">
   <meta property="og:image" content="https://bati10inter-cmd.github.io/kizuna-baton/lp-assets/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -273,6 +273,23 @@
       background: transparent;
       border-color: var(--border-strong);
     }
+
+    /* App Store 公式バッジ: 改変禁止・等比維持・周囲に余白（バッジ高の10%以上）を確保 */
+    .btn-appstore {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-appstore:hover { transform: translateY(-2px); }
+
+    .btn-appstore img { display: block; width: auto; height: 54px; }
+
+    /* ヘッダーは min-height 44px ＝ バッジも 40px に抑える（.btn-appstore img と同詳細度ゆえ後置で上書き） */
+    .header-appstore img { height: 40px; }
 
     .cta-note {
       display: flex;
@@ -1034,6 +1051,14 @@
 
     .final-cta .cta-note { color: rgba(255, 255, 255, 0.75); }
 
+    /* 濃茶背景では既定の .btn-secondary（accent-deep 文字）が背景に溶けるため反転 */
+    .final-cta .btn-secondary {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+
+    .final-cta .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+
     footer {
       padding: 42px 0 100px;
       color: var(--text-sub);
@@ -1078,6 +1103,11 @@
       border-top: 1px solid var(--border-strong);
       backdrop-filter: blur(12px);
     }
+
+    /* バッジは等比維持が規約要件＝全幅に引き伸ばさず中央配置 */
+    .mobile-cta a.mobile-cta-appstore { background: transparent; padding: 0; }
+
+    .mobile-cta a.mobile-cta-appstore img { display: block; width: auto; height: 44px; }
 
     .mobile-cta a {
       min-height: 50px;
@@ -1237,8 +1267,8 @@
         <a href="#features">できること</a>
         <a href="#faq">よくある質問</a>
       </nav>
-      <a class="header-cta" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">
-        Web版を試す <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
+      <a class="btn-appstore header-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener">
+        <img src="lp-assets/appstore-badge-ja.svg" alt="App Store でダウンロード" width="109" height="40">
       </a>
     </div>
   </header>
@@ -1247,15 +1277,19 @@
     <section class="hero" id="top">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">無料公開中・ブラウザですぐ使えます</p>
+          <p class="eyebrow">App Store で公開中・無料でお使いいただけます</p>
           <h1>もしもの時、<br>家族が<span class="marker">“探せる”</span><br>ように。</h1>
           <p class="hero-lead">サブスク・保険・スマホ契約を、今のうちに整理。<strong>まずは自分の固定費から、家族に伝わる状態へ。</strong></p>
           <div class="cta-group">
-            <a class="btn btn-primary" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">
-              今すぐWeb版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
+            <a class="btn-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener">
+              <img src="lp-assets/appstore-badge-ja.svg" alt="App Store でダウンロード" width="147" height="54">
+            </a>
+            <a class="btn btn-secondary" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">
+              ブラウザ版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
             </a>
           </div>
-          <p class="cta-note"><i class="ti ti-circle-check" aria-hidden="true"></i> 登録不要ですぐ使える・カード番号や暗証番号は保存しません</p>
+          <p class="cta-note"><i class="ti ti-circle-check" aria-hidden="true"></i> iPhone はアプリ版・Android / パソコンはブラウザ版</p>
+          <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> 登録不要ですぐ使える・カード番号や暗証番号は保存しません</p>
         </div>
         <div class="hero-visual">
           <picture class="hero-picture">
@@ -1421,7 +1455,7 @@
         <div class="feedback-copy">
           <p class="section-kicker">あなたの声を聞かせてください</p>
           <h2 id="feedback-title">試した感想を、<br>ワンタップで。</h2>
-          <p>「もう試した」「これから試す」「気になっている」。今のお気持ちだけでも、これからの改善につながります。<br>App Store 版のリリースや新機能の最新情報を受け取りたい方は、メールアドレスをご登録ください。</p>
+          <p>「もう試した」「これから試す」「気になっている」。今のお気持ちだけでも、これからの改善につながります。<br>新機能の最新情報を受け取りたい方は、メールアドレスをご登録ください。</p>
         </div>
         <form class="form" id="waitlist-form" action="https://formspree.io/f/xredoben" method="POST">
   <div class="form-row">
@@ -1538,8 +1572,13 @@
       <div class="container">
         <h2 id="final-title">まずは、自分の契約を<br>ひとつ思い出すところから。</h2>
         <p>完璧にまとめなくても大丈夫。今日の小さな整理が、家族が迷わないための道しるべになります。</p>
-        <a class="btn btn-primary" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">今すぐWeb版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
-        <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> 登録不要・ブラウザですぐ使えます</p>
+        <div class="cta-group" style="justify-content:center">
+          <a class="btn-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener">
+            <img src="lp-assets/appstore-badge-ja.svg" alt="App Store でダウンロード" width="147" height="54">
+          </a>
+          <a class="btn btn-secondary" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">ブラウザ版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
+        </div>
+        <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> iPhone はアプリ版・Android / パソコンはブラウザ版・登録不要</p>
       </div>
     </section>
   </main>
@@ -1573,7 +1612,7 @@
   </footer>
 
   <div class="mobile-cta">
-    <a href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">今すぐWeb版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
+    <a class="mobile-cta-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener"><img src="lp-assets/appstore-badge-ja.svg" alt="App Store でダウンロード" width="120" height="44"></a>
   </div>
 </body>
 </html>
