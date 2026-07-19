@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v124</title>
+<title>きずなbaton v125</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1217,10 +1217,10 @@ img.owner-dot{width:20px;padding:0}
         <span style="font-size:12px;color:var(--color-text-tertiary)"><strong>基本機能は無料</strong>でご利用いただけます。ご家族への引き継ぎにご活用ください。</span>
       </div>
 
-      <!-- データ取扱いの簡潔説明（v100: PP v4.0＝既定は端末内のみ／任意オプトインでクラウド保存） -->
-      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
-        ※ 記録は既定で<strong>お使いの端末の中だけ</strong>に保存されます。<strong>アカウント作成とクラウド保存の有効化（どちらも任意）</strong>を行ったときに限り、端末間で同期するためのコピーが Google（Firebase・東京リージョン）にも保管されます。その他の外部送信（サービスロゴ取得・アイコン表示・任意送信の感想フォーム）を含む詳細は、プライバシーポリシー第2条をご確認ください。<br>
-        ※ 今回の改定（プライバシーポリシー v5.2）は、家族メンバーの表示アイコンに<strong>お顔写真（任意）</strong>を設定できる機能の追加によるものです。写真は、ご自身で設定した場合にのみお使いの端末の中に保存され、<strong>「クラウド保存」を有効化されている場合に限り、ご本人のアカウントだけが読み取れるクラウドの控えにも含まれます</strong>（設定しなければ写真が取得・送信されることはなく、ご家族に表示されることもありません）。写真はいつでも削除できます。あわせて、ご家族を招待して指定した記録だけを見てもらえる機能（任意）をご利用の場合、記録はご自身が招待を発行しお相手が受諾したときにのみお相手にも表示され、招待発行時はお相手のメールアドレスが招待メールをお届けするためにメール配信事業者（Twilio SendGrid・米国）を経由します。詳細はプライバシーポリシー第2条・第7条をご確認ください。
+      <!-- データ取扱いの簡潔説明（v125: 旧2段落〔約500字〕→1段落へ短縮＋12→13px。詳細はPP第2条リンクで担保。
+           要素は削らず一文ずつ維持: クラウド保管先(Firebase東京)／写真は本人のみ可読／招待メールはSendGrid経由 -->
+      <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
+        ※ クラウド保存を有効にした場合の保管先は Google（Firebase・東京リージョン）です。ご家族アイコンの写真（任意）はご本人だけが読める形で扱われ、招待メールは配信事業者（Twilio SendGrid・米国）を経由します。外部送信の詳細は<a onclick="openLegalDoc('privacy-policy');return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー第2条</a>をご覧ください。
       </div>
 
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
