@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v126</title>
+<title>きずなbaton v127</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1760,6 +1760,10 @@ const INVITE_MAX_PENDING_ACCEPTED=5;
 const INVITE_MAX_PER_DAY=3;
 const INVITE_EXPIRY_MS=7*24*60*60*1000;
 const INVITE_REVOKE_WINDOW_MS=24*60*60*1000; // 受諾後24時間の本人取消ウィンドウ
+// APP-PLAN-LIMIT-SYNC 第2弾(v127): 無料(梅)プランの共有上限（pending+accepted 合計）。料金画面「1名（お試し）」と整合。
+// クライアントのみのエンフォース＝サーバー(checkIssueAllowed)は全プラン共通 INVITE_MAX_PENDING_ACCEPTED のまま（変更なし）
+const INVITE_MAX_FREE=1;
+function inviteShareCap(paid){return paid?INVITE_MAX_PENDING_ACCEPTED:INVITE_MAX_FREE;}
 const FAMILY_LABELS_BETA=['配偶者','子','親']; // extendedFamilyCategories=false の間はこの3区分のみ
 
 let invitations=[
@@ -5132,8 +5136,12 @@ function checkInvitationLimits(){
   const dayAgo=nowMs()-24*60*60*1000;
   const issuedToday=invitations.filter(i=>i.invitedBy===MY_ID && new Date(i.createdAt).getTime() > dayAgo).length;
   const activeCount=invitations.filter(i=>i.invitedBy===MY_ID && (i.status==='pending'||i.status==='accepted')).length;
-  if(issuedToday>=INVITE_MAX_PER_DAY)return `1日の発行上限（${INVITE_MAX_PER_DAY}件）に達しています。明日以降にお試しください。`;
-  if(activeCount>=INVITE_MAX_PENDING_ACCEPTED)return `招待の合計件数が上限（pending+accepted で ${INVITE_MAX_PENDING_ACCEPTED}件）に達しています。`;
+  if(issuedToday>=INVITE_MAX_PER_DAY)return {message:`1日の発行上限（${INVITE_MAX_PER_DAY}件）に達しています。明日以降にお試しください。`,showUpgrade:false};
+  const cap=inviteShareCap(isPaid);
+  if(activeCount>=cap){
+    if(!isPaid)return {message:`無料プランで共有できるご家族は${INVITE_MAX_FREE}名までです。家族プランにすると、${INVITE_MAX_PENDING_ACCEPTED}名まで共有できます。`,showUpgrade:true};
+    return {message:`招待の合計件数が上限（pending+accepted で ${INVITE_MAX_PENDING_ACCEPTED}件）に達しています。`,showUpgrade:false};
+  }
   return null;
 }
 
@@ -5175,7 +5183,8 @@ function openInviteIssueModal(){
   const limitErr=checkInvitationLimits();
   const issueBtn=document.getElementById('invite-issue-btn');
   if(limitErr){
-    msg.textContent=limitErr;msg.style.display='';
+    msg.innerHTML=esc(limitErr.message)+(limitErr.showUpgrade?' <a onclick="closeInviteIssueModal();openPlanModal()" style="color:#185FA5;text-decoration:underline;cursor:pointer">家族プランのご案内を見る</a>':'');
+    msg.style.display='';
     issueBtn.disabled=true;issueBtn.style.opacity='0.4';issueBtn.style.cursor='not-allowed';
   } else {
     msg.style.display='none';
@@ -5189,7 +5198,7 @@ function closeInviteIssueModal(){
 }
 function issueInvitation(){
   const limitErr=checkInvitationLimits();
-  if(limitErr){alert(limitErr);return;}
+  if(limitErr){alert(limitErr.message);return;}
   const name=document.getElementById('invite-suggested-name').value.trim();
   const relationEl=document.querySelector('input[name="invite-relation"]:checked');
   if(!name){alert('呼び名を入力してください');return;}
@@ -6854,7 +6863,7 @@ function renderPlanModal(){
       <div class="plan-card-price"><strong>¥0</strong></div>
       <ul class="plan-feat">
         <li><i class="ti ti-check"></i>契約の登録 10件まで</li>
-        <li><i class="ti ti-check"></i>ご家族との共有 1名（お試し）</li>
+        <li><i class="ti ti-check"></i>ご家族との共有 ${INVITE_MAX_FREE}名（お試し）</li>
         <li><i class="ti ti-check"></i>印刷・JSON書き出し</li>
       </ul>
       <button class="plan-cta" disabled>${isPaid?'無料プラン':'ご利用中のプラン'}</button>
@@ -6868,7 +6877,7 @@ function renderPlanModal(){
       <div class="plan-card-price">${takePrice}</div>
       <ul class="plan-feat">
         <li><i class="ti ti-check"></i>契約の登録 無制限</li>
-        <li><i class="ti ti-check"></i>ご家族との共有 5名まで</li>
+        <li><i class="ti ti-check"></i>ご家族との共有 ${INVITE_MAX_PENDING_ACCEPTED}名まで</li>
       </ul>
       ${takeCta}
     </div>

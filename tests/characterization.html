@@ -278,6 +278,16 @@
           out.manifest.members
         ], [ok, false, ['m1','m2']]);
       });
+      // APP-PLAN-LIMIT-SYNC 第2弾(v127): 無料プランの共有上限(1名)エンフォース。既存2件(pending+accepted)は
+      // サンプルデータのまま維持＝grandfather(新規発行のみブロック)を、初期状態(isPaid=false)がそのまま検証する。
+      add('T31', () => {
+        assertDeepEqual([W.inviteShareCap(false), W.inviteShareCap(true)], [1, 5]);
+      });
+      add('T32', () => {
+        // 初期状態: サンプルで pending+accepted=2件既存・isPaid=false → 新規ブロック(超過分は解除されない)
+        const blocked = W.checkInvitationLimits();
+        assertDeepEqual([blocked && blocked.showUpgrade, typeof (blocked && blocked.message)], [true, 'string']);
+      });
 
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
       snapshots.S02 = {
