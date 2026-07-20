@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v125</title>
+<title>きずなbaton v126</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -6868,8 +6868,7 @@ function renderPlanModal(){
       <div class="plan-card-price">${takePrice}</div>
       <ul class="plan-feat">
         <li><i class="ti ti-check"></i>契約の登録 無制限</li>
-        <li><i class="ti ti-check"></i>ご家族との共有 無制限</li>
-        <li><i class="ti ti-check"></i>ご家族への一言 無制限</li>
+        <li><i class="ti ti-check"></i>ご家族との共有 5名まで</li>
       </ul>
       ${takeCta}
     </div>
