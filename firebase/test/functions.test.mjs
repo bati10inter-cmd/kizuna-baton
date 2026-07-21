@@ -603,3 +603,41 @@ test('deleteAccount: viewer 側の削除は owner のデータに干渉しない
   // del-viewer 自身の consentLog も消える
   assert.equal(await adminCount(`consentLogs/${delViewerUid}/entries`), 0);
 });
+
+// ---- recordPaywallView（APP-FUNNEL-KPI・paywall 初回表示の匿名集計）----
+test('recordPaywallView: 未認証は unauthenticated', async () => {
+  await signOut(auth);
+  await expectReject(call('recordPaywallView')({ source: 'settings' }), 'unauthenticated');
+});
+
+test('recordPaywallView: 認証済みなら total/callTotal/byMonth/bySource が +1 され、uid は書かれない', async () => {
+  await signInOwner();
+  const res = await call('recordPaywallView')({ source: 'limit' });
+  assert.equal(res.data.ok, true);
+  const doc1 = await adminGet('metrics/paywall');
+  assert.equal(doc1.total, 1);
+  assert.equal(doc1.callTotal, 1);
+  assert.equal(doc1.bySource.limit, 1);
+  const ym = new Date().toISOString().slice(0, 7);
+  assert.equal(doc1.byMonth[ym], 1);
+  // 個人を特定できるフィールドを一切含まない（uid・端末ID・個別timestampなし）
+  assert.equal(doc1.uid, undefined);
+  assert.equal(doc1.viewerUid, undefined);
+});
+
+test('recordPaywallView: サーバは dedupe しない＝同一ユーザーが複数回呼んでも毎回 +1 する（契約の明文化）', async () => {
+  await signInOwner();
+  await call('recordPaywallView')({ source: 'settings' });
+  await call('recordPaywallView')({ source: 'settings' });
+  const doc1 = await adminGet('metrics/paywall');
+  assert.equal(doc1.total, 2);
+  assert.equal(doc1.callTotal, 2);
+});
+
+test('recordPaywallView: 未知の source は既定値 settings に丸められる', async () => {
+  await signInOwner();
+  await call('recordPaywallView')({ source: 'not-a-real-source' });
+  const doc1 = await adminGet('metrics/paywall');
+  assert.equal(doc1.bySource.settings, 1);
+  assert.equal(doc1.bySource['not-a-real-source'], undefined);
+});

@@ -321,3 +321,15 @@ test('17. 承諾 share ＋ assets Q-A → list でき、private は載らない'
   )));
   assert.equal(snap.size, 1);
 });
+
+// ---- metrics（APP-FUNNEL-KPI・集計整数のみ・書込は Cloud Function 専用） ----
+test('18a. metrics へのクライアント write は禁止（本人でも不可）', async () => {
+  await assertFails(setDoc(doc(ownerDb(), 'metrics/paywall'), { total: 1 }));
+});
+
+test('18b. metrics へのクライアント read は禁止（本人でも不可）', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'metrics/paywall'), { total: 1 });
+  });
+  await assertFails(getDoc(doc(ownerDb(), 'metrics/paywall')));
+});

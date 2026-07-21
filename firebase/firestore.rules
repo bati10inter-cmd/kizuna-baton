@@ -1,5 +1,6 @@
 rules_version = '2';
 // v108: contractSecrets owner-only 追加（APP-INVITE-SECRET-SPLIT）
+// v128: metrics/{docId} 拒否ブロック追加（APP-FUNNEL-KPI・書込は Cloud Function 専用）
 
 // ============================================================================
 // きずなbaton — Firestore セキュリティルール（APP-V2-FIRESTORE / P2a）
@@ -146,6 +147,13 @@ service cloud.firestore {
     match /consentLogs/{uid}/entries/{entryId} {
       allow read, create: if isSelf(uid);
       allow update, delete: if false;
+    }
+
+    // ---- 集計メトリクス metrics/{docId}（APP-FUNNEL-KPI・v128） ----
+    // 集計整数のみ（個票なし）。書込は Cloud Function（admin SDK＝ルールをバイパス）専用。
+    // クライアントからの read/write は全面禁止。オーナーは Admin SDK / スクリプトで読む。
+    match /metrics/{docId} {
+      allow read, write: if false;
     }
   }
 }

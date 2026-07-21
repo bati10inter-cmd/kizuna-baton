@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v127</title>
+<title>きずなbaton v128</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -3362,7 +3362,7 @@ function showBetaLimitModal(){
   openModalById('beta-limit-modal');
 }
 function closeBetaLimitModal(){closeModalById('beta-limit-modal');}
-function openPlanFromLimit(){closeBetaLimitModal();openPlanModal();} // APPSTORE-IAP(v82): 上限モーダル→プラン画面
+function openPlanFromLimit(){closeBetaLimitModal();openPlanModal('limit');} // APPSTORE-IAP(v82): 上限モーダル→プラン画面
 function submitBetaSurvey(){
   if(betaSurveySent)return; // v67 Low#3: 送信済みなら再POST不可（コンソール等からの再送も封じる）
   if(surveySubmitting)return; // v66 P2: 送信中は二重送信を拒否
@@ -3904,6 +3904,9 @@ const CLOUD_SYNC_KEY='kizuna-baton:cloudsync:v1';
 // stage-2b: 自分（viewer）に共有してくれている owner のピル表示用メタ [{ownerUid,viewerMemberId,ownerName,localName,acceptedAt}]。
 // 契約データそのものは保存しない（メモリのみ＝データ最小化）。backup JSON 非同梱（端末固有）・native 移行には含める。
 const SHARED_OWNERS_KEY='kizuna-baton:sharedowners:v1';
+// APP-FUNNEL-KPI(v128): paywall 初回表示の計上済フラグ（端末ごとに1回のみ）。
+// 値は '1' のみ＝個人情報を含まない。backup JSON には含めない（端末固有・doBackup対象外）。
+const PAYWALL_VIEW_KEY='kizuna-baton:paywall-view:v128';
 let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
 let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
 const nativeCache={};                 // native: Preferences の同期ミラー
@@ -3912,7 +3915,7 @@ const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
 // 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
 // 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
 // NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,POSTLAUNCH_NOTICE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,POSTLAUNCH_NOTICE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY,PAYWALL_VIEW_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -5183,7 +5186,7 @@ function openInviteIssueModal(){
   const limitErr=checkInvitationLimits();
   const issueBtn=document.getElementById('invite-issue-btn');
   if(limitErr){
-    msg.innerHTML=esc(limitErr.message)+(limitErr.showUpgrade?' <a onclick="closeInviteIssueModal();openPlanModal()" style="color:#185FA5;text-decoration:underline;cursor:pointer">家族プランのご案内を見る</a>':'');
+    msg.innerHTML=esc(limitErr.message)+(limitErr.showUpgrade?' <a onclick="closeInviteIssueModal();openPlanModal(\'invite\')" style="color:#185FA5;text-decoration:underline;cursor:pointer">家族プランのご案内を見る</a>':'');
     msg.style.display='';
     issueBtn.disabled=true;issueBtn.style.opacity='0.4';issueBtn.style.cursor='not-allowed';
   } else {
@@ -6708,7 +6711,25 @@ function gotoBackupFromBeta(){closeBetaInfoModal();doBackup();}
 
 // --- v46: プラン選択UI（v82: 実課金=StoreKit2。Web/非稼働は表示のみ）---
 let planCycle='monthly'; // 表示のみ（永続化しない）
-function openPlanModal(){closeSettingsModal();planCycle='monthly';renderPlanModal();openModalById('plan-modal');loadIapPrices();}
+// APP-FUNNEL-KPI(v128): paywall 表示の匿名集計（端末1回のみ・整数のみ・個票なし）。
+// 送るのは source のみ。uid・時刻・端末ID・OS情報は送らない（PP第2条「収集機構を持たない」を維持）。
+// native かつサインイン済みのときだけ計上。それ以外は完全 no-op（SDKを新規に読みに行かない＝
+// ローカル専用ユーザー・Webユーザーの外部通信を1件も増やさない）。例外は決して外へ出さない。
+function recordPaywallViewOnce(source){
+  try{
+    if(lsGet(PAYWALL_VIEW_KEY)==='1')return;   // 2回目以降は即return（最頻経路）
+    if(!IS_NATIVE)return;                       // Webは購入導線が無く分母の意味がない
+    if(!FEATURES.cloudSync||!firebaseConfigured())return;
+    if(!cloudUser||!cloudUser.uid)return;       // ★initCloudAuth() を新規に走らせない＝既にサインイン済みの場合のみ
+    if(navigator&&navigator.onLine===false)return;
+    lsSet(PAYWALL_VIEW_KEY,'1');                // ★送信前に立てる＝at-most-once（失敗しても再送しない＝誤差は下振れ方向のみ）
+    (async()=>{
+      const fns=await initCloudFunctions();
+      await cloudFnsMod.httpsCallable(fns,'recordPaywallView')({source:source||'settings'});
+    })().catch(()=>{});                          // 失敗は握り潰す・再送しない
+  }catch(e){}
+}
+function openPlanModal(src){closeSettingsModal();planCycle='monthly';renderPlanModal();openModalById('plan-modal');loadIapPrices();recordPaywallViewOnce(src);}
 function closePlanModal(){closeModalById('plan-modal');}
 
 // --- v48: 商標・ライセンスについて（独立ページ・Logo.dev帰属の正式化）---
@@ -6838,6 +6859,9 @@ function iapCurrencyCode(disp){
   if(disp.includes('$'))return 'USD';
   return null;
 }
+// ⚠️ APP-FUNNEL-KPI: ここに paywall 表示の計測を入れないこと。本関数はモーダルが開いた
+//    まま何度も再呼出される（価格ロード完了・購入/復元/エンタイトルメント更新の各コールバック）ため、
+//    計上すると分母が数倍に膨らむ。計測は openPlanModal() 側の recordPaywallViewOnce() で行う。
 function renderPlanModal(){
   // 課金稼働(native)時は「表示見本」案内を隠す。Web/非稼働は従来の案内を残す（後方互換）
   const intro=document.getElementById('plan-intro-box');

@@ -6,11 +6,13 @@
   "scripts": {
     "test:rules": "firebase emulators:exec --only firestore --project demo-kizuna-baton \"node --test 'test/firestore.rules.test.mjs'\"",
     "test:functions:deps": "cd functions && npm install",
-    "test:functions": "firebase emulators:exec --only functions,firestore,auth --project demo-kizuna-baton \"node --test 'test/functions.test.mjs'\""
+    "test:functions": "firebase emulators:exec --only functions,firestore,auth --project demo-kizuna-baton \"node --test 'test/functions.test.mjs'\"",
+    "report:funnel": "node tools/funnel-report.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",
     "firebase": "^12.15.0",
+    "firebase-admin": "^13.0.0",
     "firebase-tools": "^14.0.0"
   }
 }

@@ -16,6 +16,9 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+// APP-FUNNEL-KPI(v128): admin.firestore.FieldValue（namespaced API）はエミュレータ実行時に
+// 未定義になる場合があるため、モジュラーAPIから直接 import する（firebase-admin v13 推奨形）。
+const { FieldValue } = require('firebase-admin/firestore');
 
 // SendGrid API キー（本番のメール送信）。値はリポジトリに置かず Firebase Secret で管理し、
 // 実送信を行う issueInvite にのみ bind する（下記 onCall options）。
@@ -430,6 +433,33 @@ exports.listInvites = onCall(async (request) => {
     .get();
   const invites = snap.docs.map((d) => toOwnerInviteView(d.data()));
   return { invites };
+});
+
+// ---- recordPaywallView（APP-FUNNEL-KPI・paywall 初回表示の匿名集計）------------------
+// 目的＝「課金0」を paywall未到達／拒否に分離するための分母。集計整数のみ・個票なし。
+// 認証は require するが uid は一切書かない（who ではなく how many のみを持つ）。
+// クライアント側で端末ごとに1回だけ呼ぶ（recordPaywallViewOnce）。サーバ側は dedupe しない
+// （複数回呼ばれても仕様どおり毎回 +1 する＝クライアント側の at-most-once 設計に依存する契約）。
+exports.recordPaywallView = onCall(async (request) => {
+  requireUid(request);
+  const source = ['settings', 'limit', 'invite'].includes(
+    request.data && request.data.source
+  )
+    ? request.data.source
+    : 'settings';
+  const ym = new Date(nowMs()).toISOString().slice(0, 7);
+  const inc = FieldValue.increment(1);
+  await db.collection('metrics').doc('paywall').set(
+    {
+      total: inc,
+      callTotal: inc, // dedupe を経ない総呼出数。total との乖離は水増し検知に使う。
+      byMonth: { [ym]: inc },
+      bySource: { [source]: inc },
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true };
 });
 
 // ---- deleteAccount（本人がアカウントと全データを即時完全削除）------------------
