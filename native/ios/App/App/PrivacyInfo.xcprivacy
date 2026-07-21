@@ -128,6 +128,26 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
+		<!-- 製品の操作（v128 APP-FUNNEL-KPI: paywall〔プラン画面〕の初回表示を端末ごとに1回だけ
+		     匿名カウントする。サーバ側 metrics/paywall に保管するのは集計整数のみで、uid・時刻・
+		     端末識別子は一切保存しない＝**本項のみ Linked=false**（他の申告項目は全て uid 紐付き）。
+		     目的は「課金0」が paywall 未到達によるものか拒否によるものかの判別＝Analytics。
+		     PP 第4条第1号（機能の維持・改善）・第7条「利用状況の集計分析（個人を特定しない範囲）」と整合。
+		     ⚠️ ASC「App のプライバシー」フォーム側にも同項目（使用状況データ>製品の操作・
+		     個人と紐づけない・トラッキングなし）を登録すること＝両者の不整合は
+		     2026-07-17 の PurchaseHistory と同じ失敗パターン（上記コメント参照）。 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
 	</array>
 
 	<!-- Required Reason API 申告 -->
