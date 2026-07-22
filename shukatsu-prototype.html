@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v128</title>
+<title>きずなbaton v129</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1551,8 +1551,8 @@ img.owner-dot{width:20px;padding:0}
       <button class="modal-close-text" onclick="closePlanModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-cards"></i>プラン</h2>
       <div class="beta-info-box warn" id="plan-intro-box">
-        <strong>これは表示見本です。</strong><br>
-        アプリ内課金（家族プラン）は、今後 App Store 版アプリでご提供予定です。
+        <strong>こちらは内容のご案内です。</strong><br>
+        家族プランのお申し込みは、App Store 版アプリから行えます。
       </div>
       <div class="plan-cycle-toggle">
         <div id="plan-cycle-monthly" onclick="setPlanCycle('monthly')">月額</div>
@@ -2344,14 +2344,11 @@ function renderSettingsModal(){
     <div class="info"><div class="name">文字を大きく</div><div class="sub">${large?'オン（読みやすい大きさ）':'オフ（標準の大きさ）'}</div></div>
     <label class="setting-toggle" onclick="event.stopPropagation()"><input type="checkbox" ${large?'checked':''} onchange="toggleLargeMode()"><span class="setting-toggle-thumb"></span></label>
   </div>`;
-  const hasLogoToken=hasUserLogoDevToken();
-  const logoSubLabel=hasLogoToken
-    ? '設定済み（一覧にロゴを表示）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>'
-    : 'デフォルトキーで表示中（タップで自分のキーに変更）｜ <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a>';
-  html+=`<div class="switch-item" onclick="promptLogoDevToken()">
+  // v129(APP-LOGODEV-UI-REMOVE): pk_ 入力 prompt は利用者向け設定として不適切のため削除。
+  // 帰属リンク（Logos provided by Logo.dev）は利用条件のため非対話の行として維持。
+  html+=`<div class="switch-item" style="cursor:default">
     <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">サービスロゴ表示（Logo.dev）</div><div class="sub">${logoSubLabel}</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+    <div class="info"><div class="name">サービスロゴの表示</div><div class="sub"><a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a></div></div>
   </div>`;
   // APPSTORE-NATIVE-LOCK(v79): アプリロック（native かつ生体利用可能時のみ表示。Web/非対応端末では出さない）
   if(IS_NATIVE && appLockSupported){
@@ -2412,12 +2409,6 @@ function renderSettingsModal(){
   html+=`<div class="switch-item" onclick="triggerRestore()">
     <div class="av" style="background:#0F6E56"><i class="ti ti-upload" style="font-size:14px"></i></div>
     <div class="info"><div class="name">データを復元</div><div class="sub">${IS_NATIVE?'Web版で書き出したファイルからも読込（上書き）':'バックアップファイルから読込（上書き）'}</div></div>
-    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
-  </div>`;
-  // v101: テスト用リセット（破壊的・2段確認。テストを繰り返す際に iOS 設定へ入らず初期化するための導線）
-  html+=`<div class="switch-item" onclick="resetAllToDemoTest()">
-    <div class="av" style="background:#A32D2D"><i class="ti ti-refresh-alert" style="font-size:14px"></i></div>
-    <div class="info"><div class="name" style="color:#A32D2D">【テスト用】全データを消してサンプルに戻す</div><div class="sub">この端末の記録をすべて消去し、最初のサンプル状態に戻します（取り消せません）</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   // プラン（v46: 表示見本 → v91 APP-IAP-UX: 現在プランを明示＋加入者には解約導線を設定直下に独立表示）
@@ -2744,30 +2735,8 @@ function getLogoDevToken(){
   // v26: ユーザー上書きが無ければデフォルトpk_を返す（初回起動からロゴ表示できるようにする）
   return ((lsGet(LOGO_DEV_TOKEN_KEY)||'').trim()) || LOGO_DEV_FALLBACK_PK;
 }
-function hasUserLogoDevToken(){
-  // v26: ユーザーが自分のキーで上書きしているか（switch-menu ラベル分岐用）
-  return !!(lsGet(LOGO_DEV_TOKEN_KEY)||'').trim();
-}
-function setLogoDevToken(tok){
-  const t=(tok||'').trim();
-  if(!t){lsSet(LOGO_DEV_TOKEN_KEY,'');return;}
-  lsSet(LOGO_DEV_TOKEN_KEY,t);
-}
-function promptLogoDevToken(){
-  document.getElementById('switch-menu').classList.remove('open');
-  const cur=getLogoDevToken();
-  const v=prompt('Logo.dev の Publishable Key（pk_...）を入力してください。\n※この端末のlocalStorageにのみ保存されます。',cur||'');
-  if(v===null)return;
-  const t=(v||'').trim();
-  if(t && !t.startsWith('pk_')){
-    showToast('pk_ から始まるキーを入力してください','warn');
-    return;
-  }
-  setLogoDevToken(t);
-  showToast(t?'Logo.devキーを保存しました':'Logo.devキーを削除しました','success');
-  renderAll();
-  if(selectedId!==null)showDetail(selectedId);
-}
+// v129(APP-LOGODEV-UI-REMOVE): キー入力UI（promptLogoDevToken/setLogoDevToken/hasUserLogoDevToken）を削除。
+// getLogoDevToken は既存ユーザーが保存済みのキーを引き続き優先する後方互換のため維持（LOGO_DEV_TOKEN_KEY も同様）。
 function extractDomainFromUrl(u){
   if(!u||typeof u!=='string')return '';
   try{
@@ -4270,7 +4239,7 @@ function renderCloudAccountModal(view){
       <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudReset()"><i class="ti ti-mail"></i>ご案内メールを送る</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">ログインにもどる</button>`;
   }else{ // menu
-    html=`<div class="beta-info-box"><strong>アカウント作成は任意</strong>です。つくらなくても、この端末だけでお使いいただけます。<br>将来のアップデートで、ご家族のスマホと安全につながるための準備です。</div>
+    html=`<div class="beta-info-box"><strong>アカウント作成は任意</strong>です。つくらなくても、この端末だけでお使いいただけます。<br>アカウントを作成すると、記録のクラウド保管と、ご家族のスマホとのつながり（招待）をお使いいただけます。</div>
       <div class="btn-row"><button class="btn-primary" onclick="renderCloudAccountModal('signup')"><i class="ti ti-user-plus"></i>はじめて登録する</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">すでにお持ちの方（ログイン）</button>
       ${note}`;
@@ -4992,16 +4961,10 @@ function startFresh(){
   renderAll();       // renderList 内で renderDemoBanner() が走りバナーは消える
   showToast('自分のデータで始めます');
 }
-// v101: テスト用リセット＝この端末の全 localStorage キー（STORAGE_KEYS）を消してリロード。
-// リロード後は localStorage 空＝サンプル（デモ）＋再同意モーダルの初期状態に戻る。
-// クラウド側の記録は消さない（別途「アカウントを削除する」で削除）。2段確認＋破壊的操作の明示。
-function resetAllToDemoTest(){
-  if(!confirm('【テスト用】この端末に保存したすべての記録（契約・保有資産・カード・設定）を消して、最初のサンプル状態に戻します。よろしいですか？'))return;
-  if(!confirm('本当に消してよろしいですか？この操作は取り消せません。\n（クラウドに保存した記録は消えません。必要なら先に「アカウントを削除する」で消してください）'))return;
-  try{ for(const k of STORAGE_KEYS){lsRemove(k);} }catch(e){}
-  suppressPersist=true; // 同上: pagehide 安全網が消したキーを書き戻すのを止める（reset が効かない同型バグの是正）
-  location.reload();
-}
+// v129(APP-PROD-RESET-REMOVE): v101 のテスト用全消去（resetAllToDemoTest）は販売開始に伴い削除。
+// 理由: 販売中の高齢者向け製品に破壊的リセットを常時露出すべきでない＋native の lsRemove は
+// fire-and-forget のため reload との競合で削除が完走しない恐れがあった。開発時の初期化は
+// 開発環境の localStorage クリアで代替する。
 
 function isDarkMode(){return document.documentElement.classList.contains('dark');}
 function initDarkMode(){
@@ -5076,6 +5039,10 @@ function closeOnboarding(){
 function maybeShowPreviewNudge(){
   if(lsGet(PREVIEW_NUDGE_KEY)) return;       // 既出なら出さない
   if(members.length<=1) return;              // プレビュー対象（他の家族）がいなければ出さない
+  // v129(APP-INVITE-CHAIN-FIX): 保留中の招待受諾を最優先＝ナッジは次回起動へ回す。
+  // 従来はナッジ→「確認する」でプレビューへ進むと再試行経路がなく、招待リンク初回起動が
+  // 行き止まりになっていた（maybeShowPostlaunchNotice の同ガードと同型）。
+  if(pendingCloudInviteToken) return;
   openModalById('preview-nudge-modal');
 }
 function closePreviewNudge(go){
@@ -5785,7 +5752,8 @@ function doExportJSON(){
   const data={
     schemaVersion:5,
     exportedAt:new Date().toISOString(),
-    appVersion:'kizuna-baton-v122',
+    // v129(APP-EXPORT-VERSION): <title> の版数から自動導出＝ハードコード（v122 のまま放置されていた）を廃止
+    appVersion:'kizuna-baton-'+((document.title.match(/v\d+/)||['v?'])[0]),
     exporter:{id:me.id,name:me.name},
     members:members.map(m=>({id:m.id,name:m.name,color:m.color,...(validMemberPhoto(m.photo)?{photo:m.photo}:{})})),
     categories:categories.slice(),
