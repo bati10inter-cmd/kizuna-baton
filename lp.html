@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>きずなbaton — もしもの時、家族が契約を探せるように</title>
-  <meta name="description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。カード番号や暗証番号は預からず、無料でお使いいただけます。App Store 版・ブラウザ版。">
+  <meta name="description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。カード番号や暗証番号は預からず、無料ではじめられます。App Store 版・ブラウザ版。">
   <meta name="theme-color" content="#FAF8F2">
   <link rel="canonical" href="https://bati10inter-cmd.github.io/kizuna-baton/lp.html">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
   <meta property="og:site_name" content="きずなbaton">
   <meta property="og:title" content="もしもの時、家族が“探せる”ように。｜きずなbaton">
-  <meta property="og:description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。App Store 版・ブラウザ版とも無料公開中。">
+  <meta property="og:description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。App Store 版・ブラウザ版とも無料ではじめられます。">
   <meta property="og:url" content="https://bati10inter-cmd.github.io/kizuna-baton/lp.html">
   <meta property="og:image" content="https://bati10inter-cmd.github.io/kizuna-baton/lp-assets/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -415,6 +415,10 @@
       line-height: 1.35;
       letter-spacing: -0.025em;
     }
+
+    /* v133(LP-HEADING-WRAP): 見出しの文節区切り。スマホ幅で「自分のこと|も。」のような
+       語中折り返しを防ぐため、折り返してよい単位だけを .ph で囲む（スパン間に空白を入れないこと）。 */
+    .ph { display: inline-block; }
 
     .section-lead {
       margin-bottom: 0;
@@ -1060,7 +1064,7 @@
     .final-cta .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
 
     footer {
-      padding: 42px 0 100px;
+      padding: 42px 0;
       color: var(--text-sub);
       background: #F1ECE3;
       font-size: 13px;
@@ -1092,36 +1096,8 @@
       line-height: 1.75;
     }
 
-    .mobile-cta {
-      position: fixed;
-      z-index: 45;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
-      background: rgba(250, 248, 242, 0.95);
-      border-top: 1px solid var(--border-strong);
-      backdrop-filter: blur(12px);
-    }
-
-    /* バッジは等比維持が規約要件＝全幅に引き伸ばさず中央配置 */
-    .mobile-cta a.mobile-cta-appstore { background: transparent; padding: 0; }
-
-    .mobile-cta a.mobile-cta-appstore img { display: block; width: auto; height: 44px; }
-
-    .mobile-cta a {
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #fff;
-      background: var(--accent);
-      border-radius: 999px;
-      font-size: 15px;
-      font-weight: 800;
-      text-decoration: none;
-    }
+    /* v133(LP-MOBILE-CTA-REMOVE): モバイル下部固定の App Store バーは廃止（オーナー指示 2026-07-22）。
+       ヘッダーが sticky でバッジ常時表示のため重複だった。footer の padding-bottom 100px（逃げ幅）も 42px へ正規化。 */
 
     @media (min-width: 560px) {
       .cta-group {
@@ -1218,8 +1194,6 @@
       .footer-top { grid-template-columns: 1fr auto; align-items: end; }
 
       footer { padding-bottom: 42px; }
-
-      .mobile-cta { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1229,30 +1203,9 @@
   </style>
 </head>
 <body>
-<div id="policy-update-banner" style="display:none;background:var(--bg-warm);border-bottom:1px solid var(--border-strong);color:var(--text);font-size:13px;line-height:1.7">
-  <div class="container" style="display:flex;align-items:flex-start;gap:12px;padding:10px 20px">
-    <i class="ti ti-bell" style="color:var(--accent);flex-shrink:0;margin-top:2px"></i>
-    <div style="flex:1">
-      <strong>プライバシーポリシーを v5.2 に改定しました。</strong>
-      ご家族の表示アイコンに<strong>写真（任意）</strong>を設定できる機能を追加したことによるものです。写真は設定した場合にのみ端末に保存され、<strong>「クラウド保存」有効時に限りご本人だけが読める形でクラウドにも保存</strong>されます（招待したご家族への表示はされません）。いつでも削除できます。
-      あわせて、記録を家族へ共有できる「ご家族へのバトン」機能（任意・招待発行時はメール配信事業者〔Twilio SendGrid・米国〕経由）を反映しました。
-      <a href="docs/privacy-policy.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">プライバシーポリシー</a> ・
-      <a href="docs/terms-of-service.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">利用規約</a>
-    </div>
-    <button type="button" onclick="dismissPolicyBanner()" aria-label="閉じる" style="flex-shrink:0;background:transparent;border:none;color:var(--text-sub);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px"><i class="ti ti-x"></i></button>
-  </div>
-</div>
-<script>
-  (function(){
-    var KEY='kizuna-baton:lp-policy-banner:v5.2';
-    var el=document.getElementById('policy-update-banner');
-    try{ if(!localStorage.getItem(KEY)) el.style.display=''; }catch(e){ el.style.display=''; }
-    window.dismissPolicyBanner=function(){
-      el.style.display='none';
-      try{ localStorage.setItem(KEY,'1'); }catch(e){}
-    };
-  })();
-</script>
+<!-- v133(LP-BANNER-REMOVE): 規約改定告知バナーは廃止（オーナー指示 2026-07-22）。
+     拘束力のある通知・再同意はアプリ側（CONSENT_KEY 再同意フロー）が担い、LP はフッターの改定注記＋規約リンクで完結させる。
+     将来の規約改定でこの位置にバナーを再設置する場合は、本文/フッター注記/既読キーの3点を同一版数で揃えること。 -->
 
   <a class="skip-link" href="#main">本文へ移動</a>
 
@@ -1277,7 +1230,7 @@
     <section class="hero" id="top">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">App Store で公開中・無料でお使いいただけます</p>
+          <p class="eyebrow"><span><span class="ph">App Store で公開中・</span><span class="ph">無料ではじめられます</span></span></p>
           <h1>もしもの時、<br>家族が<span class="marker">“探せる”</span><br>ように。</h1>
           <p class="hero-lead">サブスク・保険・スマホ契約を、今のうちに整理。<strong>まずは自分の固定費から、家族に伝わる状態へ。</strong></p>
           <div class="cta-group">
@@ -1318,7 +1271,7 @@
       <div class="container">
         <div class="section-head">
           <p class="section-kicker">ふたつの「気がかり」に</p>
-          <h2 id="empathy-title">親のことも、自分のことも。<br>気づいた今日が、整理のはじめどき。</h2>
+          <h2 id="empathy-title"><span class="ph">親のことも、</span><span class="ph">自分のことも。</span><br><span class="ph">気づいた今日が、</span><span class="ph">整理のはじめどき。</span></h2>
         </div>
         <div class="empathy-grid">
           <article class="empathy-card">
@@ -1344,7 +1297,7 @@
         </picture>
         <div class="concept-copy">
           <p class="section-kicker">きずなbatonの考え方</p>
-          <h2 id="concept-title">「保管する」のではなく、<br>家族へ「手渡す」。</h2>
+          <h2 id="concept-title"><span class="ph">「保管する」</span><span class="ph">のではなく、</span><br><span class="ph">家族へ</span><span class="ph">「手渡す」。</span></h2>
           <p>きずなbatonが残すのは、秘密そのものではありません。契約の存在と、家族が次にどこを見ればよいかという<strong>地図と道しるべ</strong>です。</p>
           <div class="compare">
             <div class="compare-card no">
@@ -1364,7 +1317,7 @@
       <div class="container">
         <div class="section-head">
           <p class="section-kicker">できること</p>
-          <h2 id="features-title">整理した情報を、<br>見せたい家族へ、見せたい分だけ。</h2>
+          <h2 id="features-title"><span class="ph">整理した情報を、</span><br><span class="ph">見せたい家族へ、</span><span class="ph">見せたい分だけ。</span></h2>
           <p class="section-lead">自分だけの整理にも、家族との共有にも。必要なところから始められます。</p>
         </div>
 
@@ -1411,7 +1364,7 @@
       <div class="container">
         <div class="section-head">
           <p class="section-kicker">家族への一言</p>
-          <h2 id="message-title">手順だけでは伝わらないことも、<br>短い言葉にして添えられます。</h2>
+          <h2 id="message-title"><span class="ph">手順だけでは</span><span class="ph">伝わらないことも、</span><br><span class="ph">短い言葉にして</span><span class="ph">添えられます。</span></h2>
           <p class="section-lead">契約ごとに、家族へ向けたメッセージを残せます。</p>
         </div>
         <div class="message-layout">
@@ -1433,7 +1386,7 @@
         <div class="sheet-card">
           <div class="sheet-copy">
             <p class="section-kicker">紙から始めたい方へ</p>
-            <h2 id="sheet-title">まずは1枚、<br>無料の記入シートから。</h2>
+            <h2 id="sheet-title"><span class="ph">まずは1枚、</span><br><span class="ph">無料の</span><span class="ph">記入シートから。</span></h2>
             <p>スマホへの入力はまだ少し不安。そんな方は、印刷して書ける無料PDFから始めてください。じっくり整理したい方には、書き込みながら進められる上位版ノートも用意しています。</p>
             <div class="sheet-actions">
               <a class="btn btn-primary" href="https://dorize.booth.pm/items/8527140" target="_blank" rel="noopener">無料PDFを見る <i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
@@ -1537,11 +1490,11 @@
       <div class="container">
         <div class="section-head">
           <p class="section-kicker">よくある質問</p>
-          <h2 id="faq-title">始める前の、小さな不安に。</h2>
+          <h2 id="faq-title"><span class="ph">始める前の、</span><span class="ph">小さな不安に。</span></h2>
         </div>
         <div class="faq-list">
           <details class="faq-item">
-            <summary>スマホ操作に慣れていなくても使えますか？</summary>
+            <summary><span class="ph">スマホ操作に</span><span class="ph">慣れていなくても</span><span class="ph">使えますか？</span></summary>
             <div class="faq-answer"><p>ブラウザから使え、大きな文字モードも選べます。最初から全部を埋めず、いちばん気になる契約を1件だけ登録するところから始めてください。</p></div>
           </details>
           <details class="faq-item">
@@ -1549,20 +1502,20 @@
             <div class="faq-answer"><p>「私も固定費を見直しているから、一緒に整理しない？」のように、自分の整理を入口にすると自然です。共有は完全に任意なので、まずは本人だけの一覧として使うこともできます。</p></div>
           </details>
           <details class="faq-item">
-            <summary>家計簿やパスワード管理アプリとは何が違いますか？</summary>
+            <summary><span class="ph">家計簿や</span><span class="ph">パスワード管理アプリとは</span><span class="ph">何が違いますか？</span></summary>
             <div class="faq-answer"><p>日々の支出記録や秘密情報の保管ではなく、契約の存在と手続き先を家族へ伝えることに軸を置いています。大切な番号やパスワードは、金庫や専用の管理手段で保管してください。</p></div>
           </details>
           <details class="faq-item">
-            <summary>招待した家族は、私の記録を編集できますか？</summary>
+            <summary><span class="ph">招待した家族は、</span><span class="ph">私の記録を</span><span class="ph">編集できますか？</span></summary>
             <div class="faq-answer"><p>編集できません。家族は、あなたが公開を選んだ契約だけを閲覧できます。公開範囲の変更や招待の取り消しは、いつでも本人が行えます。</p></div>
           </details>
           <details class="faq-item">
-            <summary>カード番号や口座番号を入力してもよいですか？</summary>
+            <summary><span class="ph">カード番号や</span><span class="ph">口座番号を</span><span class="ph">入力しても</span><span class="ph">よいですか？</span></summary>
             <div class="faq-answer"><p>入力しないでください。カード番号の全桁、口座番号、暗証番号、パスワード、マイナンバーは預からない設計です。カード会社と下4桁、保管場所などの道しるべだけを記録します。</p></div>
           </details>
           <details class="faq-item">
             <summary>本当に無料ですか？</summary>
-            <div class="faq-answer"><p>現在は無料でご利用いただけます。Web版に加え、App Store 版もご利用いただけます。将来の提供内容や料金は検討中で、内容・時期は未定です。</p></div>
+            <div class="faq-answer"><p>基本機能は無料でお使いいただけます（契約の登録10件まで・ご家族との共有1名・印刷/書き出し）。もっと広くお使いになりたい方には、契約の登録が無制限・ご家族との共有が5名までになる「家族プラン」（月額500円または年額5,000円・App Store 版のアプリ内課金）をご用意しています。解約はいつでも行えます。</p></div>
           </details>
         </div>
       </div>
@@ -1570,7 +1523,7 @@
 
     <section class="final-cta" aria-labelledby="final-title">
       <div class="container">
-        <h2 id="final-title">まずは、自分の契約を<br>ひとつ思い出すところから。</h2>
+        <h2 id="final-title"><span class="ph">まずは、</span><span class="ph">自分の契約を</span><br><span class="ph">ひとつ思い出す</span><span class="ph">ところから。</span></h2>
         <p>完璧にまとめなくても大丈夫。今日の小さな整理が、家族が迷わないための道しるべになります。</p>
         <div class="cta-group" style="justify-content:center">
           <a class="btn-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener">
@@ -1611,8 +1564,5 @@
     </div>
   </footer>
 
-  <div class="mobile-cta">
-    <a class="mobile-cta-appstore" href="https://apps.apple.com/jp/app/id6789437356" target="_blank" rel="noopener"><img src="lp-assets/appstore-badge-ja.svg" alt="App Store でダウンロード" width="120" height="44"></a>
-  </div>
 </body>
 </html>
