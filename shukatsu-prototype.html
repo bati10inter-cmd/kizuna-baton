@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v133</title>
+<title>きずなbaton v134</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -2575,6 +2575,19 @@ function renderSettingsModal(){
   html+=`<div class="switch-item" onclick="openFeedbackModal()">
     <div class="av" style="background:#185FA5"><i class="ti ti-message" style="font-size:14px"></i></div>
     <div class="info"><div class="name">ご意見・フィードバック</div><div class="sub">使い心地を選択式でお送りいただけます</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  // v134(APP-SETTINGS-LEGAL-LINK): 規約・PP は従来プラン画面の最下部にしか導線がなく、
+  // 「設定＞アプリ情報」を開いた利用者が到達できなかった（高齢者ターゲットでは実質見つけられない）。
+  // 既存の openLegalDoc() を呼ぶだけ＝データ構造・同意ロジックには一切触れない。
+  html+=`<div class="switch-item" onclick="openLegalDoc('terms-of-service')">
+    <div class="av" style="background:#185FA5"><i class="ti ti-file-text" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">利用規約</div><div class="sub">${esc(TERMS_VERSION)}</div></div>
+    <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
+  </div>`;
+  html+=`<div class="switch-item" onclick="openLegalDoc('privacy-policy')">
+    <div class="av" style="background:#1D9E75"><i class="ti ti-shield-lock" style="font-size:14px"></i></div>
+    <div class="info"><div class="name">プライバシーポリシー</div><div class="sub">${esc(PRIVACY_VERSION)}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   html+=`<div class="switch-item" onclick="openLegalModal()">
@@ -5955,13 +5968,19 @@ function triggerMemberPhotoPick(){
   inp.value='';
   inp.click();
 }
+// v134(APP-MEMBER-PHOTO-BLOB): 旧実装は URL.createObjectURL(f) の blob: URL を Image.src に渡していたが、
+// iOS の WKWebView では Capacitor のカスタムスキーム（capacitor://localhost）配下で作られた blob: URL を
+// <img> が読めず必ず img.onerror に落ちる＝v122 以降 native では写真設定が一度も成功していなかった
+// （Web は https:／localhost 配下なので読めており、この差で長く気づけなかった）。
+// FileReader の data URL 経由に変更＝blob を介さないため Web・native の双方で読める。
+// 画像形式の問題ではないことは HEIC・JPEG 双方での再現で確認済み（TASKS.md APP-MEMBER-PHOTO-BLOB）。
 function handleMemberPhotoFile(input){
   const f=input.files&&input.files[0];
   if(!f)return;
-  const url=URL.createObjectURL(f);
-  const img=new Image();
-  img.onload=function(){
-    try{
+  const fr=new FileReader();
+  fr.onload=function(){
+    const img=new Image();
+    img.onload=function(){
       const S=256;
       const c=document.createElement('canvas');c.width=S;c.height=S;
       const ctx=c.getContext('2d');
@@ -5972,15 +5991,17 @@ function handleMemberPhotoFile(input){
       if(out.length>MEMBER_PHOTO_MAX_LEN)out=c.toDataURL('image/jpeg',0.5); // 実測10〜40KB想定・保険の再圧縮
       if(!validMemberPhoto(out)){showToast('この写真は使用できませんでした','error');return;}
       const m=getMember(photoTargetId);
-      if(!m)return;
+      if(!m){showToast('写真を設定できませんでした','error');return;} // 対象を見失った場合に無反応にしない
       m.photo=out;
       persistState();
       renderAll();renderMemberList();renderMemberPhotoModal();
       showToast('写真を設定しました','success');
-    }finally{URL.revokeObjectURL(url);}
+    };
+    img.onerror=function(){showToast('写真を読み込めませんでした','error');};
+    img.src=fr.result;
   };
-  img.onerror=function(){URL.revokeObjectURL(url);showToast('写真を読み込めませんでした','error');};
-  img.src=url;
+  fr.onerror=function(){showToast('写真を読み込めませんでした','error');};
+  fr.readAsDataURL(f);
 }
 function removeMemberPhoto(){
   const m=getMember(photoTargetId);
