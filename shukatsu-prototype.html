@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v129</title>
+<title>きずなbaton v130</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1295,9 +1295,9 @@ img.owner-dot{width:20px;padding:0}
       <div id="invite-issue-result" style="display:none">
         <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;margin-bottom:10px;text-align:center">
           <i class="ti ti-qrcode" style="font-size:80px;color:var(--color-text-primary)"></i>
-          <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:4px">QRコード（プロト表示：実読み取り不可）</div>
+          <div style="font-size:9px;color:var(--color-text-tertiary);margin-top:4px">QRコード（デモ表示：実読み取り不可）</div>
         </div>
-        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">招待URL</div>
+        <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">招待URL（デモ表示：実際には送信されません）</div>
         <div style="display:flex;align-items:stretch;gap:6px;margin-bottom:10px">
           <div id="invite-result-url" style="font-family:var(--font-mono);font-size:10px;background:var(--color-background-secondary);padding:8px 10px;border-radius:var(--border-radius-md);word-break:break-all;flex:1"></div>
           <button onclick="copyInviteUrl()" title="招待URLをコピー" style="flex-shrink:0;padding:0 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-copy"></i>コピー</button>
@@ -1335,7 +1335,7 @@ img.owner-dot{width:20px;padding:0}
         <input type="text" id="invite-accept-otp" placeholder="000000" maxlength="6" inputmode="numeric" style="font-family:var(--font-mono);font-size:18px;letter-spacing:6px;text-align:center">
       </div>
       <div style="margin-top:8px" id="invite-accept-sample-row">
-        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の OTP を入力（プロト用）</button>
+        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の OTP を入力（デモ用）</button>
       </div>
       <div id="invite-accept-error" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
       <div class="btn-row">
@@ -5136,7 +5136,19 @@ function cloudInviteErrorMessage(err){
   if(/unauthenticated/.test(code))return 'クラウドへの再ログインが必要です。設定からログインし直してください。';
   return '招待の処理に失敗しました。通信状況をご確認のうえ、もう一度お試しください。';
 }
+// v129(APP-INVITE-MOCK-REMOVE): クラウド招待が稼働中（cloudSync&&cloudInvite）なのに未ログインだと、
+// 実際には届かない端末内モック招待（偽URL kizuna-baton.example・画面表示OTP）を「招待で追加（推奨）」
+// から発行できてしまい、実ユーザーがそれを家族に送ってしまう実害経路だった。稼働中は発行前にアカウント
+// 作成へ誘導する（maybeOpenPendingInviteAccept と同型）。cloudInvite=false（休眠時）の端末内モックは
+// 「招待受諾フローを試す（デモ）」側の体験と対になる発行側プレビューとして維持する。
+function inviteIssueRequiresAccountFirst(){return !!(FEATURES.cloudSync && FEATURES.cloudInvite && !cloudUser);}
 function openInviteIssueModal(){
+  if(inviteIssueRequiresAccountFirst()){
+    document.getElementById('switch-menu').classList.remove('open');
+    showToast('招待を送るには、先にアカウントの作成（またはログイン）が必要です');
+    openCloudAccountModal();
+    return;
+  }
   document.getElementById('invite-issue-form').style.display='';
   document.getElementById('invite-issue-result').style.display='none';
   document.getElementById('invite-suggested-name').value='';
