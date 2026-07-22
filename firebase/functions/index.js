@@ -442,7 +442,9 @@ exports.listInvites = onCall(async (request) => {
 // （複数回呼ばれても仕様どおり毎回 +1 する＝クライアント側の at-most-once 設計に依存する契約）。
 exports.recordPaywallView = onCall(async (request) => {
   requireUid(request);
-  const source = ['settings', 'limit', 'invite'].includes(
+  // v133(APP-PAID-ANNUAL-VIEW): 'annual_summary'（1年の見取り図の案内カード）を追加。
+  // 未知の source は 'settings' へ丸める既存挙動を維持＝旧クライアントとの後方互換。
+  const source = ['settings', 'limit', 'invite', 'annual_summary'].includes(
     request.data && request.data.source
   )
     ? request.data.source

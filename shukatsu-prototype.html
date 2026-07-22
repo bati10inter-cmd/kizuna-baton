@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v132</title>
+<title>きずなbaton v133</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -312,6 +312,49 @@ img.owner-dot{width:20px;padding:0}
 .cal-footer{margin-top:12px;font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px;justify-content:center}
 .cal-footer i{font-size:14px}
 .cal-footer strong{color:var(--color-text-primary)}
+/* === v133(APP-PAID-ANNUAL-VIEW): 月/1年の切替・未加入者向け案内・1年の見取り図 === */
+.cal-range-tabs{display:flex;gap:6px;margin-bottom:10px}
+.cal-range-tab{flex:1;padding:8px 6px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary);border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer}
+.cal-range-tab.active{background:var(--accent-warm-strong);border-color:var(--accent-warm-strong);color:#fff}
+/* 未加入者向け案内カード（月表示の末尾）。ぼかしや鍵アイコンだけの表示はしない＝何が使えるかを文章で示す */
+.cal-upsell{margin-top:14px;padding:12px;border:0.5px solid var(--accent-warm-strong);border-radius:var(--border-radius-md);background:var(--accent-warm-bg)}
+.cal-upsell-title{font-size:13px;font-weight:600;color:var(--accent-warm-strong);display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.cal-upsell-body{font-size:12px;color:var(--color-text-secondary);line-height:1.7}
+.cal-upsell-btn{margin-top:9px;width:100%;padding:11px;border:none;border-radius:var(--border-radius-md);background:var(--accent-warm-strong);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.cal-upsell-note{margin-top:8px;font-size:12px;color:var(--color-text-secondary)}
+/* 1年の見取り図（家族プラン） */
+.ann-note{font-size:11.5px;color:var(--color-text-secondary);line-height:1.7;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:9px 10px;margin-bottom:8px}
+.ann-note i{color:var(--accent-warm-strong);margin-right:4px}
+.ann-note strong{color:var(--color-text-primary)}
+.ann-scope{font-size:11.5px;color:var(--color-text-tertiary);margin-bottom:10px}
+.ann-total-box{background:var(--accent-warm-bg);border-radius:var(--border-radius-md);padding:12px;text-align:center;margin-bottom:14px}
+.ann-total-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:3px}
+.ann-total-value{font-size:22px;font-weight:600;color:var(--color-text-primary)}
+.ann-section-title{font-size:13px;font-weight:600;color:var(--color-text-primary);margin:0 0 8px}
+.ann-months{margin-bottom:16px}
+.ann-row{margin-bottom:9px}
+.ann-row-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px}
+.ann-month{font-size:12.5px;color:var(--color-text-secondary)}
+.ann-amount{font-size:13px;color:var(--color-text-primary);font-weight:500}
+.ann-bar{height:6px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden}
+.ann-bar-fill{height:100%;background:var(--accent-warm-strong);border-radius:3px}
+.ann-yearly-row{display:flex;align-items:baseline;gap:8px;padding:8px 9px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:6px}
+.ann-yearly-when{font-size:12px;color:var(--accent-warm-strong);white-space:nowrap;font-weight:500}
+.ann-yearly-name{flex:1;min-width:0;font-size:12.5px;color:var(--color-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ann-yearly-amount{font-size:12.5px;color:var(--color-text-primary);white-space:nowrap}
+.ann-empty{font-size:12px;color:var(--color-text-tertiary);padding:10px;text-align:center}
+/* 文字拡大（老眼）モード */
+:root.large .cal-range-tab{font-size:14px}
+:root.large .cal-upsell-title{font-size:15px}
+:root.large .cal-upsell-body,:root.large .cal-upsell-note{font-size:14px}
+:root.large .ann-note{font-size:13.5px}
+:root.large .ann-scope{font-size:13px}
+:root.large .ann-total-label{font-size:14px}
+:root.large .ann-total-value{font-size:25px}
+:root.large .ann-section-title{font-size:15px}
+:root.large .ann-month{font-size:14.5px}
+:root.large .ann-amount,:root.large .ann-yearly-name,:root.large .ann-yearly-amount{font-size:14.5px}
+:root.large .ann-yearly-when{font-size:14px}
 .day-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:6px;cursor:pointer}
 .day-row:active{opacity:0.6}
 .day-row-body{flex:1;min-width:0}
@@ -838,7 +881,8 @@ img.owner-dot{width:20px;padding:0}
     <div class="modal notice">
       <div class="notice-icon"><i class="ti ti-seeding"></i></div>
       <h3>無料プランの上限に達しました</h3>
-      <p>無料プランでご登録いただけるのは契約10件までです。<br>家族プランなら、契約を無制限にご登録いただけます。</p>
+      <!-- v133(APP-PAID-ASSET-UNCAP): 本文は showBetaLimitModal(kind) が契約/資産で差し替える -->
+      <p id="beta-limit-body">無料プランでご登録いただけるのは契約10件までです。<br>家族プランなら、契約を無制限にご登録いただけます。</p>
       <button class="btn-primary" id="beta-limit-upgrade" style="width:100%;margin:2px 0 10px;display:none" onclick="openPlanFromLimit()"><i class="ti ti-cards"></i>家族プランを見る</button>
       <div class="beta-survey" id="beta-survey">
         <div class="survey-q">もしよければ、感想をひとつだけ教えてください（任意）</div>
@@ -861,6 +905,8 @@ img.owner-dot{width:20px;padding:0}
         <button class="btn-primary" id="survey-send-btn" onclick="submitBetaSurvey()">感想を送る</button>
       </div>
       <div class="btn-row" id="beta-survey-done" style="display:none"><button class="btn-primary" onclick="closeBetaLimitModal()">わかりました</button></div>
+      <!-- v133(APP-PAID-ASSET-UNCAP): 資産の上限案内はアンケート（契約専用の設問）を出さないため、閉じるだけの行を使う -->
+      <div class="btn-row" id="beta-limit-close-only" style="display:none"><button class="btn-primary" onclick="closeBetaLimitModal()">わかりました</button></div>
     </div>
   </div>
 
@@ -2034,10 +2080,16 @@ function coerceAssetNums(a){
   }
   return a;
 }
-// APP-ASSET-BETA-CAP: 資産の在りかはアクティブ5件まで（契約 CONTRACT_BETA_MAX と同数・全プラン共通）。資産に説明用サンプルは無いため除外判定不要。
+// APP-ASSET-BETA-CAP: 資産の在りかはアクティブ5件まで。資産に説明用サンプルは無いため除外判定不要。
+// v133(APP-PAID-ASSET-UNCAP): 無料プランのみ5件・家族プラン(isPaid)は無制限へ変更（契約 CONTRACT_BETA_MAX と同型）。
 const ASSET_BETA_MAX=5;
 // APP-CARD-ASSET-MERGE(v101): カード型資産は5件上限の対象外（旧 cards[] の無制限を維持）。
 function betaActiveAssetCount(){return assets.filter(a=>!a.archived&&a.type!=='card').length;}
+// v133: 純関数（引数で受け取りテスト可能に＝inviteShareCap と同型）。呼び出しは assetCapReached(isPaid,betaActiveAssetCount())。
+// 「新規追加」と「アーカイブからの復元」だけを止める。既存データの閲覧・編集・削除・印刷・書き出しは
+// 失効後も一切ゲートしない（有料中に6件以上登録して失効した利用者を締め出さないため）。
+function assetCapReached(paid,activeCount){return !paid&&activeCount>=ASSET_BETA_MAX;}
+function assetLimitReached(){return assetCapReached(isPaid,betaActiveAssetCount());}
 
 // APP-CARD-REG(v94): 支払いカードの事前登録。保存するのはカード会社名・下4桁・引き落とし日のみ＝
 // カード番号フル・有効期限・セキュリティコードは入力欄自体を設けない（CLAUDE.md データ範囲）。
@@ -2947,11 +2999,102 @@ function monthPaymentTotal(list,m){
   list.forEach(c=>{ if(c.cycle==='monthly')t+=c.amount; else if(c.month===m)t+=c.amount; });
   return t;
 }
+// === v133(APP-PAID-ANNUAL-VIEW): 1年の見取り図（家族プラン）===
+// 本アプリは決済履歴を持たない。ここで出すのは「いま登録されている内容を12か月へ展開した支払い予定」であり
+// 実績ではない（画面文言も必ず「予定」と書く）。契約の開始・終了による増減は表現できない。
+// 純関数（引数の配列だけに依存）＝ characterization から直接テストできる。
+function annualPlanData(list){
+  const months=[];
+  for(let m=1;m<=12;m++)months.push({m:m,total:monthPaymentTotal(list,m)});
+  const yearlyRows=list.filter(c=>c.cycle==='yearly'&&c.month!=null)
+    .map(c=>({id:c.id,name:c.name,month:c.month,day:c.day,amount:c.amount}))
+    .sort((a,b)=>a.month-b.month||a.day-b.day);
+  return {
+    total:list.reduce((s,c)=>s+yearlyAmount(c),0),
+    months:months,
+    yearlyRows:yearlyRows,
+    max:months.reduce((mx,x)=>Math.max(mx,x.total),0) // バー幅の基準（全月0なら0＝除算しない）
+  };
+}
+// 年間ビューの集計対象。updateSummary(3035) と同一スコープ＝検索・カテゴリには連動させない
+// （合計額が検索文字で変わると理由が伝わらないため。Codex 4-2 指摘）。利用中のみ・閲覧可能なもののみ。
+function annualScopeContracts(){
+  const viewer=currentViewerId();
+  return isRemoteView()
+    ?currentContracts().filter(c=>!c.archived)
+    :contracts.filter(c=>!c.archived&&(viewOwnerId==='all'||c.ownerId===viewOwnerId)&&canViewContract(c,viewer));
+}
 function calPrev(){let{y,m}=calCursor;m--;if(m<1){m=12;y--;}calCursor={y,m};renderCalendar();}
 function calNext(){let{y,m}=calCursor;m++;if(m>12){m=1;y++;}calCursor={y,m};renderCalendar();}
+// v133(APP-PAID-ANNUAL-VIEW): カレンダー内の表示レンジ。'month'（従来）/'year'（家族プラン）。
+// displayMode('list'|'calendar') は変更しない＝主ナビに鍵付き項目を増やさない（高齢者UX・Codex 2-1）。
+// 永続化しない（起動時は必ず従来の月表示から始まる）。
+let calendarRange='month';
+function setCalendarRange(r){
+  if(r!=='month'&&r!=='year')return;
+  if(r==='year'&&!isPaid)return; // 二重防御（未加入で年間ビューへ入らせない）
+  calendarRange=r;
+  renderCalendar();
+}
+// 月/1年の切替タブ（家族プラン加入者のみ表示）
+function calendarRangeTabsHtml(){
+  if(!isPaid)return '';
+  return `<div class="cal-range-tabs" role="tablist">
+      <button class="cal-range-tab${calendarRange==='month'?' active':''}" role="tab" aria-selected="${calendarRange==='month'}" onclick="setCalendarRange('month')">月ごと</button>
+      <button class="cal-range-tab${calendarRange==='year'?' active':''}" role="tab" aria-selected="${calendarRange==='year'}" onclick="setCalendarRange('year')">1年の見取り図</button>
+    </div>`;
+}
+// 未加入者向けの案内カード（月表示の末尾）。ぼかし・鍵アイコンだけの表示はしない（何が起きるか分かる文言にする）。
+// Web(IAP=null) では購入導線を出さない＝showBetaLimitModal の IAP 分岐と同型（v85 の web 誤誘導是正を踏襲）。
+function annualUpsellCardHtml(){
+  if(isPaid)return '';
+  const cta=IAP
+    ? `<button class="cal-upsell-btn" onclick="openPlanModal('annual_summary')"><i class="ti ti-cards"></i>家族プランを見る</button>`
+    : `<div class="cal-upsell-note">アプリ版（App Store）の家族プランでご利用いただけます。</div>`;
+  return `<div class="cal-upsell">
+      <div class="cal-upsell-title"><i class="ti ti-calendar-stats"></i>1年分の支払い予定を、まとめて見られます</div>
+      <div class="cal-upsell-body">これから1年間の支払い予定の合計、月ごとの予定、年に1回の支払いがある月を一覧で確認できます。</div>
+      ${cta}
+    </div>`;
+}
+// 年間ビュー本体。金額は必ず文字で表示し、バーは補助（12本の細い棒だけで比較させない・Codex 2-3）。
+function renderAnnualView(el){
+  const list=annualScopeContracts();
+  const d=annualPlanData(list);
+  // 敬称は既存慣例に合わせる＝本人/家族メンバーは呼び名のみ（doExport の ownerLabel と同型。
+  // 既定の呼び名「あなた」で「あなたさん」になるのを避ける）、共有元オーナーのみ「さん」付き（updateSummary と同型）
+  const ownerLabel=isRemoteView()
+    ?esc(sharedOwnerDisplayName(currentRemoteOwnerUid()))+'さん'
+    :(viewOwnerId==='all'?'家族全員':esc((getMember(viewOwnerId)||{}).name||'ご自身'));
+  const monthRows=d.months.map(x=>{
+    const w=d.max>0?Math.round(x.total/d.max*100):0;
+    return `<div class="ann-row">
+        <div class="ann-row-head"><span class="ann-month">${x.m}月</span><span class="ann-amount">¥${x.total.toLocaleString()}</span></div>
+        <div class="ann-bar"><div class="ann-bar-fill" style="width:${w}%"></div></div>
+      </div>`;
+  }).join('');
+  const yearlyRows=d.yearlyRows.length
+    ? d.yearlyRows.map(r=>`<div class="ann-yearly-row"><span class="ann-yearly-when">${r.month}月${r.day}日</span><span class="ann-yearly-name">${esc(r.name)}</span><span class="ann-yearly-amount">¥${r.amount.toLocaleString()}</span></div>`).join('')
+    : `<div class="ann-empty">年に1回のお支払いは登録されていません。</div>`;
+  el.innerHTML=`
+    ${calendarRangeTabsHtml()}
+    <div class="ann-note"><i class="ti ti-info-circle"></i>いま登録されている内容から計算した、これから1年間の<strong>支払い予定</strong>です。実際の引き落とし履歴ではありません。契約の開始・終了による変化は含みません。</div>
+    <div class="ann-scope">表示中：${ownerLabel}（利用中の契約 ${list.length}件）</div>
+    <div class="ann-total-box">
+      <div class="ann-total-label">1年間の支払い予定 合計</div>
+      <div class="ann-total-value">¥${d.total.toLocaleString()}</div>
+    </div>
+    <div class="ann-section-title">月ごとの支払い予定</div>
+    <div class="ann-months">${monthRows}</div>
+    <div class="ann-section-title">年に1回の支払いがある月</div>
+    <div class="ann-yearly">${yearlyRows}</div>`;
+}
 function renderCalendar(){
   renderDemoBanner();
   const el=document.getElementById('contract-calendar');
+  // 失効（entitlementChanged / 起動時 refreshEntitlement → renderAll 経由）時は月表示へ戻す
+  if(calendarRange==='year'&&!isPaid)calendarRange='month';
+  if(calendarRange==='year'){renderAnnualView(el);return;}
   const {y,m}=calCursor;
   const list=filterContracts(); // 選択中タブ（利用中/解約済み）に追従
   const dim=daysInMonth(y,m);
@@ -2980,6 +3123,7 @@ function renderCalendar(){
   }
   const total=monthPaymentTotal(list,m);
   el.innerHTML=`
+    ${calendarRangeTabsHtml()}
     <div class="cal-header">
       <button class="cal-nav" onclick="calPrev()" aria-label="前の月"><i class="ti ti-chevron-left"></i></button>
       <div class="cal-title">${y}年 ${m}月</div>
@@ -2987,7 +3131,8 @@ function renderCalendar(){
     </div>
     <div class="cal-grid cal-weekdays">${WD.map((w,i)=>`<div class="cal-wd${i===0?' sun':''}${i===6?' sat':''}">${w}</div>`).join('')}</div>
     <div class="cal-grid">${cells}</div>
-    <div class="cal-footer"><i class="ti ti-coin"></i>この月の支払い合計 <strong>¥${total.toLocaleString()}</strong></div>`;
+    <div class="cal-footer"><i class="ti ti-coin"></i>この月の支払い合計 <strong>¥${total.toLocaleString()}</strong></div>
+    ${annualUpsellCardHtml()}`;
 }
 function openDayDetail(d){
   const {y,m}=calCursor;
@@ -3253,6 +3398,8 @@ function deleteContract(id){
 function restoreContract(id){
   const c=contracts.find(x=>x.id===id);
   if(!c)return;
+  // v133(APP-PAID-ASSET-UNCAP): 解約済み→利用中へ戻すと利用中件数が増えるため上限判定の対象（資産 restoreAsset と同型・既存の抜け穴を是正）
+  if(contractLimitReached()){showBetaLimitModal();return;}
   c.archived=false;delete c.archivedDate;delete c.archivedNote;
   persistState();
   showDetail(id);renderList();updateSummary();
@@ -3391,15 +3538,22 @@ function setSurveyReaction(v){
 // v67: 複数選択タグのトグル（固定文言＝PII/機密の混入なし。選択状態は DOM の .active で保持）
 function toggleSurveyTag(el){el.classList.toggle('active');}
 function clearSurveyTags(){document.querySelectorAll('#survey-tags .survey-chip.active').forEach(el=>el.classList.remove('active'));}
-function showBetaLimitModal(){
+// v133(APP-PAID-ASSET-UNCAP): kind='contract'（既定）/'asset' で本文とアンケート有無を切り替える。
+// アンケート（「もっと登録したい契約がある」等）は契約上限専用の設問のため、資産では出さない。
+function showBetaLimitModal(kind){
+  const isAsset=kind==='asset';
+  document.getElementById('beta-limit-body').innerHTML=isAsset
+    ? '保有資産の在りかは、無料プランでは'+ASSET_BETA_MAX+'件まで登録できます。<br>いま登録している内容は、そのまま見たり直したりできます。<br>家族プランでは、件数を気にせず追加できます。'
+    : '無料プランでご登録いただけるのは契約'+CONTRACT_BETA_MAX+'件までです。<br>家族プランなら、契約を無制限にご登録いただけます。';
   // 開く度に状態リセット
   surveyReaction=null;
   ['continue','wait','enough'].forEach(k=>document.getElementById('survey-chip-'+k).classList.remove('active'));
   clearSurveyTags();
   const sent=betaSurveySent;
-  document.getElementById('beta-survey').style.display=sent?'none':'';
-  document.getElementById('beta-survey-actions').style.display=sent?'none':'';
-  document.getElementById('beta-survey-done').style.display=sent?'':'none';
+  document.getElementById('beta-survey').style.display=(isAsset||sent)?'none':'';
+  document.getElementById('beta-survey-actions').style.display=(isAsset||sent)?'none':'';
+  document.getElementById('beta-survey-done').style.display=(!isAsset&&sent)?'':'none';
+  document.getElementById('beta-limit-close-only').style.display=isAsset?'':'none';
   // APPSTORE-IAP(v82)/v85: 課金が実稼働中（native実機・エンタイトルメント可）のみ家族プラン誘導ボタンを表示。
   // FEATURES.iap はコード有効化フラグに過ぎずWebでも true になるため、実際に購入導線が使える IAP で判定する（v85: web誤誘導の是正）。
   const up=document.getElementById('beta-limit-upgrade');
@@ -6560,7 +6714,9 @@ function deleteAsset(id){
   goBackAsset();renderAssetList();syncMainTabUI();
 }
 function archiveAsset(id){const a=assets.find(x=>x.id===id);if(!a)return;a.archived=true;persistState();showAssetDetail(id);renderAssetList();syncMainTabUI();}
-function restoreAsset(id){const a=assets.find(x=>x.id===id);if(!a)return;a.archived=false;persistState();showAssetDetail(id);renderAssetList();syncMainTabUI();}
+// v133(APP-PAID-ASSET-UNCAP): アーカイブ→復元は「利用中の件数」を増やすため上限判定の対象（既存の抜け穴を是正）。
+// 編集・削除はゲートしない＝失効後も既存記録を扱える。
+function restoreAsset(id){const a=assets.find(x=>x.id===id);if(!a)return;if(assetLimitReached()){showBetaLimitModal('asset');return;}a.archived=false;persistState();showAssetDetail(id);renderAssetList();syncMainTabUI();}
 
 // --- asset 用 公開範囲セレクタ（契約と同一データシェイプ＝read側ヘルパー無改修流用。UIは並行複製で既存contract formに非干渉）---
 function setAssetVisibilityMode(mode){
@@ -6598,9 +6754,10 @@ function onAssetTypeChange(){
   document.getElementById('f-asset-location').placeholder=hint;
 }
 function openAssetModal(){
-  // APP-ASSET-BETA-CAP: 上限到達時はフォームを開かず案内（契約 openModal と同型・アンケートは契約専用のため流用しない）
-  if(betaActiveAssetCount()>=ASSET_BETA_MAX){
-    alert('登録できる「保有資産」は'+ASSET_BETA_MAX+'件までです。');
+  // APP-ASSET-BETA-CAP: 上限到達時はフォームを開かず案内。
+  // v133(APP-PAID-ASSET-UNCAP): 無料プランのみ上限。alert から契約と同じ案内モーダルへ（家族プラン誘導つき）。
+  if(assetLimitReached()){
+    showBetaLimitModal('asset');
     return;
   }
   editingAssetId=null;
@@ -6679,9 +6836,9 @@ function addAsset(){
   const data=readAssetForm();
   if(!data.name){showFieldError('f-asset-name','会社名・機関名を入力してください');return;}
   if(!confirmAssetSafe(data))return;
-  // APP-ASSET-BETA-CAP: 二重防御（フォーム未経由の直接追加も上限で拒否）
-  if(betaActiveAssetCount()>=ASSET_BETA_MAX){
-    alert('登録できる「保有資産」は'+ASSET_BETA_MAX+'件までです。');
+  // APP-ASSET-BETA-CAP: 二重防御（フォーム未経由の直接追加も上限で拒否）。v133: 無料プランのみ上限。
+  if(assetLimitReached()){
+    showBetaLimitModal('asset');
     return;
   }
   assets.push({id:nextAssetId++,...data,archived:false});
@@ -6998,8 +7155,10 @@ function renderPlanModal(){
       </div>
       <div class="plan-card-price"><strong>¥0</strong></div>
       <ul class="plan-feat">
-        <li><i class="ti ti-check"></i>契約の登録 10件まで</li>
+        <li><i class="ti ti-check"></i>契約の登録 ${CONTRACT_BETA_MAX}件まで</li>
+        <li><i class="ti ti-check"></i>保有資産の在りか ${ASSET_BETA_MAX}件まで</li>
         <li><i class="ti ti-check"></i>ご家族との共有 ${INVITE_MAX_FREE}名（お試し）</li>
+        <li><i class="ti ti-check"></i>月ごとの支払いカレンダー</li>
         <li><i class="ti ti-check"></i>印刷・JSON書き出し</li>
       </ul>
       <button class="plan-cta" disabled>${isPaid?'無料プラン':'ご利用中のプラン'}</button>
@@ -7012,8 +7171,10 @@ function renderPlanModal(){
       <div style="font-size:11.5px;color:var(--accent-warm);line-height:1.5;margin:0 0 6px">もしもの時も、ご家族が迷わないように。</div>
       <div class="plan-card-price">${takePrice}</div>
       <ul class="plan-feat">
-        <li><i class="ti ti-check"></i>契約の登録 無制限</li>
+        <li><i class="ti ti-check"></i>契約の登録 制限なし</li>
+        <li><i class="ti ti-check"></i>保有資産の在りか 制限なし</li>
         <li><i class="ti ti-check"></i>ご家族との共有 ${INVITE_MAX_PENDING_ACCEPTED}名まで</li>
+        <li><i class="ti ti-check"></i>1年分の支払い予定と、年に1回の支払い月を一覧で確認</li>
       </ul>
       ${takeCta}
     </div>

@@ -356,6 +356,35 @@
         const W3 = await loadApp('app2', () => localStorage.setItem('kizuna-baton:data:v20', seeded));
         assertEqual(W3.deviceHasUnlinkedRealData(), true); // サンプル契約(id1=Netflix)のみだが資産1件あり＝実データ扱い
       });
+      // v133(APP-PAID-ASSET-UNCAP) T35: 保有資産の在りかは無料5件・家族プラン(paid)は制限なし。
+      // 純関数のため引数だけで検証できる（isPaid は Web では常に false＝実値では有料側を確認できない）。
+      add('T35', () => {
+        assertDeepEqual(
+          [W.assetCapReached(false, 4), W.assetCapReached(false, 5), W.assetCapReached(false, 9), W.assetCapReached(true, 5), W.assetCapReached(true, 999)],
+          [false, true, true, false, false]
+        );
+      });
+      // v133(APP-PAID-ASSET-UNCAP) T36: カード型資産は5件上限の対象外（v101 からの既存仕様＝維持されていること）。
+      add('T36', () => {
+        assertEqual(W.betaActiveAssetCount(), 0); // サンプルに資産は無い
+      });
+      // v133(APP-PAID-ANNUAL-VIEW) T37: 1年の見取り図の集計。決済履歴ではなく登録内容の12か月展開であること。
+      // 月額は毎月・年額は登録月のみ／合計は yearlyAmount 準拠／年払い行は月日順。
+      add('T37', () => {
+        const list = [
+          {id:1, name:'月額A', cycle:'monthly', amount:1000, month:null, day:15},
+          {id:2, name:'年額B', cycle:'yearly',  amount:6000, month:4,    day:1},
+          {id:3, name:'年額C', cycle:'yearly',  amount:3000, month:1,    day:20}
+        ];
+        const d = W.annualPlanData(list);
+        assertDeepEqual(
+          [d.total, d.months[0].total, d.months[3].total, d.months[6].total, d.max],
+          [21000,   4000,              7000,              1000,              7000]
+        );
+        assertDeepEqual(d.yearlyRows.map(r=>r.name), ['年額C','年額B']); // 1月→4月の順
+        const empty = W.annualPlanData([]);
+        assertDeepEqual([empty.total, empty.months.length, empty.yearlyRows.length, empty.max], [0, 12, 0, 0]);
+      });
 
       let pass = 0;
       for(const t of tests){
