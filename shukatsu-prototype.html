@@ -367,8 +367,28 @@ img.owner-dot{width:20px;padding:0}
 .modal-bg.open{display:flex}
 /* v131(APP-FIRSTRUN-FLOW): 初回起動の同意/チュートリアルのみ下部シートでなく専用フルスクリーンにする修飾子。
    ロジックは既存の modal-bg/modal のまま＝classList.toggle でON/OFFするだけ（挙動は不変）。 */
-.modal-bg.startup-flow{background:var(--color-background-primary);align-items:stretch;padding:0}
-.modal-bg.startup-flow .modal{border-radius:0;max-height:100%;height:100%;padding-top:calc(24px + env(safe-area-inset-top))}
+/* safe-area 分は .modal-bg 側の padding で確保する＝スクロール領域そのものがステータスバーの下から
+   始まるため、スクロールしても本文が時刻表示に潜り込まない（.modal 側の padding だと一緒に流れる）。 */
+.modal-bg.startup-flow{background:var(--color-background-primary);align-items:stretch;padding:calc(20px + env(safe-area-inset-top)) 0 0}
+.modal-bg.startup-flow .modal{border-radius:0;max-height:100%;height:100%;padding:0 20px}
+/* 高齢者UX: 初回画面は画面全体を使えるぶん、見出し・本文・ボタンを一段大きくする（この画面限定）。
+   本文の font-size は要素のインライン style で指定されているため、属性セレクタ＋!important で上書きする。
+   アイコン(font-size:32px)は対象外＝下の各セレクタにマッチしない。 */
+.modal-bg.startup-flow .modal h2{font-size:22px;margin-bottom:16px}
+.modal-bg.startup-flow .modal [style*="font-size:11px"],
+.modal-bg.startup-flow .modal [style*="font-size:12px"]{font-size:15px!important}
+.modal-bg.startup-flow .modal [style*="font-size:13px"]{font-size:17px!important}
+.modal-bg.startup-flow .modal [style*="font-size:14px"],
+.modal-bg.startup-flow .modal [style*="font-size:15px"]{font-size:18px!important}
+.modal-bg.startup-flow .modal .beta-info-box,
+.modal-bg.startup-flow .modal .ob-sample-note{font-size:17px}
+/* 同意チェックのラベルは操作対象＝注記(15px)ではなく本文サイズを維持する */
+.modal-bg.startup-flow .modal label[style*="font-size:12px"]{font-size:17px!important}
+.modal-bg.startup-flow .modal input[type=checkbox]{width:22px;height:22px}
+.modal-bg.startup-flow .modal .ob-dot{width:9px;height:9px}
+/* 文字を大きくすると縦に伸びるため、決定ボタンが画面外へ流れないよう常時見えるようにする */
+.modal-bg.startup-flow .modal .btn-row{position:sticky;bottom:0;background:var(--color-background-primary);padding-top:14px;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.modal-bg.startup-flow .modal .btn-row button{font-size:17px;padding:14px}
 
 /* Step 6.5: トースト通知（招待受諾の即時通知ほか） */
 .toast{position:absolute;top:12px;left:12px;right:12px;background:#185FA5;color:#fff;padding:10px 12px;border-radius:var(--border-radius-md);font-size:12px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:30;opacity:0;transform:translateY(-10px);transition:opacity 0.25s ease,transform 0.25s ease;pointer-events:none}
