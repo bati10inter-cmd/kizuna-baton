@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v130</title>
+<title>きずなbaton v131</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -365,6 +365,10 @@ img.owner-dot{width:20px;padding:0}
 
 .modal-bg{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.4);align-items:flex-end;z-index:20;border-radius:20px}
 .modal-bg.open{display:flex}
+/* v131(APP-FIRSTRUN-FLOW): 初回起動の同意/チュートリアルのみ下部シートでなく専用フルスクリーンにする修飾子。
+   ロジックは既存の modal-bg/modal のまま＝classList.toggle でON/OFFするだけ（挙動は不変）。 */
+.modal-bg.startup-flow{background:var(--color-background-primary);align-items:stretch;padding:0}
+.modal-bg.startup-flow .modal{border-radius:0;max-height:100%;height:100%;padding-top:calc(24px + env(safe-area-inset-top))}
 
 /* Step 6.5: トースト通知（招待受諾の即時通知ほか） */
 .toast{position:absolute;top:12px;left:12px;right:12px;background:#185FA5;color:#fff;padding:10px 12px;border-radius:var(--border-radius-md);font-size:12px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:30;opacity:0;transform:translateY(-10px);transition:opacity 0.25s ease,transform 0.25s ease;pointer-events:none}
@@ -381,6 +385,14 @@ img.owner-dot{width:20px;padding:0}
 .app-lock-sub{font-size:13px;color:var(--color-text-secondary);line-height:1.7;max-width:260px;margin-bottom:8px}
 .app-lock-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-warm);color:#fff;border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:600;cursor:pointer}
 .app-lock-altbtn{background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:8px;text-decoration:underline}
+/* v131(APP-FIRSTRUN-FLOW): 初回起動スプラッシュ。app-lock-overlay(50)と同型・app-lockより下(45)＝
+   生体ロックが優先。表示中に同意モーダルは下で既に開いており、フェードで正体を現す方式（起動チェーンの
+   ガード条件〔.modal-bg.openの有無〕を変えないため）。 */
+.startup-splash{display:none;position:absolute;inset:0;z-index:45;background:var(--color-background-primary);border-radius:20px;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:1;transition:opacity 0.4s ease}
+.startup-splash.open{display:flex}
+.startup-splash.fade{opacity:0}
+.startup-splash img{width:88px;height:88px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,0.15)}
+.startup-splash-title{font-size:19px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.5px}
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
@@ -647,6 +659,11 @@ img.owner-dot{width:20px;padding:0}
       <button class="app-lock-btn" id="app-lock-unlock-btn" onclick="runAppUnlock()"><i class="ti ti-face-id"></i> Face ID / Touch IDで開く</button>
       <button class="app-lock-altbtn" id="app-lock-passcode-btn" onclick="runAppUnlock()">端末のパスコードで開く</button>
     </div>
+  </div>
+  <!-- v131(APP-FIRSTRUN-FLOW): 真の初回起動時のみ表示するスプラッシュ。app-lock-overlay(z-45)より下。 -->
+  <div class="startup-splash" id="startup-splash" aria-hidden="true">
+    <img src="./icons/icon-192.png" alt="">
+    <div class="startup-splash-title">きずなbaton</div>
   </div>
   <div class="screen" id="screen-list">
     <div class="user-bar">
@@ -3771,7 +3788,21 @@ function openOwnerConsentModal(){
   document.getElementById('owner-consent-residency').checked=false;
   document.getElementById('owner-consent-age').checked=false;
   onOwnerConsentChange();
+  // v131(APP-FIRSTRUN-FLOW): 真の初回起動のみ専用フルスクリーン。再同意（既存ユーザー）は従来の下部シートのまま。
+  document.getElementById('owner-consent-modal').classList.toggle('startup-flow',isFirstRunLaunch);
   openModalById('owner-consent-modal');
+}
+// v131(APP-FIRSTRUN-FLOW): 初回起動スプラッシュ。同意モーダルは既に下で同期的に開いている前提＝
+// 起動チェーンのガード条件（.modal-bg.open の有無）を変えないため、スプラッシュはその上でフェードするだけ。
+function showStartupSplash(){
+  const el=document.getElementById('startup-splash');
+  if(!el)return;
+  el.classList.remove('fade');
+  el.classList.add('open');
+  setTimeout(()=>{
+    el.classList.add('fade');
+    setTimeout(()=>{el.classList.remove('open','fade');},450);
+  },700);
 }
 function onOwnerConsentChange(){
   const ok=document.getElementById('owner-consent-tos').checked&&document.getElementById('owner-consent-pp').checked
@@ -3807,6 +3838,7 @@ function declineOwnerConsent(){
 }
 function maybeShowOwnerConsent(){
   if(!lsGet(CONSENT_KEY)){
+    if(isFirstRunLaunch)showStartupSplash(); // v131(APP-FIRSTRUN-FLOW): 同意モーダルより先にアイコンを一瞬見せる
     openOwnerConsentModal();
     return false; // 未同意: オンボーディングは acceptOwnerConsent() からチェーン
   }
@@ -3815,6 +3847,12 @@ function maybeShowOwnerConsent(){
 
 let onboardingStep=1;
 let forceShowOnboarding=false;
+// v131(APP-FIRSTRUN-FLOW): boot() で1回だけ確定＝真の初回起動かどうか。以降のチェーン中は不変。
+// CONSENT_KEY/ONBOARDING_KEY はいずれも「ユーザーの明示操作でのみ」書き込まれる（acceptOwnerConsent/
+// closeOnboarding）ため、この2キーの有無だけで既存ユーザーと真の初回を区別できる。
+// ※ DATA_KEY は使わない＝pagehide安全網(persistState)が同意前でもバックグラウンド化だけで書き込むため、
+//   「同意前に一度アプリを離れただけの真の初回ユーザー」を誤って既存ユーザー扱いしてしまう欠陥があった。
+let isFirstRunLaunch=false;
 // ==================== 永続化レイヤー ====================
 // === APPSTORE-PERSIST: localStorage / Capacitor Preferences 抽象化 ===
 // iOS WKWebView の localStorage はストレージ逼迫時にOSがパージし得るため、native では
@@ -4998,6 +5036,8 @@ function openOnboarding(){
   // v70(APP-DEMO-FRESH): 全員デモ先行のためサンプル説明ノートは常に表示
   const sn=document.getElementById('ob-sample-note');
   if(sn) sn.style.display='block';
+  // v131(APP-FIRSTRUN-FLOW): 真の初回起動のみ専用フルスクリーン。「使い方を見る」再訪は従来の下部シートのまま。
+  document.getElementById('onboarding-modal').classList.toggle('startup-flow',isFirstRunLaunch&&!forceShowOnboarding);
   openModalById('onboarding-modal');
 }
 function reopenOnboarding(){
@@ -5028,6 +5068,7 @@ function onboardingNext(){
 function skipOnboarding(){closeOnboarding();}
 function closeOnboarding(){
   closeModalById('onboarding-modal');
+  document.getElementById('onboarding-modal').classList.remove('startup-flow'); // v131: 以降の再訪に持ち越さない
   lsSet(ONBOARDING_KEY,'1');
   const wasFirstTime=!forceShowOnboarding;
   forceShowOnboarding=false;
@@ -7190,6 +7231,7 @@ async function boot(){
   }
   loadSortPrefs();
   loadPersistentState();    // v20: 契約・メンバーを復元（renderAll 前）
+  isFirstRunLaunch=!lsGet(CONSENT_KEY)&&!lsGet(ONBOARDING_KEY); // v131(APP-FIRSTRUN-FLOW)
   initDarkMode();
   initLargeMode();
   updateSortBtnLabel();
