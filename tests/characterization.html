@@ -24,6 +24,8 @@
   </table>
   <pre id="capture"></pre>
   <iframe id="app"></iframe>
+  <!-- v132(APP-DATA-LOADGUARD) T33/T34 用: DATA_KEY を事前 seed して独立起動させる（#app 側の状態を汚さないため別iframe）-->
+  <iframe id="app2"></iframe>
   <script>
     const SHIM = `<script>
     (function(){
@@ -73,11 +75,15 @@
       });
     }
 
-    async function loadApp(){
+    // v132(APP-DATA-LOADGUARD): iframeId/seed を追加（既存の無引数呼び出しは 'app'・seedなしで従来どおり）。
+    // seed は localStorage.clear() 直後・fetch/iframe読込より前に実行＝起動前の状態を仕込むためのフック。
+    async function loadApp(iframeId, seed){
+      iframeId = iframeId || 'app';
       localStorage.clear();
+      if(seed) seed();
       // cache:'no-store'＝ブラウザHTTPキャッシュの旧版を掴んで偽FAIL/偽PASSになるのを防ぐ（v95で実害確認済み）
       const html = await fetch('/shukatsu-prototype.html', {cache:'no-store'}).then(r => r.text());
-      const iframe = document.getElementById('app');
+      const iframe = document.getElementById(iframeId);
       iframe.srcdoc = html.replace('<script>', SHIM + '<script>');
       await new Promise(resolve => iframe.onload = resolve);
       const W = iframe.contentWindow;
@@ -323,6 +329,33 @@
         add('S06', () => assertDeepEqual(snapshots.S06, goldens.S06));
         add('S07', () => assertEqual(snapshots.S07, goldens.S07));
       }
+
+      // v132(APP-DATA-LOADGUARD) T33: 破損DATA_KEYで起動→ブロッキング復旧画面が出て、persistState()を呼んでも
+      // 破損元データを上書きしないこと。#app(W)とlocalStorageを共有するため、seed→loadは実行タイミング（T32の
+      // checkInvitationLimits内部処理がWのpersistState()を誘発しseedを上書きし得た）の直前に行い汚染を避ける。
+      add('T33', async () => {
+        const W2 = await loadApp('app2', () => localStorage.setItem('kizuna-baton:data:v20', '{broken'));
+        await waitFor(() => W2.document.getElementById('data-error-overlay').classList.contains('open'));
+        assertEqual(W2.document.getElementById('data-error-corrupt').style.display, 'flex');
+        W2.persistState();
+        assertEqual(localStorage.getItem('kizuna-baton:data:v20'), '{broken');
+      });
+      // v132(APP-DEMO-REALDATA-GUARD) T34: サンプル契約のみ＋資産1件の状態で実データありと判定されること。
+      // assets 等は top-level let（window プロパティではなくevalも CSP で禁止）のため、DATA_KEY へ直接
+      // 妥当なJSONをseedして起動し直すことで検証する（#app2はT33完了後なので再利用して問題ない）。
+      add('T34', async () => {
+        assertEqual(W.deviceHasUnlinkedRealData(), false); // Wはサンプルのまま（T32のinvitations更新はcontracts/assets/membersに影響しない）
+        const seeded = JSON.stringify({
+          version:'v20',
+          contracts:[{id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'',familyMessage:'',cardBrand:'',cardLast4:'',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false}],
+          members:[{id:'m1',name:'あなた',color:'#185FA5'}],
+          invitations:[], categories:['その他'],
+          assets:[{id:1,type:'bank',name:'test-asset',ownerId:'m1',location:'',tel:'',url:'',note:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false}],
+          cards:[], nextId:2, nextMemberId:2, nextAssetId:2, nextCardId:1
+        });
+        const W3 = await loadApp('app2', () => localStorage.setItem('kizuna-baton:data:v20', seeded));
+        assertEqual(W3.deviceHasUnlinkedRealData(), true); // サンプル契約(id1=Netflix)のみだが資産1件あり＝実データ扱い
+      });
 
       let pass = 0;
       for(const t of tests){

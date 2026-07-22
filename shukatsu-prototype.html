@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v131</title>
+<title>きずなbaton v132</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -413,6 +413,22 @@ img.owner-dot{width:20px;padding:0}
 .startup-splash.fade{opacity:0}
 .startup-splash img{width:88px;height:88px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,0.15)}
 .startup-splash-title{font-size:19px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.5px}
+/* v132(APP-DATA-LOADGUARD): 保存データの読込に失敗した際のブロッキング復旧画面。app-lock-overlay(50)より下(47)＝
+   ロック解錠UIが必要な場合はそちらが最優先。startup-splash(45)より上＝復旧の方が優先度が高い。 */
+.data-error-overlay{display:none;position:absolute;inset:0;z-index:47;background:var(--color-background-primary);border-radius:20px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:10px}
+.data-error-overlay.open{display:flex}
+.data-error-icon{font-size:40px;color:var(--accent-warm-strong)}
+.data-error-title{font-size:16px;font-weight:600;color:var(--color-text-primary)}
+.data-error-sub{font-size:13px;color:var(--color-text-secondary);line-height:1.7;max-width:260px;margin-bottom:4px}
+.data-error-btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:10px;padding:13px 18px;font-size:14px;font-weight:600;cursor:pointer;width:100%;max-width:260px;justify-content:center}
+.data-error-btn.primary{background:var(--accent-warm-strong);color:#fff}
+.data-error-btn.secondary{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.data-error-altbtn{background:transparent;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;padding:8px;text-decoration:underline}
+/* 「このまま見る」選択後に出す常設の注意バナー（demo-banner と同型・保存不可を示す色） */
+.data-warning-banner{background:var(--accent-warm-bg);border-bottom:0.5px solid var(--accent-warm-strong);padding:8px 12px;display:none;align-items:center;gap:8px;font-size:11px;color:var(--accent-warm-strong)}
+.data-warning-banner.show{display:flex}
+.data-warning-banner i{font-size:14px;flex-shrink:0}
+.data-warning-banner button{margin-left:auto;flex-shrink:0;border:0.5px solid var(--accent-warm-strong);background:var(--color-background-primary);color:var(--accent-warm-strong);border-radius:var(--border-radius-md);padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer}
 .modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:18px 14px;width:100%;max-height:90%;overflow-y:auto;position:relative}
 .modal h2{font-size:14px;font-weight:500;margin-bottom:12px;color:var(--color-text-primary)}
 /* v50: モーダル右上の閉じる導線（高齢者UX: アイコンでなくテキスト「閉じる」で統一） */
@@ -680,6 +696,23 @@ img.owner-dot{width:20px;padding:0}
       <button class="app-lock-altbtn" id="app-lock-passcode-btn" onclick="runAppUnlock()">端末のパスコードで開く</button>
     </div>
   </div>
+  <!-- v132(APP-DATA-LOADGUARD): 保存データの読込に失敗した際のブロッキング復旧画面。corrupt=JSON破損（3択）／hydrate=native先読み失敗（再試行のみ）。 -->
+  <div class="data-error-overlay" id="data-error-overlay" aria-hidden="true">
+    <div id="data-error-corrupt" style="display:none;flex-direction:column;align-items:center;gap:10px">
+      <i class="ti ti-alert-triangle data-error-icon"></i>
+      <div class="data-error-title">保存していた記録を読み込めませんでした</div>
+      <div class="data-error-sub">データは消していません。下からお選びください。</div>
+      <button class="data-error-btn primary" onclick="dataErrorRestore()"><i class="ti ti-file-upload"></i> バックアップから復元する</button>
+      <button class="data-error-btn secondary" onclick="dataErrorStartFresh()"><i class="ti ti-refresh"></i> 記録を消して、新しく始める</button>
+      <button class="data-error-altbtn" onclick="dataErrorKeepViewing()">このまま見る（変更は保存されません）</button>
+    </div>
+    <div id="data-error-hydrate" style="display:none;flex-direction:column;align-items:center;gap:10px">
+      <i class="ti ti-alert-triangle data-error-icon"></i>
+      <div class="data-error-title">データを読み込めませんでした</div>
+      <div class="data-error-sub">もう一度お試しください</div>
+      <button class="data-error-btn primary" onclick="location.reload()"><i class="ti ti-refresh"></i> 再試行する</button>
+    </div>
+  </div>
   <!-- v131(APP-FIRSTRUN-FLOW): 真の初回起動時のみ表示するスプラッシュ。app-lock-overlay(z-45)より下。 -->
   <div class="startup-splash" id="startup-splash" aria-hidden="true">
     <img src="./icons/icon-192.png" alt="">
@@ -704,6 +737,12 @@ img.owner-dot{width:20px;padding:0}
       <i class="ti ti-flask"></i>
       <div>これはデモ（サンプル）です。自由に触ってお試しください。</div>
       <button class="demo-fresh-btn" onclick="startFresh()">サンプルを消して入力する</button>
+    </div>
+    <!-- v132(APP-DATA-LOADGUARD): 「このまま見る」選択後、保存できない状態であることを常に示す -->
+    <div class="data-warning-banner" id="data-warning-banner">
+      <i class="ti ti-alert-triangle"></i>
+      <div>変更は保存されません（記録の読込に失敗中）</div>
+      <button onclick="showDataErrorOverlay('corrupt')">詳しく見る</button>
     </div>
     <div class="preview-bar" id="preview-bar">
       <div class="pb-top">
@@ -1433,7 +1472,7 @@ img.owner-dot{width:20px;padding:0}
       </div>
       <div class="export-opt" id="fmt-json" onclick="selectExportFormat('json')">
         <h3><i class="ti ti-file-code"></i>JSONダウンロード（本人のみ）</h3>
-        <p>ご自身の契約データを JSON 形式で書き出します。バックアップ・移行用。</p>
+        <p>ご自身の契約データを JSON 形式で書き出します。内容の確認・他サービスへの移行用（このファイルからの復元はできません。復元用は設定＞データをバックアップ）。</p>
       </div>
 
       <!-- モード選択（emergencyMode 有効時のみ表示） -->
@@ -3967,16 +4006,23 @@ function lsRemove(k){
   try{localStorage.removeItem(k);}catch(e){}
 }
 // 起動時: Preferences の全キーを同期キャッシュへ先読み(loadPersistentState より前に await)。
+// v132(APP-DATA-LOADGUARD): 失敗時に false を返す＝boot 側でブロッキング障害画面へ（従来は warn のみで続行＝
+// 全キーが読めないまま初回起動扱いとなり、離脱時にサンプルで Preferences の実データを上書きし得た＝fail-open bug）。
 async function hydrateNativeCache(){
-  if(!NativePref)return;
+  if(!NativePref)return true;
   try{
     const r=await NativePref.keys();
-    const keys=(r&&r.keys)||[];
+    const keys=(r&&r.keys)||[]; // 空配列は正常（真の初回起動）
     for(const k of keys){
       const g=await NativePref.get({key:k});
       nativeCache[k]=(g&&g.value!=null)?g.value:'';
     }
-  }catch(e){console.warn('[kizuna-baton] hydrateNativeCache failed:',e);}
+    return true;
+  }catch(e){
+    console.warn('[kizuna-baton] hydrateNativeCache failed:',e);
+    dataLoadBlocked=true;
+    return false;
+  }
 }
 // 重要な離脱時に未完了書き込みを待つ(best-effort)。iOS バックグラウンドでの完了は保証しない。
 async function flushNativeWrites(){
@@ -3988,8 +4034,12 @@ async function flushNativeWrites(){
 // suppressPersist: 端末データ全消去→reload の直前に true にし、pagehide/visibilitychange 安全網が
 // メモリ上のデータを DATA_KEY へ書き戻すのを止める（v106 実機バグ＝ログアウトでデータが消えない の根因）。
 let suppressPersist=false;
+// v132(APP-DATA-LOADGUARD): 保存データの読込に失敗した（JSON破損 or native Preferences先読み失敗）ことを示す。
+// true の間は persistState/クラウド同期/クラウド側データ破壊系操作を全面停止＝メモリ上のサンプル等で
+// 元データ（復旧できたかもしれない値）を上書きしない。復旧画面での明示操作（復元/新規開始）でのみ解除する。
+let dataLoadBlocked=false;
 function persistState(){
-  if(isPrivateMode||suppressPersist)return;
+  if(isPrivateMode||suppressPersist||dataLoadBlocked)return;
   lsSet(DATA_KEY,JSON.stringify({
     version:'v20',
     savedAt:new Date().toISOString(),
@@ -4062,6 +4112,7 @@ function loadPersistentState(){
     console.warn('[kizuna-baton] failed to load persistent state, using defaults:',e);
     // パース失敗時はサンプルデータのまま継続。破損データを上書きしないため persistState() は呼ばない
     corruptStateDetected=true; // v57(APP-DATA-CORRUPT): 初期化後にユーザーへ通知
+    dataLoadBlocked=true; // v132(APP-DATA-LOADGUARD): 通知の有無に関わらず、離脱安全網等が上書きするのを防ぐ
   }
 }
 let corruptStateDetected=false; // v57(APP-DATA-CORRUPT): loadPersistentState のパース失敗を記録
@@ -4375,6 +4426,9 @@ async function submitCloudReset(){
   finally{cloudSubmitBusy(false);}
 }
 async function confirmCloudSignout(){
+  // v132(APP-DATA-LOADGUARD): 復旧未解決の間は封じる（backed時にDATA_KEYを消す分岐があり、
+  // dataLoadBlocked状態だとクラウド側の良品コピーもろとも失いかねないため）。
+  if(dataLoadBlocked){showToast('データの復旧が終わるまで、この操作はできません');return;}
   // APP-V2-SYNC-PULL(v103): backed（クラウド保存済み）ならログアウトでローカル表示をクリア＝アカウント記録を隠す。
   // 未同期の端末固有データは残す（損失回避）＋その旨を注意喚起。
   const uid=cloudUser&&cloudUser.uid;
@@ -4549,7 +4603,7 @@ function cloudSyncErrorMessage(err){
 
 // --- persistState フック: debounce 予約（dirty は false→true 遷移時のみ書く＝native Preferences キュー肥大防止）---
 function scheduleCloudSync(){
-  if(!FEATURES.cloudSync||isPrivateMode)return;
+  if(!FEATURES.cloudSync||isPrivateMode||dataLoadBlocked)return; // v132: 復旧未解決の間はサンプル等を dirty マークしない
   const s=getCloudSync();
   if(!s||!s.enabled||!s.uid)return;
   if(!s.dirty)setCloudSync({dirty:true});
@@ -4560,6 +4614,7 @@ function scheduleCloudSync(){
 
 // --- 同期本体: 冪等フル upsert（≤400/チャンク）＋manifest 差分削除。全成功後のみ manifest/dirty 前進 ---
 async function runCloudSync(){
+  if(dataLoadBlocked)return; // v132: 復旧未解決の間はクラウド側の良品コピーへ送信しない
   if(cloudSyncRunning)return; // single-flight（dirty は残る＝次のトリガで回収）
   const s=getCloudSync();
   if(!s||!s.enabled||!s.uid)return;
@@ -4627,6 +4682,7 @@ async function deleteAllCloudDocs(){
   }
 }
 async function submitEnableCloudSync(){
+  if(dataLoadBlocked){showToast('データの復旧が終わるまで、この操作はできません');return;} // v132: クラウド置換でこの端末の破損データが押し出されるのを防ぐ
   const chk=document.getElementById('cloud-sync-consent');
   if(!chk||!chk.checked){showCloudError('内容をご確認のうえ、チェックを入れてください。');return;}
   if(!cloudUser){showCloudError('先にログインしてください。');return;}
@@ -4663,6 +4719,7 @@ function disableCloudSync(){
   renderSettingsModal();
 }
 async function confirmDeleteCloudData(){
+  if(dataLoadBlocked){showToast('データの復旧が終わるまで、この操作はできません');return;} // v132: 唯一の良品コピーかもしれないクラウド記録を消させない
   if(!confirm('クラウドに保存した記録データを削除しますか？\nこの端末の記録は消えません。'))return;
   if(!confirm('本当に削除しますか？ クラウド側の記録データは元に戻せません。'))return;
   cloudSubmitBusy(true);
@@ -4701,7 +4758,16 @@ function refreshCloudSyncStatusLine(){
 // pull は明示ログイン(sign-in)契機のみ＝セッション復元(onAuthStateChanged)では走らせない（offline 編集を潰さない）。
 
 // この端末に「デモでも空でもない実データ」があるか（採用/ログアウトで失われ得る対象の判定）
-function deviceHasUnlinkedRealData(){return !isShowingDemo() && (contracts.length>0 || assets.length>0);}
+// v132(APP-DEMO-REALDATA-GUARD): isShowingDemo() は「契約が全て組込サンプルか」しか見ないため、
+// サンプル契約を残したまま資産だけ登録/ユーザーを追加した端末を「デモのまま」と誤判定し、
+// ログイン採用時に無警告で resetLocalToClean() が実データを消し得た（Codex監査 B-3）。
+// 資産・非サンプル契約・組込以外のメンバー（m5〜）のいずれかがあれば実データありとする。
+const SAMPLE_MEMBER_IDS=['m1','m2','m3','m4'];
+function deviceHasUnlinkedRealData(){
+  return assets.length>0
+    || contracts.some(c=>!isBuiltInSampleContract(c))
+    || members.some(m=>!SAMPLE_MEMBER_IDS.includes(m.id));
+}
 // この端末のデータが uid のクラウドに保存済みか（＝ローカルを損失なく消せる）
 function mirrorBackedForUid(uid){const s=getCloudSync();return !!(s&&s.enabled&&s.uid===uid);}
 
@@ -4754,6 +4820,8 @@ function applyOwnCloudSnapshot(snap){
   selectedId=null;viewOwnerId=MY_ID;activeCat='すべて';searchQuery='';mainTab='contracts';
   const si=document.getElementById('search-input');if(si)si.value='';
   const sc=document.getElementById('search-clear');if(sc)sc.style.display='none';
+  // v132(APP-DATA-LOADGUARD): クラウドの良品データを取得できた＝正当な復旧経路。ブロックを解除して保存を再開する。
+  if(dataLoadBlocked){dataLoadBlocked=false;hideDataErrorOverlay();document.getElementById('data-warning-banner').classList.remove('show');}
   persistState();
   renderAll();
 }
@@ -4834,6 +4902,7 @@ async function adoptCloudOnLogin(prevUid,prevBacked,user){
 // 安全ガード: ①mirror backed（＝この端末のデータはクラウドにある）②dirty でない（未送信のローカル編集を上書きしない）
 // ③クラウドにデータがある。全て満たすときだけ静かに置換（backed+clean＝ローカルは last-push と一致＝損失なし）。
 async function maybeBackgroundPullOnRestore(u){
+  if(dataLoadBlocked)return; // v132: 復旧未解決の間は自動pullさせない（復旧画面での明示操作に限る）
   try{
     let s=getCloudSync();
     if(!s||!s.enabled||s.uid!==u.uid)return;   // 未backed端末は自動pullしない（未同期データ保護）
@@ -5611,6 +5680,7 @@ function deleteAccountErrorMessage(err){
   return map[code]||'うまく削除できませんでした。時間をおいてもう一度お試しください。';
 }
 function deleteOwnAccount(){
+  if(dataLoadBlocked){showToast('データの復旧が終わるまで、この操作はできません');return;} // v132: クラウド削除もローカル整理も、復旧が決着するまで止める
   if(FEATURES.cloudSync&&cloudUser){
     // 実アカウント（v2）: サーバで即時完全削除
     const btn=document.getElementById('account-delete-exec');
@@ -6014,6 +6084,7 @@ function doExport(){
   const html=buildExportPrintHtml(active, archived, {meName,dateStr,modeLabel,ownerLabel,monthlyTotal,yearlyTotal,exportMode});
   const w=window.open('','_blank');
   if(w){w.document.write(html);w.document.close();}
+  else{showToast('印刷画面を開けませんでした。しばらくしてもう一度お試しください','');} // v132(APP-PRINT-GUARD): WKWebView等でnullになった際に無反応にしない
 }
 
 function openCatModal(){renderCatList();openModalById('cat-modal');}
@@ -7041,6 +7112,7 @@ function openRestoreConfirmModal(parsed){
 function closeRestoreConfirmModal(){
   closeModalById('restore-confirm-modal');
   pendingRestore=null;
+  if(dataLoadBlocked)showDataErrorOverlay('corrupt'); // v132: 復元を選んだが確定せず戻った＝復旧画面へ戻す
 }
 function applyRestore(){
   if(!pendingRestore){closeRestoreConfirmModal();return;}
@@ -7081,6 +7153,8 @@ function applyRestore(){
   // 詳細画面を閉じてリストへ
   document.getElementById('screen-detail').classList.add('hidden');
   document.getElementById('screen-list').classList.remove('hidden');
+  // v132(APP-DATA-LOADGUARD): バックアップからの復元成功＝正当な復旧経路。ブロックを解除して保存を再開する。
+  if(dataLoadBlocked){dataLoadBlocked=false;hideDataErrorOverlay();document.getElementById('data-warning-banner').classList.remove('show');}
   persistState();
   renderAll();
   showToast('データを復元しました','success');
@@ -7092,7 +7166,10 @@ function openRestoreErrorModal(msg,detail,title){
   document.getElementById('restore-error-detail').textContent=detail||'';
   openModalById('restore-error-modal');
 }
-function closeRestoreErrorModal(){closeModalById('restore-error-modal');}
+function closeRestoreErrorModal(){
+  closeModalById('restore-error-modal');
+  if(dataLoadBlocked)showDataErrorOverlay('corrupt'); // v132: 復元ファイルが不正だった＝復旧画面へ戻す
+}
 
 // 初回 native 起動時のみ: localStorage の既存値を Preferences へ複製しキャッシュへ反映（冪等・途中失敗で再試行可）。
 async function migrateIfNeeded(){
@@ -7208,6 +7285,40 @@ function hideAppLock(){
   ov.setAttribute('aria-hidden','true');
 }
 
+// v132(APP-DATA-LOADGUARD): データ読込失敗時のブロッキング復旧画面。mode='corrupt'（3択）/'hydrate'（再試行のみ）。
+function showDataErrorOverlay(mode){
+  const ov=document.getElementById('data-error-overlay');
+  document.getElementById('data-error-corrupt').style.display=mode==='corrupt'?'flex':'none';
+  document.getElementById('data-error-hydrate').style.display=mode==='hydrate'?'flex':'none';
+  ov.classList.add('open');
+  ov.setAttribute('aria-hidden','false');
+}
+function hideDataErrorOverlay(){
+  const ov=document.getElementById('data-error-overlay');
+  ov.classList.remove('open');
+  ov.setAttribute('aria-hidden','true');
+}
+// 「バックアップから復元する」: 復旧画面を隠して復元フローへ（dataLoadBlocked は維持＝復元成功時に applyRestore が解除する）。
+function dataErrorRestore(){
+  hideDataErrorOverlay();
+  triggerRestore();
+}
+// 「記録を消して、新しく始める」: confirm は同期一列で処理（await を挟まない＝ダイアログ中は安全網が割り込まない）。
+function dataErrorStartFresh(){
+  if(!confirm('保存されていたデータは読み込めないまま消えます。\nこの端末を、記録の無い新しい状態から始めますか？'))return;
+  if(!confirm('本当によろしいですか？ 元には戻せません。'))return;
+  dataLoadBlocked=false;
+  hideDataErrorOverlay();
+  document.getElementById('data-warning-banner').classList.remove('show');
+  resetLocalToClean();
+  showToast('新しく始めます');
+}
+// 「このまま見る」: ブロックは維持したまま閲覧のみ許可し、常設バナーで注意喚起する。
+function dataErrorKeepViewing(){
+  hideDataErrorOverlay();
+  document.getElementById('data-warning-banner').classList.add('show');
+}
+
 // ブートゲート: native かつロックON かつ利用可能時のみ、解錠まで Promise を保留して後続チェーンを止める。
 // それ以外は即 resolve（Web・ロックOFF は従来どおり素通り）。
 function maybeRequireAppUnlock(){
@@ -7242,7 +7353,13 @@ async function toggleAppLock(){
 async function boot(){
   if(NativePref){
     isPrivateMode=false;      // native は Preferences へ保存＝localStorage 検査に依存しない
-    await hydrateNativeCache();
+    // v132(APP-DATA-LOADGUARD): 先読み失敗のまま続行すると「全キーnull＝初回起動」誤判定となり、
+    // 離脱時にサンプルで Preferences の実データを上書きし得た（fail-open bug）。失敗時は即座に
+    // 障害画面へ止め、migrateIfNeeded（stale localStorage の再移行）以降には一切進まない。
+    if(!(await hydrateNativeCache())){
+      showDataErrorOverlay('hydrate');
+      return;
+    }
     await migrateIfNeeded();
     await checkAppLockSupport(); // APPSTORE-NATIVE-LOCK(v79): 生体利用可否を判定（hydrate 後＝APP_LOCK_KEY 参照可）
     await refreshEntitlement();  // APPSTORE-IAP(v82): 有料エンタイトルメントを判定（renderAll の上限表示前）
@@ -7262,41 +7379,41 @@ async function boot(){
   if(maybeShowOwnerConsent()){
     maybeShowOnboarding();
   }
-  // v57(APP-DATA-CORRUPT): 保存データ破損を検知した場合はユーザーへ通知（サンプル表示に戻している旨）。
-  // 破損データは上書きしていない（loadPersistentState で persistState 抑止済＝安全側）。
-  // 同意/オンボーディング等のモーダルが出ているときはスタック回避のため通知しない。
-  if(corruptStateDetected && !document.querySelector('.modal-bg.open')){
-    openRestoreErrorModal(
-      '保存していたデータを読み込めなかったため、サンプル表示に戻しています。バックアップファイルがあれば「復元」からやり直せます。',
-      '保存していたデータを解析できませんでした（データは上書きしていません）',
-      'データを読み込めませんでした'
-    );
+  // v132(APP-DATA-LOADGUARD): v57時代は他モーダル表示中に通知を握り潰していたが、それが離脱時の
+  // 無警告上書き（Codex監査 B-1）を許していた。モーダル開閉に関係なく必ずブロッキング復旧画面を出す。
+  if(corruptStateDetected){
+    showDataErrorOverlay('corrupt');
   }
   // APP-V2-AUTH(v95): クラウドアカウントにリンク済みのユーザーのみ、裏で SDK を読みセッション復元。
   // 非await＋失敗握り潰し＝既存の起動チェーン（unlock→同意→オンボーディング）とオフライン起動に影響しない。
+  // v132: 読取専用の初期化であり続行してよい（クラウドからの復旧は正当な経路＝自動pull自体は別途ガード済み）。
   if(FEATURES.cloudSync && getCloudLink())initCloudAuth().catch(()=>{});
-  // APP-V2 stage-2b: 招待リンク（#invite=<token>）の受け口。cloudInvite=false では完全無視（休眠・Fable B-1）。
-  // token は履歴/ブックマークに残さないよう即 hash を除去し、メモリ保持のみ。
-  if(FEATURES.cloudSync&&FEATURES.cloudInvite){
-    const inviteToken=parseInviteTokenFromHash(location.hash);
-    if(inviteToken){
-      pendingCloudInviteToken=inviteToken;
-      try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
-      if(!getCloudLink())initCloudAuth().catch(()=>{}); // 未リンク端末でも受諾にはアカウントが要る＝SDK を先読み
-      // 起動チェーン（unlock→同意→オンボ→ナッジ）が開いていなければ即、開いていれば各閉じ処理から再試行
-      maybeOpenPendingInviteAccept();
-      if(document.querySelector('.modal-bg.open')){
-        showToast('ご家族からの招待が届いています。画面の案内のあとに続きます');
+  // v132(APP-DATA-LOADGUARD): 復旧未解決の間は、招待受諾・公開告知のモーダルを新たに開かせない
+  // （復旧画面はそれらより低いz-indexのため、開くと復旧画面の前面に出てしまう）。
+  if(!dataLoadBlocked){
+    // APP-V2 stage-2b: 招待リンク（#invite=<token>）の受け口。cloudInvite=false では完全無視（休眠・Fable B-1）。
+    // token は履歴/ブックマークに残さないよう即 hash を除去し、メモリ保持のみ。
+    if(FEATURES.cloudSync&&FEATURES.cloudInvite){
+      const inviteToken=parseInviteTokenFromHash(location.hash);
+      if(inviteToken){
+        pendingCloudInviteToken=inviteToken;
+        try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+        if(!getCloudLink())initCloudAuth().catch(()=>{}); // 未リンク端末でも受諾にはアカウントが要る＝SDK を先読み
+        // 起動チェーン（unlock→同意→オンボ→ナッジ）が開いていなければ即、開いていれば各閉じ処理から再試行
+        maybeOpenPendingInviteAccept();
+        if(document.querySelector('.modal-bg.open')){
+          showToast('ご家族からの招待が届いています。画面の案内のあとに続きます');
+        }
       }
+    } else if(parseInviteTokenFromHash(location.hash)){
+      // v100(Fable B-1): cloudInvite=false（招待休眠）でも、#invite= トークンを履歴/ブックマークに残さない。
+      // 受諾処理は一切行わず（完全無視）、URL のトークンだけを除去する。
+      try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
     }
-  } else if(parseInviteTokenFromHash(location.hash)){
-    // v100(Fable B-1): cloudInvite=false（招待休眠）でも、#invite= トークンを履歴/ブックマークに残さない。
-    // 受諾処理は一切行わず（完全無視）、URL のトークンだけを除去する。
-    try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+    // APP-POSTLAUNCH-NOTICE(v123): 既存ユーザー（同意済み＋オンボ済み）は上のチェーンが何も開かないため、
+    // ここが実質の発火点。招待トークン確定後に呼ぶ＝受諾保留時は内部ガードで抑止される。
+    maybeShowPostlaunchNotice();
   }
-  // APP-POSTLAUNCH-NOTICE(v123): 既存ユーザー（同意済み＋オンボ済み）は上のチェーンが何も開かないため、
-  // ここが実質の発火点。招待トークン確定後に呼ぶ＝受諾保留時は内部ガードで抑止される。
-  maybeShowPostlaunchNotice();
 }
 boot();
 
