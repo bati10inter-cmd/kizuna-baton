@@ -451,10 +451,16 @@ img.owner-dot{width:20px;padding:0}
 /* v131(APP-FIRSTRUN-FLOW): 初回起動スプラッシュ。app-lock-overlay(50)と同型・app-lockより下(45)＝
    生体ロックが優先。表示中に同意モーダルは下で既に開いており、フェードで正体を現す方式（起動チェーンの
    ガード条件〔.modal-bg.openの有無〕を変えないため）。 */
-.startup-splash{display:none;position:absolute;inset:0;z-index:45;background:var(--color-background-primary);border-radius:20px;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:1;transition:opacity 0.4s ease}
+/* v135(APP-SPLASH-TIMING): 初回起動スプラッシュ。opacity:0 から .show でふわっと登場（0.45s ease-out）→
+   静止 → .fade で緩やかに退場（0.6s ease-in）。アイコンは登場時に 0.98→1 で静かに"収まる"＝
+   「パッと出て消える」より情緒的に残す設計（showStartupSplash のタイミング定数と対で調整）。 */
+.startup-splash{display:none;position:absolute;inset:0;z-index:45;background:var(--color-background-primary);border-radius:20px;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity 0.45s ease-out}
 .startup-splash.open{display:flex}
-.startup-splash.fade{opacity:0}
-.startup-splash img{width:88px;height:88px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,0.15)}
+.startup-splash.show{opacity:1}
+.startup-splash.fade{opacity:0;transition:opacity 0.6s ease-in}
+.startup-splash img{width:88px;height:88px;border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,0.15);transform:scale(0.98);transition:transform 0.9s cubic-bezier(0.2,0.7,0.2,1)}
+.startup-splash.show img{transform:scale(1)}
+@media (prefers-reduced-motion: reduce){.startup-splash img,.startup-splash.show img{transition:none;transform:none}}
 .startup-splash-title{font-size:19px;font-weight:600;color:var(--color-text-primary);letter-spacing:0.5px}
 /* v132(APP-DATA-LOADGUARD): 保存データの読込に失敗した際のブロッキング復旧画面。app-lock-overlay(50)より下(47)＝
    ロック解錠UIが必要な場合はそちらが最優先。startup-splash(45)より上＝復旧の方が優先度が高い。 */
@@ -4053,12 +4059,18 @@ function openOwnerConsentModal(){
 function showStartupSplash(){
   const el=document.getElementById('startup-splash');
   if(!el)return;
-  el.classList.remove('fade');
-  el.classList.add('open');
+  el.classList.remove('fade','show');
+  el.classList.add('open'); // display:flex（opacity:0 のまま）
+  // 強制リフローで opacity:0 の初期状態を確定 → .show 付与でふわっとフェードイン（CSS 0.45s ease-out）。
+  // rAF はバックグラウンドタブで停止し得るため、タイマー非依存で確実に遷移を発火させる。
+  void el.offsetWidth;
+  el.classList.add('show');
+  // フェードイン(0.45s) + 静止(約1.05s) ≒ 1.5s 後に退場開始 → 0.6s かけて緩やかに消える（合計 約2.1s）。
   setTimeout(()=>{
+    el.classList.remove('show');
     el.classList.add('fade');
-    setTimeout(()=>{el.classList.remove('open','fade');},450);
-  },700);
+    setTimeout(()=>{el.classList.remove('open','fade');},620);
+  },1500);
 }
 function onOwnerConsentChange(){
   const ok=document.getElementById('owner-consent-tos').checked&&document.getElementById('owner-consent-pp').checked
