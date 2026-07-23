@@ -309,11 +309,12 @@
       W.startPreview('m2');
       snapshots.S07 = W.document.querySelector('#contract-list').innerHTML;
       W.exitPreview();
-      let captured = '';
-      const fake = {document:{write:h => captured = h, close(){}}};
-      W.open = () => fake;
+      // v135(APP-PRINT-NATIVE): doExport() は window.open ではなく openPrintDoc() 経由で
+      // #print-doc-frame の srcdoc に書面HTMLを設定する方式に変更。捕捉後は自動印刷タイマー
+      // 発火前に closePrintDoc() で片付ける（テスト中に印刷ダイアログを出さないため）。
       W.doExport();
-      snapshots.S05 = captured;
+      snapshots.S05 = W.document.getElementById('print-doc-frame').srcdoc;
+      W.closePrintDoc();
       W.persistState();
       snapshots.S06 = normalizeStoredState(localStorage.getItem('kizuna-baton:data:v20'));
 

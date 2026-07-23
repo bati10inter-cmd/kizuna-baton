@@ -18,6 +18,7 @@
 		A1A1A1A100000000000000B1 /* KizunaIAPPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A100000000000000F1 /* KizunaIAPPlugin.swift */; };
 		A1A1A1A100000000000000B3 /* KizunaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A100000000000000F3 /* KizunaViewController.swift */; };
 		A1A1A1A100000000000000B4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1A1A1A100000000000000F4 /* PrivacyInfo.xcprivacy */; };
+		A1A1A1A100000000000000B5 /* KizunaPrintPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A100000000000000F5 /* KizunaPrintPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		A1A1A1A100000000000000F2 /* App.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = App.storekit; sourceTree = "<group>"; };
 		A1A1A1A100000000000000F3 /* KizunaViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KizunaViewController.swift; sourceTree = "<group>"; };
 		A1A1A1A100000000000000F4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A1A1A1A100000000000000F5 /* KizunaPrintPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KizunaPrintPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +74,7 @@
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				A1A1A1A100000000000000F1 /* KizunaIAPPlugin.swift */,
+				A1A1A1A100000000000000F5 /* KizunaPrintPlugin.swift */,
 				A1A1A1A100000000000000F3 /* KizunaViewController.swift */,
 				A1A1A1A100000000000000F2 /* App.storekit */,
 				A1A1A1A100000000000000F4 /* PrivacyInfo.xcprivacy */,
@@ -169,6 +172,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A1A1A1A100000000000000B1 /* KizunaIAPPlugin.swift in Sources */,
+				A1A1A1A100000000000000B5 /* KizunaPrintPlugin.swift in Sources */,
 				A1A1A1A100000000000000B3 /* KizunaViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -310,7 +314,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = MXD8TAA7ZV;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -333,7 +337,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = MXD8TAA7ZV;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;

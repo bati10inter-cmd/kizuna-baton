@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v134</title>
+<title>きずなbaton v135</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1747,6 +1747,19 @@ img.owner-dot{width:20px;padding:0}
     <iframe id="legal-doc-frame" title="規約" style="flex:1;width:100%;border:none;background:#fff"></iframe>
   </div>
 
+  <!-- v135(APP-PRINT-NATIVE): 印刷用書面のアプリ内オーバーレイ（legal-doc-overlay と同型）。
+       window.open は iOS WKWebView で不可視 window を返し印刷書面がどこにも表示されない
+       （v115 の規約 iframe 化と同根の問題が印刷側に残っていた）ため、iframe で表示し
+       「印刷する」でネイティブ印刷（KizunaPrint）または contentWindow.print()（Web）を呼ぶ。 -->
+  <div id="print-doc-overlay" style="display:none;position:absolute;inset:0;z-index:40;background:var(--color-background-primary);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--color-border-tertiary);flex-shrink:0">
+      <button onclick="closePrintDoc()" aria-label="戻る" style="background:transparent;border:none;color:#185FA5;font-size:14px;cursor:pointer;padding:8px;min-height:44px;display:flex;align-items:center;gap:2px"><i class="ti ti-chevron-left" style="font-size:18px"></i>戻る</button>
+      <div style="font-size:15px;font-weight:600;color:var(--color-text-primary)">印刷用書面</div>
+      <button onclick="printPrintDoc()" style="margin-left:auto;background:#185FA5;border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;padding:8px 14px;min-height:44px;border-radius:var(--border-radius-md);display:flex;align-items:center;gap:5px"><i class="ti ti-printer" style="font-size:16px"></i>印刷する</button>
+    </div>
+    <iframe id="print-doc-frame" title="印刷用書面" style="flex:1;width:100%;border:none;background:#fff"></iframe>
+  </div>
+
   <!-- v19: 並び替えモーダル -->
   <div class="modal-bg" id="sort-modal">
     <div class="modal">
@@ -2147,12 +2160,29 @@ function migrateCardsToAssets(){
 // ==================== 純関数ヘルパー ====================
 // v112: .modal は overflow-y:auto のまま DOM に残るため、前回閉じたときのスクロール位置
 // （＝末尾の「追加する」付近）が次に開いたときも残る。開くたび先頭へ戻す。
+// v134(APP-MODAL-STACK): `.modal-bg` は全て z-index:20 のため、2つ同時に open になると
+// 重なり順が DOM の並び順だけで決まり、DOM 上で前にあるモーダルは後から開いても背後に隠れる。
+// これにより「設定＞印刷・書き出し」（export-modal は settings-modal より DOM 前）が
+// 押しても何も起きないように見えていた。v92 でオンボーディングが同じ問題を踏み、
+// reopenOnboarding() では「設定を先に閉じる」個別回避で凌いでいたが、印刷側は未対応のままだった。
+// ここで「後から開いたものを必ず前面に出す」ことで、この種のバグを構造的に無くす。
+// 上限 40＝生体ロック(50)・データ復旧画面(47)・起動スプラッシュ(45)より必ず下に保ち、
+// 解錠UIや復旧画面がモーダルに覆われてデッドロックすることを防ぐ。
+const MODAL_Z_BASE=20, MODAL_Z_MAX=40;
 function openModalById(id){
   const bg=document.getElementById(id);
+  if(!bg.classList.contains('open')){
+    const openCount=document.querySelectorAll('.modal-bg.open').length;
+    bg.style.zIndex=openCount?String(Math.min(MODAL_Z_BASE+openCount,MODAL_Z_MAX)):'';
+  }
   bg.classList.add('open');
   bg.querySelectorAll('.modal').forEach(m=>{m.scrollTop=0;});
 }
-function closeModalById(id){document.getElementById(id).classList.remove('open');}
+function closeModalById(id){
+  const bg=document.getElementById(id);
+  bg.classList.remove('open');
+  bg.style.zIndex=''; // 次に単独で開くときは既定の z-index:20 に戻す
+}
 function esc(v){return String(v==null?'':v)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   .replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -4106,6 +4136,11 @@ const IAP=(FEATURES.iap && IS_NATIVE && window.Capacitor.isPluginAvailable && wi
   ? window.Capacitor.Plugins.KizunaIAP : null;
 // 商品ID（App Store Connect 登録と完全一致させること・一度作ると変更不可）
 const IAP_PRODUCTS={monthly:'io.dorize.kizunabaton.take.monthly',yearly:'io.dorize.kizunabaton.take.yearly'};
+// v135(APP-PRINT-NATIVE): 印刷用ネイティブプラグイン(KizunaPrintPlugin)。Preferences/IAP と同じ
+// Plugins プロキシ方式で取得。jsName='KizunaPrint'。公開メソッドは printHtml({html}) のみ・機密は扱わない
+// （画面表示済みの書面HTMLを渡すだけ）。native かつ同梱時のみ非null＝Web/未同梱では contentWindow.print() へ後方互換。
+const NativePrint=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('KizunaPrint'))
+  ? window.Capacitor.Plugins.KizunaPrint : null;
 const DATA_KEY='kizuna-baton:data:v20';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はデフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
@@ -6257,9 +6292,10 @@ function doExport(){
     :(viewOwnerId==='all'?'家族全員':esc(getMember(viewOwnerId).name));
 
   const html=buildExportPrintHtml(active, archived, {meName,dateStr,modeLabel,ownerLabel,monthlyTotal,yearlyTotal,exportMode});
-  const w=window.open('','_blank');
-  if(w){w.document.write(html);w.document.close();}
-  else{showToast('印刷画面を開けませんでした。しばらくしてもう一度お試しください','');} // v132(APP-PRINT-GUARD): WKWebView等でnullになった際に無反応にしない
+  // v135(APP-PRINT-NATIVE): window.open('','_blank') は iOS WKWebView で不可視 window を返し
+  // 印刷書面がどこにも表示されなかった（v132のnullガードは構造的に発動しない）。
+  // アプリ内 iframe オーバーレイに表示し、印刷はネイティブ or contentWindow.print() で行う。
+  openPrintDoc(html);
 }
 
 function openCatModal(){renderCatList();openModalById('cat-modal');}
@@ -7043,6 +7079,46 @@ function closeLegalDoc(){
   if(ov)ov.style.display='none';
   if(frame)frame.src='about:blank';
 }
+
+// v135(APP-PRINT-NATIVE): 印刷用書面をアプリ内 iframe に表示（legal-doc-overlay と同型）。
+// window.open('','_blank') は iOS WKWebView で不可視 window を返し、書き込んだ書面が
+// どこにも表示されない上に window.print() も無反応（v132 の null ガードは発動しない構造的欠陥だった）。
+// doExport() から呼ばれる。html は buildExportPrintHtml() が組み立てた完成済みHTML文字列。
+let printDocHtml='';
+function openPrintDoc(html){
+  const ov=document.getElementById('print-doc-overlay');
+  const frame=document.getElementById('print-doc-frame');
+  if(!ov||!frame)return;
+  printDocHtml=html;
+  frame.srcdoc=html;
+  ov.style.display='flex';
+}
+function closePrintDoc(){
+  const ov=document.getElementById('print-doc-overlay');
+  const frame=document.getElementById('print-doc-frame');
+  if(ov)ov.style.display='none';
+  if(frame)frame.srcdoc='';
+  printDocHtml='';
+}
+async function printPrintDoc(){
+  if(!printDocHtml)return;
+  if(NativePrint){
+    try{
+      await NativePrint.printHtml({html:printDocHtml});
+    }catch(e){
+      showToast('印刷を開始できませんでした。しばらくしてもう一度お試しください','error');
+    }
+    return;
+  }
+  const frame=document.getElementById('print-doc-frame');
+  try{
+    if(frame&&frame.contentWindow)frame.contentWindow.print();
+    else showToast('印刷画面を開けませんでした。しばらくしてもう一度お試しください','error');
+  }catch(e){
+    showToast('印刷画面を開けませんでした。しばらくしてもう一度お試しください','error');
+  }
+}
+
 function setPlanCycle(c){planCycle=c;renderPlanModal();}
 
 // === APPSTORE-IAP(v82): 実課金（StoreKit2）===
