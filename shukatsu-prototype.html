@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v135</title>
+<title>きずなbaton v136</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -137,8 +137,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--color-background-tertiary);padding:20px;min-height:100vh;display:flex;align-items:flex-start;justify-content:center}
 .phone{background:var(--color-background-tertiary);border-radius:20px;border:0.5px solid var(--color-border-secondary);overflow:hidden;width:380px;position:relative;height:780px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
-.screen{position:absolute;inset:0;overflow-y:auto;transition:transform 0.25s ease,opacity 0.25s ease}
-.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+.screen{position:absolute;inset:0;overflow-y:auto;transition:transform 0.25s ease,opacity 0.25s ease,visibility 0s}
+/* v136(APP-CJ-AUDIT): visibility:hidden を追加。translateX(100%) は兄弟のレイアウトには影響しないが
+   .phone の scrollable overflow には算入されるため、非表示画面内のボタンにフォーカスが移ると
+   ブラウザの自動スクロールで画面全体が右へずれて見切れていた（実測 scrollLeft=86px）。
+   visibility:hidden はフォーカス・VoiceOver の到達も同時に断つ。transition の遅延で戻りのスライドは維持。*/
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none;visibility:hidden;transition:transform 0.25s ease,opacity 0.25s ease,visibility 0s 0.25s}
 
 .user-bar{background:var(--color-background-primary);padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:6}
 .user-pill{display:flex;align-items:center;gap:6px;flex:1;background:var(--color-background-secondary);padding:6px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);cursor:pointer;min-width:0}
@@ -264,6 +268,10 @@ body{font-family:var(--font-sans);background:var(--color-background-tertiary);pa
 .card.archived{opacity:0.7}
 .icon-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;position:relative}
 .logo-img{width:36px;height:36px;border-radius:50%;object-fit:contain;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);padding:4px}
+/* v136(APP-CJ-AUDIT): カテゴリアイコンの上へロゴを重ねる（読込失敗時はアイコンが残る） */
+.icon-circle>.logo-img{position:absolute;top:0;left:0}
+.cal-marker-wrap{position:relative;display:inline-flex;width:18px;height:18px}
+.cal-marker-wrap>.cal-marker{position:absolute;top:0;left:0}
 .owner-dot{position:absolute;bottom:-3px;right:-3px;min-width:20px;height:20px;padding:0 3px;border-radius:10px;border:1.5px solid var(--color-background-primary);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;color:var(--owner-on-color)}
 img.owner-dot{width:20px;padding:0}
 .card-body{flex:1;min-width:0}
@@ -784,7 +792,7 @@ img.owner-dot{width:20px;padding:0}
     <div class="switch-menu" id="switch-menu"></div>
     <div class="demo-banner" id="demo-banner">
       <i class="ti ti-flask"></i>
-      <div>これはデモ（サンプル）です。自由に触ってお試しください。</div>
+      <div>これはサンプル（太郎さんの例）です。自由に触ってお試しください。</div>
       <button class="demo-fresh-btn" onclick="startFresh()">サンプルを消して入力する</button>
     </div>
     <!-- v132(APP-DATA-LOADGUARD): 「このまま見る」選択後、保存できない状態であることを常に示す -->
@@ -1010,7 +1018,7 @@ img.owner-dot{width:20px;padding:0}
         </div>
         <div class="vp-opt" id="vp-after-only" onclick="setVisibilityMode('after_only')">
           <i class="ti ti-clock-heart lead"></i>
-          <div class="vp-text"><div class="vp-title">もしもの時だけ家族へ</div><div class="vp-sub">ふだんは本人のみ、もしもの時に家族全員へ開示（隠し財産・寄付等）</div></div>
+          <div class="vp-text"><div class="vp-title">もしもの時だけ家族へ</div><div class="vp-sub">ふだんは本人のみ、もしもの時に家族全員へ開示（まだ伝えていない契約・寄付等）</div></div>
           <i class="ti ti-check vp-check"></i>
         </div>
         <div class="vp-opt" id="vp-private" onclick="setVisibilityMode('private')">
@@ -1161,7 +1169,7 @@ img.owner-dot{width:20px;padding:0}
           ※ 機密メモ欄には番号類は書かず、「証券番号は金庫内」のような<strong>所在メモ</strong>として使ってください。
         </div>
         <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;line-height:1.8;color:var(--color-text-secondary);margin-top:10px">
-          きずなbaton は、情報そのものを預かる金庫ではありません。<strong>「どんな契約があるか」と「解約のしかた」を、ご家族に伝えておく</strong>ためのものです（Apple の「Legacy Contact（故人アカウント管理連絡先）」と同じ設計思想です）。番号やパスワードは、金庫やパスワード管理アプリで別に保管してください。
+          きずなbaton は、情報そのものを預かる金庫ではありません。<strong>「どんな契約があるか」と「解約のしかた」を、ご家族に伝えておく</strong>ためのものです。番号やパスワードは、金庫やパスワード管理アプリで別に保管してください。
         </div>
       </div>
       <!-- Step 3: 公開範囲 -->
@@ -1189,7 +1197,7 @@ img.owner-dot{width:20px;padding:0}
         </div>
         <h2 style="text-align:center">家族を招待</h2>
         <div style="font-size:15px;line-height:1.7;color:var(--color-text-secondary);margin:10px 0 8px">
-          家族メンバー管理画面の「<strong>招待で追加</strong>」から、招待リンク + OTP を発行できます。受諾者が利用規約・プライバシーポリシーに同意した上で参加します。
+          家族メンバー管理画面の「<strong>招待で追加</strong>」から、招待リンクと確認コード（6桁）を発行できます。招待されたご家族は、利用規約・プライバシーポリシーを確認したうえで参加します。
         </div>
         <div class="beta-info-box" style="margin-top:8px;font-size:14px;line-height:1.8">
           ご家族に見えるのは、あなたが公開範囲設定で共有した契約だけです。共有するかどうかは、いつでもあなたが決められます。
@@ -1295,7 +1303,7 @@ img.owner-dot{width:20px;padding:0}
 
       <!-- OTP説明（v3.2 ToS 6.5.3） -->
       <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
-        ※ OTP（メール認証コード）は招待先メールへの到達確認のみを目的としており、身元保証ではありません。
+        ※ 確認コード（ワンタイムパスワード／OTP）は招待先メールへの到達確認のみを目的としており、身元保証ではありません。
       </div>
 
       <!-- §4.2.2: 法的位置づけの明示（ボタン直前に表示） -->
@@ -1384,7 +1392,7 @@ img.owner-dot{width:20px;padding:0}
 
       <!-- 発行フォーム -->
       <div id="invite-issue-form">
-        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクと OTP（6桁）を発行します。LINE/メール等でリンクをご家族に送ってください。</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクと確認コード（6桁）を発行します。LINE/メール等でリンクをご家族に送ってください。</div>
         <div class="form-row">
           <label>呼び名（受諾者が変更可）</label>
           <input type="text" id="invite-suggested-name" placeholder="例: 美咲" maxlength="20">
@@ -1432,9 +1440,9 @@ img.owner-dot{width:20px;padding:0}
         </div>
         <!-- モック（デモ）経路のみ OTP を画面表示。クラウド実経路では OTP は招待先メールへ送信され、ここは非表示 -->
         <div id="invite-result-otp-block">
-          <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">OTP（6桁・有効7日）</div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:3px">確認コード（6桁・有効7日）</div>
           <div id="invite-result-otp" style="font-family:var(--font-mono);font-size:20px;letter-spacing:6px;text-align:center;background:var(--color-background-secondary);padding:12px;border-radius:var(--border-radius-md);margin-bottom:10px"></div>
-          <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.6;margin-bottom:10px">OTP は招待先メールへの到達確認のみを目的としており、身元保証ではありません（ToS 6.5.3）。</div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.6;margin-bottom:10px">確認コード（ワンタイムパスワード／OTP）は招待先メールへの到達確認のみを目的としており、身元保証ではありません（ToS 6.5.3）。</div>
         </div>
         <!-- クラウド実経路: OTP は相手メールへ送信済み -->
         <div id="invite-result-mail-note" style="display:none;font-size:11px;color:#137A57;line-height:1.7;background:var(--color-background-secondary);padding:10px 12px;border-radius:var(--border-radius-md);margin-bottom:10px"><i class="ti ti-mail-check"></i> 確認コード（6桁）を招待先のメールアドレスへ送信しました。上の招待リンクをLINE/メール等でご家族に送ってください（コードはご家族がメールで受け取ります）。</div>
@@ -1447,7 +1455,7 @@ img.owner-dot{width:20px;padding:0}
     <div class="modal">
       <button class="modal-close-text" onclick="closeInviteAcceptModal()" aria-label="閉じる">閉じる</button>
       <h2><i class="ti ti-link"></i>招待を受諾</h2>
-      <div id="invite-accept-intro" style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った OTP（6桁）を入力してください。</div>
+      <div id="invite-accept-intro" style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.6">招待リンクから受け取った確認コード（6桁）を入力してください。</div>
       <!-- APP-POSTLAUNCH-NOTICE ②（推奨A）: アプリ版利用者が Safari に着地して戸惑う導線の緩和。Web かつクラウド受諾時のみ表示 -->
       <div id="invite-accept-browser-note" style="display:none;font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:10px;line-height:1.6">
         <i class="ti ti-info-circle" style="color:var(--color-text-tertiary)"></i>
@@ -1459,15 +1467,15 @@ img.owner-dot{width:20px;padding:0}
         <input type="text" id="invite-accept-token" placeholder="メールのリンクをそのまま貼り付け" style="font-size:16px">
       </div>
       <div class="form-row">
-        <label id="invite-accept-otp-label">OTP（6桁）</label>
+        <label id="invite-accept-otp-label">確認コード（6桁）</label>
         <input type="text" id="invite-accept-otp" placeholder="000000" maxlength="6" inputmode="numeric" style="font-family:var(--font-mono);font-size:18px;letter-spacing:6px;text-align:center">
       </div>
       <div style="margin-top:8px" id="invite-accept-sample-row">
-        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の OTP を入力（デモ用）</button>
+        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の確認コードを入力（デモ用）</button>
       </div>
       <div id="invite-accept-error" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
       <div class="btn-row">
-        <button class="btn-primary" onclick="verifyInviteOtp()"><i class="ti ti-check"></i> OTP を検証</button>
+        <button class="btn-primary" onclick="verifyInviteOtp()"><i class="ti ti-check"></i> 確認コードを検証</button>
       </div>
     </div>
   </div>
@@ -2928,6 +2936,21 @@ function logoDevImageUrl(domain,size){
   const d=domain.replace(/^www\./,'');
   return `https://img.logo.dev/${encodeURIComponent(d)}?token=${encodeURIComponent(token)}&size=${s}&format=png&fallback=404&theme=auto`;
 }
+// v136(APP-CJ-AUDIT): 支払日までの残りを日本語として自然な表現にする（「0日後」「1日後」は不自然）。
+function daysUntilLabel(d){
+  if(d===0)return '今日';
+  if(d===1)return '明日';
+  return d+'日後';
+}
+// v136(APP-CJ-AUDIT): カテゴリアイコンを常に背面に描き、その上へブランドロゴを重ねる。
+// 旧実装は「ロゴURLがあれば img のみ」で、Logo.dev の 404・オフライン・CSPブロック時に
+// onerror が img を消すと .icon-circle が背景色だけの空の丸になっていた。
+// 読み込めた時だけ背面アイコンを隠す＝失敗時は必ずカテゴリアイコンが残る。
+function iconWithLogoHtml(iconClass,tcolor,logoUrl,alt){
+  const base=`<i class="ti ${iconClass}" style="color:${tcolor}"></i>`;
+  if(!logoUrl)return base;
+  return `${base}<img class="logo-img" src="${esc(logoUrl)}" alt="${esc(alt||'')}" loading="lazy" decoding="async" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();">`;
+}
 function inferLogoDomain(c){
   if(!c)return '';
   const fromData=(c.logoDomain||'').trim();
@@ -2980,8 +3003,8 @@ function renderList(){
     const tc=catTcolorOf(c.cat);
     let badge='';
     if(c.archived){badge=`<span class="badge badge-archived">${c.archivedDate||'解約済'}</span>`;}
-    else if(d<=3)badge='<span class="badge badge-urgent">'+d+'日後</span>';
-    else if(d<=30)badge='<span class="badge badge-soon">'+d+'日後</span>';
+    else if(d<=3)badge='<span class="badge badge-urgent">'+daysUntilLabel(d)+'</span>';
+    else if(d<=30)badge='<span class="badge badge-soon">'+daysUntilLabel(d)+'</span>';
     const lockIcon=(!isOwner(c)&&(c.cardLast4||c.secret))?'<i class="ti ti-lock lock-icon"></i>':'';
     const cyclePill=c.cycle==='yearly'?'<span class="cycle-pill yearly">年</span>':'';
     const pmInfo=payMethodInfo(c);
@@ -3004,9 +3027,7 @@ function renderList(){
     const ownerMeta=viewOwnerId==='all'?` · ${esc(ownerName)}`:'';
     const logoDomain=inferLogoDomain(c);
     const logoUrl=logoDomain?logoDevImageUrl(logoDomain,64):'';
-    const iconOrLogo=logoUrl
-      ?`<img class="logo-img" src="${esc(logoUrl)}" alt="${esc(c.name)} logo" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
-      :`<i class="ti ${icon}" style="color:${tc}"></i>`;
+    const iconOrLogo=iconWithLogoHtml(icon,tc,logoUrl,c.name+' logo');
     let amountMain,amountSub;
     if(c.cycle==='yearly'){
       amountMain=`¥${c.amount.toLocaleString()}`;
@@ -3159,8 +3180,9 @@ function renderCalendar(){
       const shown=dayContracts.slice(0,3).map(c=>{
         const dom=inferLogoDomain(c);
         const url=dom?logoDevImageUrl(dom,32):'';
-        if(url)return `<img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`;
         const bg=catColorOf(c.cat);
+        // v136(APP-CJ-AUDIT): ロゴ読込失敗時に何も残らなかったため、色ドットを常に敷いてロゴを重ねる。
+        if(url)return `<span class="cal-marker-wrap"><span class="cal-marker dot" style="background:${bg}"></span><img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();"></span>`;
         return `<span class="cal-marker dot" style="background:${bg}"></span>`;
       }).join('');
       const more=dayContracts.length>3?`<span class="cal-more">+${dayContracts.length-3}</span>`:'';
@@ -3196,9 +3218,7 @@ function openDayDetail(d){
       const icon=catIconOf(c.cat);
       const bg=catColorOf(c.cat);
       const tc=catTcolorOf(c.cat);
-      const iconOrLogo=url
-        ?`<img class="logo-img" src="${esc(url)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.display='none';">`
-        :`<i class="ti ${icon}" style="color:${tc}"></i>`;
+      const iconOrLogo=iconWithLogoHtml(icon,tc,url,'');
       const cyclePill=c.cycle==='yearly'?'<span class="cycle-pill yearly">年</span>':'';
       const ownerMeta=viewOwnerId==='all'?` · ${esc(getOwnerName(c))}`:'';
       return `<div class="day-row" onclick="goToContract(${c.id})">
@@ -3237,8 +3257,8 @@ function updateSummary(){
 function detailUrgentBadgeHtml(c,d){
   let urgentBadge='';
   if(c.archived)urgentBadge=`<span class="badge badge-archived" style="margin-left:6px">${c.archivedDate||'解約済'}</span>`;
-  else if(d<=3)urgentBadge=`<span class="badge badge-urgent" style="margin-left:6px">${d}日後</span>`;
-  else if(d<=30)urgentBadge=`<span class="badge badge-soon" style="margin-left:6px">${d}日後</span>`;
+  else if(d<=3)urgentBadge=`<span class="badge badge-urgent" style="margin-left:6px">${daysUntilLabel(d)}</span>`;
+  else if(d<=30)urgentBadge=`<span class="badge badge-soon" style="margin-left:6px">${daysUntilLabel(d)}</span>`;
   return urgentBadge;
 }
 
@@ -5375,7 +5395,9 @@ function closeOnboarding(){
   lsSet(ONBOARDING_KEY,'1');
   const wasFirstTime=!forceShowOnboarding;
   forceShowOnboarding=false;
-  if(wasFirstTime) maybeShowPreviewNudge();
+  // v136(APP-CJ-AUDIT): 初回起動は「同意→オンボーディング」だけで本体へ到達させ、家族ビュー案内は次回起動へ回す。
+  // 初回に案内・告知まで連続すると本体到達前に4種のモーダルを閉じさせることになるため。
+  if(wasFirstTime && !isFirstRunLaunch) maybeShowPreviewNudge();
   maybeShowPostlaunchNotice(); // v123: ナッジが開いていれば内部の modal-bg.open 判定で自動スキップ
   // stage-2b: 起動チェーンの末尾で保留中の招待受諾を開く（ナッジ等が開いていればスキップ→そちらの閉じ処理で再試行）
   maybeOpenPendingInviteAccept();
@@ -5402,6 +5424,10 @@ function closePreviewNudge(go){
 function maybeShowPostlaunchNotice(){
   if(IS_NATIVE) return false;
   if(lsGet(POSTLAUNCH_NOTICE_KEY)) return false;
+  // v136(APP-CJ-AUDIT): 初回起動のユーザーには出さない＝この告知は「これまで通りブラウザ版も使えます」という
+  // 既存ブラウザ利用者向けの移行案内であり、今はじめて開いた人に「いつもご利用ありがとうございます」は対象違い。
+  // 既読化まで行う＝2回目以降の起動でも出さない（新規ユーザーには恒久的に不要）。
+  if(isFirstRunLaunch){ lsSet(POSTLAUNCH_NOTICE_KEY,'1'); return false; }
   if(pendingCloudInviteToken) return false;
   if(document.querySelector('.modal-bg.open')) return false;
   openModalById('postlaunch-notice-modal');
@@ -5760,13 +5786,13 @@ function openInviteAcceptModal(){
   if(sampleRow)sampleRow.style.display=cloud?'none':'';
   if(intro)intro.textContent=cloud
     ?'メールに届いた招待リンクと確認コード（6桁）をご用意ください。リンクから開いた場合は、確認コードの入力だけで進めます。'
-    :'招待リンクから受け取った OTP（6桁）を入力してください。';
+    :'招待リンクから受け取った確認コード（6桁）を入力してください。';
   // APP-POSTLAUNCH-NOTICE ②（推奨A・2026-07-14 オーナー決定）: 招待メールは純トランザクショナルのまま
   // （特定電子メール法の営業要素を持ち込まない）とし、混乱の発生点＝Web の受諾画面でのみ案内する。
   // native では「この画面はブラウザ版です」が偽になるため出さない。
   const browserNote=document.getElementById('invite-accept-browser-note');
   if(browserNote)browserNote.style.display=(!IS_NATIVE&&cloud)?'':'none';
-  if(otpLabel)otpLabel.textContent=cloud?'確認コード（6桁・メールに記載）':'OTP（6桁）';
+  if(otpLabel)otpLabel.textContent=cloud?'確認コード（6桁・メールに記載）':'確認コード（6桁）';
   openModalById('invite-accept-modal');
 }
 function closeInviteAcceptModal(){
@@ -7680,12 +7706,28 @@ async function boot(){
       // 受諾処理は一切行わず（完全無視）、URL のトークンだけを除去する。
       try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
     }
+    // v136(APP-CJ-AUDIT): 初回起動で見送った家族ビュー案内は、2回目以降の起動のここで出す。
+    // maybeShowPreviewNudge 自体はモーダル重複ガードを持たないため、ここで開いていないことを確認する。
+    if(!isFirstRunLaunch && lsGet(ONBOARDING_KEY) && !document.querySelector('.modal-bg.open')){
+      maybeShowPreviewNudge();
+    }
     // APP-POSTLAUNCH-NOTICE(v123): 既存ユーザー（同意済み＋オンボ済み）は上のチェーンが何も開かないため、
     // ここが実質の発火点。招待トークン確定後に呼ぶ＝受諾保留時は内部ガードで抑止される。
     maybeShowPostlaunchNotice();
   }
 }
 boot();
+
+// === v136(APP-CJ-AUDIT): 横スクロールずれの保険 ===
+// .screen.hidden の visibility:hidden で原因は塞いだが、将来 .phone 内に幅を超える要素が入っても
+// 画面全体が横へずれないよう、横スクロールが起きたら即座に左端へ戻す。縦スクロールには触れない。
+(function(){
+  const phone=document.querySelector('.phone');
+  if(!phone) return;
+  phone.addEventListener('scroll',function(){
+    if(phone.scrollLeft!==0) phone.scrollLeft=0;
+  });
+})();
 
 // === v52(APP-S83-3): persistState 呼び忘れ安全網 ===
 // 個別 mutation の persistState() 呼び忘れがあっても、離脱・バックグラウンド遷移時に保存を補完する。

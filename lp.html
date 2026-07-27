@@ -291,17 +291,21 @@
     /* ヘッダーは min-height 44px ＝ バッジも 40px に抑える（.btn-appstore img と同詳細度ゆえ後置で上書き） */
     .header-appstore img { height: 40px; }
 
+    /* flex ではなく通常の行内フローで組む。flex だとテキストが折り返した際に
+       テキスト側が行幅いっぱいを取り、アイコンだけが左端に取り残されて見えた。
+       inline なら文章の先頭アイコンとして自然に流れ、中央揃えも効く。 */
     .cta-note {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
       margin: 12px 0 0;
       color: var(--text-sub);
       font-size: 13px;
+      text-align: center;
     }
 
-    .cta-note i { color: var(--teal); }
+    .cta-note i {
+      color: var(--teal);
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
 
     .hero-visual {
       position: relative;
@@ -1105,7 +1109,7 @@
         align-items: center;
       }
 
-      .cta-note { justify-content: flex-start; }
+      .cta-note { text-align: left; }
 
       .trust-list { grid-template-columns: repeat(3, 1fr); }
 
@@ -1241,8 +1245,8 @@
               ブラウザ版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i>
             </a>
           </div>
-          <p class="cta-note"><i class="ti ti-circle-check" aria-hidden="true"></i> iPhone はアプリ版・Android / パソコンはブラウザ版</p>
-          <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> 登録不要ですぐ使える・カード番号や暗証番号は保存しません</p>
+          <p class="cta-note"><i class="ti ti-circle-check" aria-hidden="true"></i> <span>iPhone はアプリ版・Android / パソコンはブラウザ版</span></p>
+          <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> <span>登録不要ですぐ使える・カード番号や暗証番号は保存しません</span></p>
         </div>
         <div class="hero-visual">
           <picture class="hero-picture">
@@ -1260,9 +1264,9 @@
     <div class="trust-strip" aria-label="サービスの特長">
       <div class="container">
         <ul class="trust-list">
-          <li><i class="ti ti-browser" aria-hidden="true"></i> アプリ不要で今すぐ使える</li>
-          <li><i class="ti ti-lock" aria-hidden="true"></i> 機密情報は預からない設計</li>
-          <li><i class="ti ti-users" aria-hidden="true"></i> 見せる相手を自分で選べる</li>
+          <li><i class="ti ti-browser" aria-hidden="true"></i> <span>ブラウザ版ならインストール不要</span></li>
+          <li><i class="ti ti-lock" aria-hidden="true"></i> <span>機密情報は預からない設計</span></li>
+          <li><i class="ti ti-users" aria-hidden="true"></i> <span>見せる相手を自分で選べる</span></li>
         </ul>
       </div>
     </div>
@@ -1407,7 +1411,7 @@
       <div class="container feedback-layout">
         <div class="feedback-copy">
           <p class="section-kicker">あなたの声を聞かせてください</p>
-          <h2 id="feedback-title">試した感想を、<br>ワンタップで。</h2>
+          <h2 id="feedback-title">試した感想を、<br>かんたんに。</h2>
           <p>「もう試した」「これから試す」「気になっている」。今のお気持ちだけでも、これからの改善につながります。<br>新機能の最新情報を受け取りたい方は、メールアドレスをご登録ください。</p>
         </div>
         <form class="form" id="waitlist-form" action="https://formspree.io/f/xredoben" method="POST">
@@ -1427,7 +1431,7 @@
         <span>気になっている</span>
       </label>
     </div>
-    <div class="form-help">ワンタップでお気持ちを送れます。メールの入力は任意です。</div>
+    <div class="form-help">選んで送るだけ。メールの入力は任意です。</div>
   </div>
   <div class="form-row">
     <label class="form-label" for="email">メールアドレス（任意）</label>
@@ -1531,7 +1535,7 @@
           </a>
           <a class="btn btn-secondary" href="https://bati10inter-cmd.github.io/kizuna-baton/shukatsu-prototype.html" target="_blank" rel="noopener">ブラウザ版を試す（無料） <i class="ti ti-arrow-up-right" aria-hidden="true"></i></a>
         </div>
-        <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> iPhone はアプリ版・Android / パソコンはブラウザ版・登録不要</p>
+        <p class="cta-note"><i class="ti ti-shield-check" aria-hidden="true"></i> <span>iPhone はアプリ版・Android / パソコンはブラウザ版・登録不要</span></p>
       </div>
     </section>
   </main>
@@ -1547,8 +1551,11 @@
           <p>家族の契約を、秘密ではなく道しるべとして手渡すためのアプリ。</p>
         </div>
         <nav class="footer-links" aria-label="フッターリンク">
+          <a href="support.html">サポート・お問い合わせ</a>
           <a href="docs/terms-of-service.html" target="_blank" rel="noopener">利用規約</a>
           <a href="docs/privacy-policy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+          <a href="https://x.com/kizuna_baton" target="_blank" rel="noopener">X（旧Twitter）</a>
+          <a href="https://note.com/kizuna_baton" target="_blank" rel="noopener">note</a>
           <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a>
         </nav>
       </div>
