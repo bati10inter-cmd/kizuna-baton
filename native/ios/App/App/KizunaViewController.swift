@@ -12,5 +12,6 @@ class KizunaViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(KizunaIAPPlugin())
         bridge?.registerPluginInstance(KizunaPrintPlugin()) // v135(APP-PRINT-NATIVE)
+        bridge?.registerPluginInstance(KizunaSharePlugin()) // v137(APP-BACKUP-NATIVE)
     }
 }

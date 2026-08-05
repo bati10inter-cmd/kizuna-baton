@@ -26,6 +26,11 @@
   <iframe id="app"></iframe>
   <!-- v132(APP-DATA-LOADGUARD) T33/T34 用: DATA_KEY を事前 seed して独立起動させる（#app 側の状態を汚さないため別iframe）-->
   <iframe id="app2"></iframe>
+  <!-- v137(APP-DEMO-STATE) T40 用: 直前の #app2 インスタンスが dataLoadBlocked=false のまま残っていると、
+       srcdoc 差し替え時の unload で pagehide→persistState() が旧データを localStorage へ書き戻し、
+       新インスタンスの「まっさらなブート」を汚染するレースがある（#app2 を使い回す T39 の直後は特に）。
+       真の初期状態（seeded・組込サンプル12件）を検証するには専用の別iframeを使う。-->
+  <iframe id="app3"></iframe>
   <script>
     const SHIM = `<script>
     (function(){
@@ -126,6 +131,11 @@
         W.looksLikeSensitiveNumber('通帳は金庫')
       ], [true, false, true, true, false]));
       add('T20', () => assertDeepEqual([W.isBuiltInSampleContract({id:1,name:'Netflix'}), W.isBuiltInSampleContract({id:1,name:'改名'})], [true, false]));
+      // v137(APP-DEMO-STATE) T20b: 初期状態（組込サンプル12件のまま）は demoState 未保存でも 'seeded' と
+      // 導出され、isShowingDemo() も true のままであること。T33/T34（app2 使用）より前に置く＝
+      // app2 側のブート時に demoState が導出保存され、同一オリジンの localStorage を介して W 側の
+      // 判定結果を書き換えてしまう順序依存を避けるため。
+      add('T20b', () => assertDeepEqual([W.getDemoState(), W.isShowingDemo()], ['seeded', true]));
       add('T21', () => assertEqual(W.payMethodOf({}), 'credit_card'));
       add('T22', () => assertDeepEqual([W.daysUntilNext({cycle:'monthly',day:15}), W.daysUntilNext({cycle:'monthly',day:16})], [0, 1]));
       // APP-V2-AUTH(v95): Firebase Auth エラーコード→やさしい日本語（純関数・ネットワーク不要）
@@ -321,7 +331,10 @@
       if(captureMode){
         document.getElementById('capture').textContent = JSON.stringify(snapshots, null, 2);
       }else{
-        const goldens = await fetch('/tests/goldens.json').then(r => r.json());
+        // v137: cache:'no-store' 必須。指定が無いと、①ブラウザHTTPキャッシュ ②アプリ本体が localhost に
+        // 登録する Service Worker（cache-first）の2経路で goldens の旧版を掴み、更新済みなのに
+        // FAIL し続ける（実害あり・v137 セッションで遭遇）。app 本体の fetch(L85) と同じ扱いに揃える。
+        const goldens = await fetch('/tests/goldens.json', {cache: 'no-store'}).then(r => r.json());
         add('S01', () => assertEqual(snapshots.S01, goldens.S01));
         add('S02', () => assertDeepEqual(snapshots.S02, goldens.S02));
         add('S03', () => assertEqual(snapshots.S03, goldens.S03));
@@ -385,6 +398,80 @@
         assertDeepEqual(d.yearlyRows.map(r=>r.name), ['年額C','年額B']); // 1月→4月の順
         const empty = W.annualPlanData([]);
         assertDeepEqual([empty.total, empty.months.length, empty.yearlyRows.length, empty.max], [0, 12, 0, 0]);
+      });
+
+      // v137(APP-DEMO-STATE) T39: demoState 未保存（旧端末）＋サンプル契約(id1=Netflix)のみ、という
+      // 「startFresh後にサンプル名と同じ契約を1件だけ入力した」被害端末相当のデータから起動すると、
+      // 完全一致ではない（12件中1件）ため 'cleared' と導出され、バナー非表示・無料上限に数えられ・
+      // ログイン時データ消去ガードでも実データ扱いになること（Codexレビュー C-1: 旧被害端末の自動救済）。
+      add('T39', async () => {
+        const seeded = JSON.stringify({
+          version:'v20',
+          contracts:[{id:1,name:'Netflix',cat:'通信・デジタル',ownerId:'m1',cycle:'monthly',amount:1490,month:null,day:15,paymentMethod:'credit_card',tel:'',url:'',cancel:'',docs:[],memo:'',familyMessage:'',cardBrand:'',cardLast4:'',secret:'',visibility:{mode:'all',liveViewers:[],afterViewers:[]},archived:false}],
+          members:[{id:'m1',name:'あなた',color:'#185FA5'}],
+          invitations:[], categories:['その他'],
+          assets:[], cards:[], nextId:2, nextMemberId:2, nextAssetId:1, nextCardId:1
+        });
+        const W4 = await loadApp('app2', () => localStorage.setItem('kizuna-baton:data:v20', seeded));
+        assertDeepEqual(
+          [W4.getDemoState(), W4.isShowingDemo(), W4.deviceHasUnlinkedRealData(), W4.betaActiveContractCount()],
+          ['cleared', false, true, 1]
+        );
+      });
+      // v137(APP-DEMO-STATE) T40: startFresh() 実行前は 'seeded'（サンプル表示中）、実行後は
+      // 明示的に 'cleared' が保存されること（今回の実機報告「サンプル消去→契約入力→バナー再出現」の
+      // 再発防止＝以後は isFullSampleSet の偶然一致で 'seeded' へ逆戻りしない）。#app2 は直前の T39 で
+      // 非ブロック状態のまま残っており、srcdoc 差し替え時の unload-persistState レースで汚染され得るため
+      // 専用の #app3 を使う。
+      // 注: contracts は top-level let のため window プロパティとして外部から参照・変更できない
+      // （T33/T34 と同じ制約）。よって「消去後に同名契約を追加」までは localStorage 経由の T39 で担保する。
+      add('T40', async () => {
+        const W5 = await loadApp('app3');
+        assertEqual(W5.getDemoState(), 'seeded');
+        W5.confirm = () => true; // startFresh() の確認ダイアログをスタブ
+        W5.startFresh();
+        assertDeepEqual([W5.getDemoState(), W5.isShowingDemo()], ['cleared', false]);
+      });
+
+      // v137(APP-LOGODEV-NAME-JA) T41: 契約名からのドメイン推定。日本語/カタカナ表記でも当たること
+      // （従来は英字のみ＝「ネットフリックス」と入力するとロゴが出なかった＝オーナー実機FB）。
+      // 優先順位＝logoDomain > URL抽出 > 名前ヒント、も同時に確認する。
+      add('T41', () => {
+        assertDeepEqual([
+          W.inferLogoDomain({name:'Netflix'}),
+          W.inferLogoDomain({name:'ネットフリックス'}),
+          W.inferLogoDomain({name:'アマゾンプライム'}),
+          W.inferLogoDomain({name:'東京ガス'}),
+          W.inferLogoDomain({name:'名も無きサービス'}),
+          W.inferLogoDomain({name:'ネットフリックス', url:'https://example.com/cancel'}), // URL が名前ヒントより優先
+          W.inferLogoDomain({name:'ネットフリックス', logoDomain:'foo.jp'})                // logoDomain が最優先
+        ], ['netflix.com','netflix.com','amazon.co.jp','tokyo-gas.co.jp','','example.com','foo.jp']);
+      });
+      // v137(APP-LOGODEV-REFERRER) T42: ロゴ img に referrerpolicy が付いていること。
+      // ページ全体の <meta name="referrer" content="no-referrer">（v124）のままだと Logo.dev が
+      // 401 を返しロゴが常に表示されない＝この属性が退行防止の要。
+      add('T42', () => {
+        const html = W.iconWithLogoHtml('ti-wifi', '#000', 'https://img.logo.dev/netflix.com?token=x', 'Netflix');
+        assertEqual(/referrerpolicy="strict-origin-when-cross-origin"/.test(html), true);
+      });
+      // v137(APP-ONBOARD-BACK) T43: チュートリアルの戻る導線。1ページ目では出さず、進むと出て、
+      // 戻ると再び消えること。onboardingStep は top-level let（window プロパティにならない＝T33/T34 と
+      // 同じ制約）ので、状態は「表示中のページ」と「戻るボタンの表示」の DOM から観測する。
+      add('T43', () => {
+        const prev = W.document.getElementById('ob-prev-btn');
+        const shownStep = () => {
+          const el = [...W.document.querySelectorAll('#onboarding-modal .ob-step')]
+            .find(e => e.style.display === 'block');
+          return el ? Number(el.dataset.step) : 0;
+        };
+        W.openOnboarding();                                    // step=1 へリセット
+        const s1 = [shownStep(), prev.style.display];
+        W.onboardingNext();
+        const s2 = [shownStep(), prev.style.display];
+        W.onboardingPrev();
+        const s3 = [shownStep(), prev.style.display];
+        W.closeOnboarding();                                   // 後続に影響を残さない
+        assertDeepEqual([s1, s2, s3], [[1, 'none'], [2, ''], [1, 'none']]);
       });
 
       let pass = 0;

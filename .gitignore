@@ -35,6 +35,22 @@ native/www/
 /docs/codex-refactor-exec-prompt-paste.md
 # 事業戦略レビュー（内部・2026-07-03 追加）
 /docs/biz-strategy-review-2026-07-03.md
+# App Store 販売者名変更のIAP照会ドラフト（Team ID/DUNS/アカウント情報を含む内部・2026-07-18 追加）
+/docs/appstore-seller-name-iap-inquiry-draft.md
+# 内部の戦略・分析・提出パック・オーナー実務文案（公開リポジトリに載せない・2026-08-05 追加）
+/docs/android-release-plan.md
+/docs/aso-improvement-plan.md
+/docs/funnel-fix-owner-actions.md
+/docs/app-postlaunch-notice-prep.md
+/docs/appstore-v16-submission.md
+/docs/native-v137-fixplan-backup-demo-nudge.md
+# 外部AI引き継ぎプロンプト（内部・2026-08-05 追加。既存の codex-refactor-exec と同じ扱い）
+/docs/codex-android-strategy-prompt-paste.md
+/docs/codex-customerjourney-audit-prompt-paste.md
+/docs/codex-fixplan-v137-prompt-paste.md
+/docs/codex-paidplan-expand-prompt-paste.md
+/docs/codex-preflight-audit-v131-prompt-paste.md
+/docs/codex-testfeature-audit-prompt-paste.md
 node_modules/
 
 # 引き継ぎドキュメント（ブラウザ用・各種派生も含め内部扱い）

@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v136</title>
+<title>きずなbaton v137</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -504,6 +504,8 @@ img.owner-dot{width:20px;padding:0}
 .form-row textarea{resize:none;height:60px;line-height:1.5}
 .form-row.error input,.form-row.error select,.form-row.error textarea{border-color:var(--home-danger);background:var(--home-danger-bg)}
 .form-row .field-error{font-size:12px;color:var(--home-danger);margin-top:4px;line-height:1.4;display:flex;align-items:center;gap:3px}
+/* v137(APP-LOGODEV-NAME-JA): 入力欄の補足説明（エラーではない案内）。 */
+.form-row .form-hint{font-size:12px;color:var(--color-text-tertiary);margin-top:4px;line-height:1.4}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .form-section-title{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:5px}
 .checkbox-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-text-secondary);margin-bottom:8px}
@@ -928,7 +930,7 @@ img.owner-dot{width:20px;padding:0}
     <div class="modal">
       <button class="modal-close-text" onclick="closeModal()" aria-label="閉じる">閉じる</button>
       <h2 id="modal-title"><i class="ti ti-plus"></i>契約を追加</h2>
-      <div class="form-row"><label>契約名<span class="req">必須</span></label><input type="text" id="f-name" placeholder="例: Netflix"></div>
+      <div class="form-row"><label>契約名<span class="req">必須</span></label><input type="text" id="f-name" placeholder="例: 動画配信サービス"></div>
       <div class="form-grid">
         <div class="form-row"><label>カテゴリ</label><select id="f-cat"></select></div>
         <div class="form-row"><label>契約者</label><select id="f-owner"></select></div>
@@ -978,7 +980,7 @@ img.owner-dot{width:20px;padding:0}
       <button type="button" class="collapse-toggle" id="opt1-toggle" aria-expanded="false" aria-controls="opt1-section" onclick="toggleFormSection('opt1')"><i class="ti ti-chevron-right collapse-chevron"></i>連絡先・解約の情報を追加（任意）</button>
       <div class="collapse-section" id="opt1-section" hidden>
         <div class="form-row"><label>契約先の電話番号</label><input type="text" id="f-tel" placeholder="例: 0120-xxx-xxx"></div>
-        <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."></div>
+        <div class="form-row"><label>解約サイトURL</label><input type="text" id="f-url" placeholder="例: https://..."><div class="form-hint">入れておくと、その会社のロゴが一覧に表示されます</div></div>
         <div class="form-row"><label>解約方法</label><textarea id="f-cancel" placeholder="例: マイページ → 解約手続き"></textarea></div>
         <div class="form-row"><label>必要書類（カンマ区切り）</label><input type="text" id="f-docs" placeholder="例: 保険証, 印鑑"></div>
         <div class="form-row"><label>メモ</label><input type="text" id="f-memo" placeholder="例: 家族プラン"></div>
@@ -1217,7 +1219,9 @@ img.owner-dot{width:20px;padding:0}
 
       <div class="btn-row" style="margin-top:10px">
         <button onclick="skipOnboarding()" style="font-size:13px;color:var(--color-text-tertiary)">スキップ</button>
-        <button id="ob-next-btn" class="btn-primary" onclick="onboardingNext()"><i class="ti ti-arrow-right"></i> 次へ</button>
+        <!-- v137(APP-ONBOARD-BACK): 読み飛ばしても前の説明に戻れるように（オーナー実機FB）。1ページ目では出さない。 -->
+        <button id="ob-prev-btn" onclick="onboardingPrev()" style="font-size:13px;color:var(--color-text-secondary);display:none"><i class="ti ti-arrow-left"></i> 戻る</button>
+        <button id="ob-next-btn" class="btn-primary" style="flex:1.4" onclick="onboardingNext()"><i class="ti ti-arrow-right"></i> 次へ</button>
       </div>
     </div>
   </div>
@@ -1263,6 +1267,41 @@ img.owner-dot{width:20px;padding:0}
       <div class="btn-row">
         <button onclick="closePostlaunchNotice(false)" style="font-size:12px;color:var(--color-text-tertiary)">あとで</button>
         <button class="btn-primary" onclick="closePostlaunchNotice(true)"><i class="ti ti-cloud-heart"></i> クラウド保存を設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v137(APP-BACKUP-NATIVE): 既存iOS利用者向け1回案内。バックアップが機能していなかった件の是正告知。 -->
+  <div class="modal-bg center" id="backup-renotice-modal">
+    <div class="modal notice">
+      <div class="notice-icon"><i class="ti ti-file-check"></i></div>
+      <h3>バックアップ機能を改善しました</h3>
+      <p style="text-align:left">
+        以前に「データをバックアップ」を操作された場合も、念のため最新版でもう一度の書き出しをおすすめします。
+      </p>
+      <div class="btn-row">
+        <button onclick="closeBackupRenotice(false)" style="font-size:12px;color:var(--color-text-tertiary)">あとで</button>
+        <button class="btn-primary" onclick="closeBackupRenotice(true)"><i class="ti ti-download"></i> 今すぐ書き出す</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- v137(APP-ACCOUNT-NUDGE): 未アカウントでのアプリ削除によるデータ消滅への気づき導線。
+       サンプル消去後、最初の本人契約を保存した直後に1回だけ表示する（Codexレビュー D-2）。 -->
+  <div class="modal-bg center" id="account-nudge-modal">
+    <div class="modal notice">
+      <div class="notice-icon"><i class="ti ti-shield-heart"></i></div>
+      <h3>大切な記録を守る準備</h3>
+      <p style="text-align:left">
+        今の記録は、この端末に保存されています。アプリを削除すると、この端末の記録も消えます。<br><br>
+        アカウントを作成し、「クラウドにも保存する」を設定すると、端末の故障や買い替えに備えられます。ご家族とつながる準備にもなります。
+      </p>
+      <p style="text-align:left;font-size:12px;color:var(--color-text-tertiary)">
+        設定からいつでも始められます。「データをバックアップ」での書き出しもできます。
+      </p>
+      <div class="btn-row">
+        <button onclick="closeAccountNudge(false)" style="font-size:12px;color:var(--color-text-tertiary)">今は端末に保存する</button>
+        <button class="btn-primary" onclick="closeAccountNudge(true)"><i class="ti ti-cloud-heart"></i> アカウントを作る・ログイン</button>
       </div>
     </div>
   </div>
@@ -1898,7 +1937,28 @@ const SAMPLE_CONTRACT_NAMES_BY_ID=Object.freeze({
   12:'携帯電話（らくらくホン）'
 });
 function isBuiltInSampleContract(c){return SAMPLE_CONTRACT_NAMES_BY_ID[c.id]===c.name;}
-function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isBuiltInSampleContract(c)).length;}
+// v137(APP-DEMO-STATE): 「今表示中の契約一式が、組込サンプル一式と完全に（件数も）一致するか」。
+// isBuiltInSampleContract は id/name の一致判定のみのため、ユーザーが契約名を「Netflix」等の
+// サンプル名と同じにしただけでも真になり得る。demoState 未保存の旧端末を安全側に判定するための
+// 「完全一致」チェックはこちらを使う（部分一致はcleared側＝実データ扱いに倒す）。
+function isFullSampleSet(list){
+  const ids=Object.keys(SAMPLE_CONTRACT_NAMES_BY_ID);
+  return Array.isArray(list)&&list.length===ids.length&&list.every(isBuiltInSampleContract);
+}
+// v137(APP-DEMO-STATE): サンプル/実データの明示状態。'seeded'=組込サンプル表示中／'cleared'=
+// ユーザーが自分のデータで開始済み。未保存の端末（旧バージョン・復元直後など）は現在の契約から
+// 導出し、以後の判定を安定させるため保存して固定化する（同じ入力に対し以後も同じ結果を返す）。
+function getDemoState(){
+  const v=lsGet(DEMO_STATE_KEY);
+  if(v==='seeded'||v==='cleared')return v;
+  const derived=isFullSampleSet(contracts)?'seeded':'cleared';
+  lsSet(DEMO_STATE_KEY,derived);
+  return derived;
+}
+// v137(APP-DEMO-STATE): 「今この契約が“サンプルとして”扱われるべきか」。demoState が cleared なら
+// たとえ id/name がサンプルと一致していても実データとして扱う（isShowingDemo 等の判定に使用）。
+function isDemoSampleContract(c){return getDemoState()==='seeded'&&isBuiltInSampleContract(c);}
+function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isDemoSampleContract(c)).length;}
 // APPSTORE-IAP(v82): 家族プラン(竹/isPaid)は無制限。無料(梅)は CONTRACT_BETA_MAX 件まで。
 function contractLimitReached(){return !isPaid && betaActiveContractCount()>=CONTRACT_BETA_MAX;}
 
@@ -2518,9 +2578,11 @@ function renderSettingsModal(){
   </div>`;
   // v129(APP-LOGODEV-UI-REMOVE): pk_ 入力 prompt は利用者向け設定として不適切のため削除。
   // 帰属リンク（Logos provided by Logo.dev）は利用条件のため非対話の行として維持。
+  // v137(APP-LOGODEV-COPY): 行名・subが「設定項目」に見えるため、ロゴは自動表示でユーザー操作は
+  // 不要であることが伝わる文言へ是正（オーナー実機FB）。リンク自体は利用条件のため維持。
   html+=`<div class="switch-item" style="cursor:default">
     <div class="av" style="background:#0F6E56"><i class="ti ti-photo" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">サービスロゴの表示</div><div class="sub"><a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logos provided by Logo.dev</a></div></div>
+    <div class="info"><div class="name">サービスロゴについて</div><div class="sub">ロゴは自動で表示されます（提供: <a href="https://logo.dev" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Logo.dev</a>）</div></div>
   </div>`;
   // APPSTORE-NATIVE-LOCK(v79): アプリロック（native かつ生体利用可能時のみ表示。Web/非対応端末では出さない）
   if(IS_NATIVE && appLockSupported){
@@ -2575,7 +2637,7 @@ function renderSettingsModal(){
   </div>`;
   html+=`<div class="switch-item" onclick="doBackup()">
     <div class="av" style="background:var(--accent-warm)"><i class="ti ti-download" style="font-size:14px"></i></div>
-    <div class="info"><div class="name">データをバックアップ</div><div class="sub">${IS_NATIVE?'JSONファイルとして書き出し（他端末への保管用）':'JSONファイルとして書き出し（アプリ版への引き継ぎにも使えます）'}</div></div>
+    <div class="info"><div class="name">データをバックアップ</div><div class="sub">${IS_NATIVE?'共有シートで「"ファイル"に保存」を選ぶと、この端末に保存できます':'JSONファイルとして書き出し（アプリ版への引き継ぎにも使えます）'}</div></div>
     <i class="ti ti-chevron-right" style="color:var(--color-text-tertiary)"></i>
   </div>`;
   html+=`<div class="switch-item" onclick="triggerRestore()">
@@ -2949,19 +3011,69 @@ function daysUntilLabel(d){
 function iconWithLogoHtml(iconClass,tcolor,logoUrl,alt){
   const base=`<i class="ti ${iconClass}" style="color:${tcolor}"></i>`;
   if(!logoUrl)return base;
-  return `${base}<img class="logo-img" src="${esc(logoUrl)}" alt="${esc(alt||'')}" loading="lazy" decoding="async" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();">`;
+  // v137(APP-LOGODEV-REFERRER): referrerpolicy を img 個別に指定。ページ全体の
+  // <meta name="referrer" content="no-referrer">（v124 APP-SEC-CSP で導入）のままだと
+  // Referer が一切送られず、Logo.dev が Allowed Domains 判定で 401 を返す＝ロゴが常に
+  // onerror へ落ちて表示されなかった（v124 以降の恒常的な不具合。実測: Referer 無し=401／
+  // https://bati10inter-cmd.github.io=200／capacitor://localhost=200）。
+  // strict-origin-when-cross-origin はオリジン（スキーム+ホスト）のみを送りパス・クエリは
+  // 送らないため、「どの契約を見ているか」は漏れない＝PP 第2条②の開示範囲（ドメイン名のみ送信）と整合。
+  //
+  // ⚠️ native（Capacitor）では依然としてロゴが出ない＝これは仕様上の制約であり本コードの不足ではない。
+  // Referrer Policy 仕様 §8.4「Strip url for use as a referrer」は "If url's scheme is not an
+  // HTTP(S) scheme, then return no referrer" と定めるため、オリジンが capacitor://localhost の
+  // WKWebView からは referrerpolicy をどう指定しても Referer が送られない（origin / unsafe-url でも同じ）。
+  // 実機 iPhone 12 で strict-origin-when-cross-origin・origin の双方を実測し、いずれも非表示を確認済み。
+  // 解決するには (a) Logo.dev 側のドメイン制限を解除する か (b) capacitor.config.json の
+  // iosScheme を 'https'（＝https://localhost）へ変更する のいずれかが必要＝別タスク [[APP-LOGODEV-NATIVE]]。
+  return `${base}<img class="logo-img" src="${esc(logoUrl)}" alt="${esc(alt||'')}" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();">`;
 }
+// v137(APP-LOGODEV-NAME-JA): 契約名からドメインを推定するヒント表。
+// 従来は英字4件（netflix/amazon/nhk/東京電力）のみで、「ネットフリックス」等の日本語表記では
+// 当たらず、URL 欄も空だとロゴが出なかった（オーナー実機FB）。終活層が契約していそうな主要どころに限り
+// 日本語/カタカナ表記を追加する。網羅は目的ではない（URL を入れれば extractDomainFromUrl が優先される）。
+// ⚠️'au' のような2文字の略称は 'auto'/'beauty' 等に誤マッチするため入れない。
+const LOGO_DOMAIN_HINTS=Object.freeze([
+  [['netflix','ネットフリックス'],'netflix.com'],
+  [['amazon','アマゾン'],'amazon.co.jp'],
+  [['youtube','ユーチューブ'],'youtube.com'],
+  [['spotify','スポティファイ'],'spotify.com'],
+  [['disney','ディズニープラス'],'disneyplus.com'],
+  [['hulu','フールー'],'hulu.jp'],
+  [['u-next','unext','ユーネクスト'],'unext.jp'],
+  [['wowow'],'wowow.co.jp'],
+  [['dazn'],'dazn.com'],
+  [['docomo','ドコモ'],'docomo.ne.jp'],
+  [['softbank','ソフトバンク'],'softbank.jp'],
+  [['ワイモバイル','ymobile'],'ymobile.jp'],
+  [['楽天','rakuten'],'rakuten.co.jp'],
+  [['yahoo','ヤフー'],'yahoo.co.jp'],
+  [['apple','アップル'],'apple.com'],
+  [['google','グーグル'],'google.com'],
+  [['microsoft','マイクロソフト'],'microsoft.com'],
+  [['adobe','アドビ'],'adobe.com'],
+  [['nhk'],'nhk.or.jp'],
+  [['東京電力','tepco'],'tepco.co.jp'],
+  [['関西電力','kepco'],'kepco.co.jp'],
+  [['中部電力'],'chuden.co.jp'],
+  [['東京ガス'],'tokyo-gas.co.jp'],
+  [['大阪ガス'],'osakagas.co.jp'],
+  [['読売'],'yomiuri.co.jp'],
+  [['朝日新聞'],'asahi.com'],
+  [['日経','日本経済新聞'],'nikkei.com'],
+  [['毎日新聞'],'mainichi.jp'],
+  [['jaf'],'jaf.or.jp']
+]);
 function inferLogoDomain(c){
   if(!c)return '';
   const fromData=(c.logoDomain||'').trim();
   if(fromData)return fromData;
   const fromUrl=extractDomainFromUrl(c.url);
   if(fromUrl)return fromUrl;
-  const n=(c.name||'').toLowerCase();
-  if(n.includes('netflix'))return 'netflix.com';
-  if(n.includes('amazon'))return 'amazon.co.jp';
-  if(n.includes('nhk'))return 'nhk.or.jp';
-  if(n.includes('東京電力')||n.includes('tepco'))return 'tepco.co.jp';
+  const n=(c.name||'').toLowerCase(); // 日本語は toLowerCase の影響を受けない＝そのまま照合できる
+  for(const [keys,domain] of LOGO_DOMAIN_HINTS){
+    if(keys.some(k=>n.includes(k)))return domain;
+  }
   return '';
 }
 
@@ -3182,7 +3294,8 @@ function renderCalendar(){
         const url=dom?logoDevImageUrl(dom,32):'';
         const bg=catColorOf(c.cat);
         // v136(APP-CJ-AUDIT): ロゴ読込失敗時に何も残らなかったため、色ドットを常に敷いてロゴを重ねる。
-        if(url)return `<span class="cal-marker-wrap"><span class="cal-marker dot" style="background:${bg}"></span><img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();"></span>`;
+        // v137(APP-LOGODEV-REFERRER): iconWithLogoHtml と同じ理由で referrerpolicy を明示（no-referrer だと 401）。
+        if(url)return `<span class="cal-marker-wrap"><span class="cal-marker dot" style="background:${bg}"></span><img class="cal-marker" src="${esc(url)}" alt="" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin" onload="if(this.previousElementSibling)this.previousElementSibling.style.visibility='hidden';" onerror="this.onerror=null;this.remove();"></span>`;
         return `<span class="cal-marker dot" style="background:${bg}"></span>`;
       }).join('');
       const more=dayContracts.length>3?`<span class="cal-more">+${dayContracts.length-3}</span>`:'';
@@ -3402,7 +3515,7 @@ function showDetail(id){
     :'';
 
   // サンプル契約のみ「家族への一言」を既定で展開（自分データはプライバシー配慮で折畳維持）
-  const fmOpen=isBuiltInSampleContract(c);
+  const fmOpen=isDemoSampleContract(c); // v137: demoState=cleared 後は同名でも実データ扱い（折畳）
 
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">
@@ -3857,6 +3970,7 @@ function addContract(){
   contracts.push({id:nextId++,...data,archived:false});
   persistState();
   closeModal();renderList();updateSummary();
+  maybeShowAccountNudge(); // v137(APP-ACCOUNT-NUDGE): closeModal 済みでモーダル無し＝ガードが正しく評価される
 }
 
 function openEditModal(){
@@ -4173,6 +4287,12 @@ const IAP_PRODUCTS={monthly:'io.dorize.kizunabaton.take.monthly',yearly:'io.dori
 // （画面表示済みの書面HTMLを渡すだけ）。native かつ同梱時のみ非null＝Web/未同梱では contentWindow.print() へ後方互換。
 const NativePrint=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('KizunaPrint'))
   ? window.Capacitor.Plugins.KizunaPrint : null;
+// v137(APP-BACKUP-NATIVE): データ書き出し（バックアップ/JSONエクスポート）用ネイティブプラグイン
+// (KizunaSharePlugin)。NativePrint と同じ Plugins プロキシ方式。公開メソッドは
+// shareFile({filename,data}) のみ・機密は扱わない（既に組み立て済みのJSON文字列をそのままファイル化するだけ）。
+// native かつ同梱時のみ非null＝Web/未同梱（旧バイナリ）では下記 shareJsonNative 内で分岐する。
+const NativeShare=(IS_NATIVE&&window.Capacitor.isPluginAvailable&&window.Capacitor.isPluginAvailable('KizunaShare'))
+  ? window.Capacitor.Plugins.KizunaShare : null;
 const DATA_KEY='kizuna-baton:data:v20';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はデフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
@@ -4207,6 +4327,14 @@ const SHARED_OWNERS_KEY='kizuna-baton:sharedowners:v1';
 // APP-FUNNEL-KPI(v128): paywall 初回表示の計上済フラグ（端末ごとに1回のみ）。
 // 値は '1' のみ＝個人情報を含まない。backup JSON には含めない（端末固有・doBackup対象外）。
 const PAYWALL_VIEW_KEY='kizuna-baton:paywall-view:v128';
+// v137(APP-DEMO-STATE): 「サンプルを消して入力する」後もplaceholder等の偶然一致でサンプル扱いに
+// 戻ってしまう誤判定（バナー再出現・無料上限除外・ログイン時データ消去ガード誤爆）を恒久修正するため、
+// ヒューリスティック（id/name一致）ではなく明示状態として保持する。値は 'seeded'|'cleared'。
+const DEMO_STATE_KEY='kizuna-baton:demo-state:v1';
+// v137(APP-BACKUP-RENOTICE): native バックアップが機能していなかった件の既存利用者向け1回案内。
+const BACKUP_RENOTICE_KEY='kizuna-baton:notice:backup-renotice:v1';
+// v137(APP-ACCOUNT-NUDGE): 未アカウントのままアプリ削除でデータを失うことへの気づき導線（1回のみ）。
+const ACCOUNT_NUDGE_KEY='kizuna-baton:notice:account-nudge:v1';
 let appLockSupported=false;  // boot で checkBiometry 判定をキャッシュ（設定トグル表示条件）
 let appUnlocked=false;       // 当該起動でロック解除済みか（自動ロック判定に使用）
 const nativeCache={};                 // native: Preferences の同期ミラー
@@ -4215,7 +4343,7 @@ const NATIVE_MIGRATED_KEY='kizuna-baton:native-migrated:v1';
 // 移行/バックアップ対象の全キー。新キー追加時はここに登録すること。
 // 意図的に除外: PAID_FLAG_KEY（起動時にStoreKitで再判定）/ APP_LOCK_KEY は含む /
 // NATIVE_MIGRATED_KEY（移行フラグ自身）/ DATA_KEY内に含まれないSW・セッション系なし
-const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,POSTLAUNCH_NOTICE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY,PAYWALL_VIEW_KEY];
+const STORAGE_KEYS=[DATA_KEY,CONSENT_KEY,CONSENT_LOG_KEY,ONBOARDING_KEY,DARK_MODE_KEY,LARGE_MODE_KEY,SORT_KEY,LOGO_DEV_TOKEN_KEY,PREVIEW_NUDGE_KEY,POSTLAUNCH_NOTICE_KEY,APP_LOCK_KEY,CLOUD_KEY,CLOUD_SYNC_KEY,SHARED_OWNERS_KEY,PAYWALL_VIEW_KEY,DEMO_STATE_KEY,BACKUP_RENOTICE_KEY,ACCOUNT_NUDGE_KEY];
 function lsGet(k){
   if(NativePref){const v=nativeCache[k];return v===undefined?null:v;}
   try{return localStorage.getItem(k);}catch(e){return null;}
@@ -4687,6 +4815,10 @@ async function confirmCloudSignout(){
     if(backed&&!stillDirty){
       suppressPersist=true; // pagehide/visibilitychange 安全網の書き戻しを止める（消したDATA_KEYが復活しないように）
       lsRemove(DATA_KEY);   // クリーン再初期化＝デモ/空へ戻り、アカウント記録が非表示に
+      // v137(APP-DEMO-STATE): DEMO_STATE_KEY だけ残ると reload 後の再seedサンプルが cleared のまま
+      // （実データ扱い）になり、ログイン時ガード等で逆に誤判定する。DATA_KEY と一緒に消し、
+      // 再seed後の導出で 'seeded' に戻す。
+      lsRemove(DEMO_STATE_KEY);
       location.reload();
       return;
     }
@@ -4939,7 +5071,14 @@ async function submitEnableCloudSync(){
     try{lsSet(CONSENT_LOG_KEY,JSON.stringify(log));}catch(e){}
     setCloudSync({version:1,uid:cloudUser.uid,enabled:true,dirty:true,lastSyncAt:null,manifest:{contracts:[],contractSecrets:[],assets:[],cards:[],members:[],categories:[]}});
     await runCloudSync();
-    showToast('クラウドへの保存をはじめました','success');
+    // v137(APP-TOAST-HONESTY): runCloudSync は通信失敗を静かに保持するだけで例外を投げない（Codexレビュー T-2）。
+    // 有効化自体は成立するためエラー扱いにはせず、初回送信が未完了の場合は文言を変えて誤解を防ぐ。
+    const syncedNow=getCloudSync();
+    if(syncedNow&&syncedNow.dirty){
+      showToast('クラウド保存をオンにしました。通信でき次第、自動で保存します');
+    }else{
+      showToast('クラウドへの保存をはじめました','success');
+    }
     renderCloudAccountModal('signedin');
     renderSettingsModal();
   }catch(e){showCloudError(cloudSyncErrorMessage(e));}
@@ -4999,7 +5138,7 @@ function refreshCloudSyncStatusLine(){
 const SAMPLE_MEMBER_IDS=['m1','m2','m3','m4'];
 function deviceHasUnlinkedRealData(){
   return assets.length>0
-    || contracts.some(c=>!isBuiltInSampleContract(c))
+    || contracts.some(c=>!isDemoSampleContract(c)) // v137: demoState=cleared なら全契約を実データ扱い
     || members.some(m=>!SAMPLE_MEMBER_IDS.includes(m.id));
 }
 // この端末のデータが uid のクラウドに保存済みか（＝ローカルを損失なく消せる）
@@ -5056,6 +5195,9 @@ function applyOwnCloudSnapshot(snap){
   const sc=document.getElementById('search-clear');if(sc)sc.style.display='none';
   // v132(APP-DATA-LOADGUARD): クラウドの良品データを取得できた＝正当な復旧経路。ブロックを解除して保存を再開する。
   if(dataLoadBlocked){dataLoadBlocked=false;hideDataErrorOverlay();document.getElementById('data-warning-banner').classList.remove('show');}
+  // v137(APP-DEMO-STATE): クラウド由来には demoState を持たないため、pull した契約一式から都度導出する
+  // （クラウド上に組込サンプル一式のみがある端末＝本当にサンプルのままの利用者、それ以外は cleared）。
+  lsSet(DEMO_STATE_KEY,isFullSampleSet(contracts)?'seeded':'cleared');
   persistState();
   renderAll();
 }
@@ -5067,6 +5209,11 @@ function resetLocalToClean(){
   invitations=[];assets=[];cards=[];
   nextId=1;nextMemberId=2;nextAssetId=1;nextCardId=1;
   selectedId=null;viewOwnerId=MY_ID;
+  // v137(APP-DEMO-STATE): 呼出元（別アカウント作成・空クラウド採用・破損データからの新規開始）は
+  // いずれも「空＋既定m1」から実データが積み上がっていく起点＝サンプル一式ではないので cleared。
+  // ここで固定しておかないと、最初の契約を「Netflix」等サンプル名で入力した瞬間に
+  // isFullSampleSet 導出でサンプル扱いへ逆戻りし得る。
+  lsSet(DEMO_STATE_KEY,'cleared');
   persistState();
   renderAll();
 }
@@ -5302,7 +5449,10 @@ function isShowingDemo(){
   // 表示中の契約がすべて組込サンプルのときデモ扱い（DATA_KEY の有無に依存しない）。
   // 理由: pagehide 安全網(APP-S83-3)がサンプルを保存し得るため、保存有無で判定すると
   // 再訪時にバナーが出ない。クリア後(空=length0)・自分の契約を追加/編集した後は自動で false。
-  return contracts.length>0 && contracts.every(isBuiltInSampleContract);
+  // v137(APP-DEMO-STATE): id/nameだけの一致判定(isBuiltInSampleContract)だと、ユーザーが
+  // 最初の契約に「Netflix」等サンプルと同名を付けただけで誤ってデモ扱いに戻ってしまうため、
+  // 明示状態(demoState)を優先する isDemoSampleContract を使う。
+  return contracts.length>0 && contracts.every(isDemoSampleContract);
 }
 function renderDemoBanner(){
   const bar=document.getElementById('demo-banner');
@@ -5318,6 +5468,7 @@ function startFresh(){
   nextId=1;
   nextMemberId=2;
   viewOwnerId=MY_ID; // 削除済みメンバーを指したままにしない
+  lsSet(DEMO_STATE_KEY,'cleared'); // v137(APP-DEMO-STATE): 以後は placeholder 等の偶然一致でもサンプル扱いに戻さない
   persistState();    // 以降は自分の入力を保存
   renderAll();       // renderList 内で renderDemoBanner() が走りバナーは消える
   showToast('自分のデータで始めます');
@@ -5382,10 +5533,19 @@ function renderOnboardingStep(){
   } else {
     btn.innerHTML='<i class="ti ti-arrow-right"></i> 次へ';
   }
+  // v137(APP-ONBOARD-BACK): 1ページ目には戻り先がないので出さない。
+  const prev=document.getElementById('ob-prev-btn');
+  if(prev)prev.style.display=(onboardingStep>1)?'':'none';
 }
 function onboardingNext(){
   if(onboardingStep>=4){closeOnboarding();return;}
   onboardingStep++;
+  renderOnboardingStep();
+}
+// v137(APP-ONBOARD-BACK): 前のページへ戻る（読み飛ばした説明を読み直せるように）。
+function onboardingPrev(){
+  if(onboardingStep<=1)return;
+  onboardingStep--;
   renderOnboardingStep();
 }
 function skipOnboarding(){closeOnboarding();}
@@ -5436,6 +5596,44 @@ function maybeShowPostlaunchNotice(){
 function closePostlaunchNotice(go){
   lsSet(POSTLAUNCH_NOTICE_KEY,'1'); // ［あとで］でも既読＝二度は出さない
   closeModalById('postlaunch-notice-modal');
+  if(go){openCloudAccountModal();return;}
+  maybeOpenPendingInviteAccept(); // チェーン末尾
+}
+// v137(APP-BACKUP-NATIVE): native バックアップが機能していなかった件の既存利用者向け1回案内。
+// postlaunch-notice と同型のガード（native限定・初回起動ユーザーは対象外・他モーダルが開いていれば見送り）。
+function maybeShowBackupRenotice(){
+  if(!IS_NATIVE) return false; // Web は元々 blob 経路が正常に動作している＝対象外
+  if(lsGet(BACKUP_RENOTICE_KEY)) return false;
+  if(isFirstRunLaunch){ lsSet(BACKUP_RENOTICE_KEY,'1'); return false; } // 新規ユーザーには不要
+  if(pendingCloudInviteToken) return false;
+  if(document.querySelector('.modal-bg.open')) return false;
+  openModalById('backup-renotice-modal');
+  return true;
+}
+function closeBackupRenotice(go){
+  lsSet(BACKUP_RENOTICE_KEY,'1'); // ［あとで］でも既読＝二度は出さない
+  closeModalById('backup-renotice-modal');
+  if(go){doBackup();return;}
+  maybeOpenPendingInviteAccept(); // チェーン末尾
+}
+// v137(APP-ACCOUNT-NUDGE): 未アカウントのままアプリ削除でデータを失うことへの気づき導線。
+// 「サンプル消去後、最初の本人契約を保存した直後」に addContract() から呼ばれる（Codexレビュー D-2:
+// サンプル消去直後はまだ守るデータが無く、確認ダイアログ→トースト→モーダルの連続で入力開始を遮るため不採用）。
+// 表示できた時だけ既読化＝閉じたモーダルに阻まれて出せなかった回はカウントしない。
+function maybeShowAccountNudge(){
+  if(!FEATURES.cloudSync) return false;
+  if(cloudUser || getCloudLink()) return false; // 既にアカウントあり
+  if(lsGet(ACCOUNT_NUDGE_KEY)) return false;
+  if(getDemoState()!=='cleared') return false; // サンプル表示中はまだ「守るデータ」がない
+  if(dataLoadBlocked) return false;
+  if(pendingCloudInviteToken) return false; // 招待受諾を最優先
+  if(document.querySelector('.modal-bg.open')) return false;
+  lsSet(ACCOUNT_NUDGE_KEY,'1');
+  openModalById('account-nudge-modal');
+  return true;
+}
+function closeAccountNudge(go){
+  closeModalById('account-nudge-modal');
   if(go){openCloudAccountModal();return;}
   maybeOpenPendingInviteAccept(); // チェーン末尾
 }
@@ -5639,7 +5837,11 @@ async function copyInviteUrl(){
     }else{
       const ta=document.createElement('textarea');
       ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
-      document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+      document.body.appendChild(ta);ta.select();
+      // v137(APP-TOAST-HONESTY): execCommand の戻り値を無視すると失敗時も成功表示になる（Codexレビュー T-1）。
+      const ok=document.execCommand('copy');
+      ta.remove();
+      if(!ok)throw new Error('execCommand copy failed');
     }
     showToast('招待URLをコピーしました');
   }catch(e){
@@ -6127,7 +6329,36 @@ function openExportModal(){
 function closeExportModal(){closeModalById('export-modal');}
 
 // ToS 15.7 / PP 14.5: 本人のみが本人所有の契約データを JSON 形式で書き出せる
-function doExportJSON(){
+// v137(APP-BACKUP-NATIVE): データ書き出し（バックアップ/JSONエクスポート）共通ヘルパー。
+// native かつ KizunaShare 同梱時は共有シート経由でファイル化し、結果に応じたトーストを出す
+// （Codexレビュー B-1: UIActivityViewController の completed は Files 保存の保証ではないため
+// 「保存しました」ではなく「書き出しが完了しました」と表現する）。
+// Web（IS_NATIVE=false）は false を返し、呼出元が従来の blob ダウンロード経路を続行する。
+// IS_NATIVE かつプラグイン未同梱（旧バイナリ）は blob も機能しないため、無条件成功表示（旧不具合）を
+// 出さずエラー案内のみ返す（Codexレビュー B-2: 虚偽成功表示の全廃）。
+// 戻り値: true=native経路で処理済み（呼出元は追加処理不要）／false=呼出元がWeb経路を続行する必要あり。
+let shareBusy=false;
+async function shareJsonNative(filename,json,completeMessage){
+  if(!IS_NATIVE)return false;
+  if(shareBusy)return true; // 二重タップは native 経路として吸収（blob フォールバックは走らせない）
+  if(!NativeShare){
+    showToast('この版ではアプリ内から保存できません。App Storeから最新版へアップデートしてください','error');
+    return true;
+  }
+  shareBusy=true;
+  try{
+    const r=await NativeShare.shareFile({filename,data:json});
+    if(r&&r.status==='completed')showToast(completeMessage,'success');
+    // cancelled はトーストなし（ユーザーが共有シートを閉じただけ＝失敗ではない）
+  }catch(e){
+    showToast('書き出しを開始できませんでした。しばらくしてもう一度お試しください','error');
+  }finally{
+    shareBusy=false;
+  }
+  return true;
+}
+
+async function doExportJSON(){
   if(currentViewerId()!==MY_ID){
     alert('JSONエクスポートはご本人のみが実行できます。');
     return;
@@ -6152,13 +6383,16 @@ function doExportJSON(){
     assets:myAssets
   };
   const json=JSON.stringify(data,null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
   const d=new Date();
   const yyyymmdd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  const fname=`kizuna-baton-export-${yyyymmdd}.json`;
+  // v137(APP-BACKUP-NATIVE): native は共有シート経由（Blob ダウンロードは capacitor://localhost で機能しない）。
+  if(await shareJsonNative(fname,json,'書き出しが完了しました'))return;
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=`kizuna-baton-export-${yyyymmdd}.json`;
+  a.download=fname;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -7328,20 +7562,24 @@ function renderPlanModal(){
 
 // ==================== バックアップ・復元・移行 ====================
 // --- バックアップ（エクスポート）---
-function doBackup(){
+async function doBackup(){
   document.getElementById('switch-menu').classList.remove('open');
   const data={
     app:'kizuna-baton',
     version:'v19',
     exportedAt:new Date().toISOString(),
-    data:{contracts:contracts,members:members,categories:categories.slice(),assets:assets,cards:cards}
+    // v137(APP-DEMO-STATE): サンプル/実データの明示状態も同梱。未知フィールドは旧版で無視される＝後方互換。
+    data:{contracts:contracts,members:members,categories:categories.slice(),assets:assets,cards:cards,demoState:getDemoState()}
   };
   const json=JSON.stringify(data,null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
   const fname=`kizuna-baton-backup-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+  // v137(APP-BACKUP-NATIVE): native は共有シート経由（Blob ダウンロードは capacitor://localhost で機能しない＝
+  // 従来はここで無条件に成功トーストを出しており、実際には一度も保存されていなかった）。
+  if(await shareJsonNative(fname,json,'バックアップの書き出しが完了しました'))return;
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download=fname;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
@@ -7444,6 +7682,11 @@ function applyRestore(){
   // APP-CARD-ASSET-MERGE(v101): 旧バックアップの cards[] を type:'card' 資産へ移行（nextAssetId 確定後）。
   // 復元 id 空間は restored assets の max 上から続くので衝突なし。下の persistState で cards=[] が書き戻る。
   migrateCardsToAssets();
+  // v137(APP-DEMO-STATE): バックアップに demoState があれば採用。旧バックアップ（無し）は
+  // 復元後の契約一式から導出＝「Netflix 1件だけの旧バックアップ」等も cleared（実データ扱い）で救済する。
+  lsSet(DEMO_STATE_KEY,(pendingRestore.demoState==='seeded'||pendingRestore.demoState==='cleared')
+    ? pendingRestore.demoState
+    : (isFullSampleSet(contracts)?'seeded':'cleared'));
   pendingRestore=null;
   closeModalById('restore-confirm-modal');
   // 詳細画面を閉じてリストへ
@@ -7714,6 +7957,8 @@ async function boot(){
     // APP-POSTLAUNCH-NOTICE(v123): 既存ユーザー（同意済み＋オンボ済み）は上のチェーンが何も開かないため、
     // ここが実質の発火点。招待トークン確定後に呼ぶ＝受諾保留時は内部ガードで抑止される。
     maybeShowPostlaunchNotice();
+    // v137(APP-BACKUP-NATIVE): 上のいずれかが開いていれば内部の modal-bg.open 判定で自動スキップされる。
+    maybeShowBackupRenotice();
   }
 }
 boot();
