@@ -20,6 +20,16 @@ import StoreKit
 public class KizunaIAPPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "KizunaIAPPlugin"
     public let jsName = "KizunaIAP"
+
+    /// v138(APP-IAP-ENTITLE-SCOPE): 家族プラン(竹)の SKU のみをエンタイトルメント判定の対象にする。
+    /// JS 側 IAP_PRODUCTS（shukatsu-prototype.html の IAP_PRODUCTS 定義）と一致させること。
+    /// Transaction.currentEntitlements は元々このアプリのバンドルIDのサブスクのみを返すが、
+    /// 将来 SKU を追加した際に「どの購入でも家族プランが解放される」構造的な穴を残さないための allowlist。
+    private static let entitlementProductIDs: Set<String> = [
+        "io.dorize.kizunabaton.take.monthly",
+        "io.dorize.kizunabaton.take.yearly"
+    ]
+
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getProducts", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "purchase", returnType: CAPPluginReturnPromise),
@@ -136,7 +146,9 @@ public class KizunaIAPPlugin: CAPPlugin, CAPBridgedPlugin {
     /// 竹(家族プラン)のサブスクが現在有効か。失効・返金済みは false。
     private func hasActiveEntitlement() async -> Bool {
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result, transaction.revocationDate == nil {
+            if case .verified(let transaction) = result,
+               transaction.revocationDate == nil,
+               Self.entitlementProductIDs.contains(transaction.productID) {
                 return true
             }
         }

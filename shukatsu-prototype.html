@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v137</title>
+<title>きずなbaton v138</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -4312,6 +4312,10 @@ const POSTLAUNCH_NOTICE_KEY='kizuna-baton:notice:app-launch:v1';
 const SORT_KEY='kizuna-baton:sort:v19';
 const PAID_FLAG_KEY='kizuna-baton:paid:v82'; // 端末キャッシュ('1'=有料)。起動時に currentEntitlement で上書き。backup JSON には含めない（端末固有）
 let isPaid=false; // 竹(家族プラン)エンタイトルメント。StoreKit currentEntitlements の結果を正とする
+// APPSTORE-IAP(v138): 購入/復元が成立した直後の時刻（ms）。セッション内のみ保持（永続化しない）。
+// entitlementChanged リスナーの降格ガード（下記 ENTITLEMENT_GRACE_MS）専用。
+let lastEntitlementGrantAt=0;
+const ENTITLEMENT_GRACE_MS=120000; // 2分。Sandbox 等での currentEntitlements 反映遅延を吸収する猶予窓
 const APP_LOCK_KEY='kizuna-baton:app-lock:v79'; // 端末ローカル設定（'1'=ロックON）。backup JSON には含めない（端末固有）
 // APP-V2-AUTH(v95): この端末⇔クラウドアカウントのリンク {version,uid,email,memberId,linkedAt}。
 // パスワードは保存しない（Firebase Auth が扱う）。backup JSON には含めない（端末固有＝他端末へ複製しない）。
@@ -7427,6 +7431,7 @@ async function planPurchase(cycle){
       // 失効・返金・自動更新の検知は起動時 / フォア復帰時 / entitlementChanged リスナーが引き続き担う。
       purchased=true;
       isPaid=true;lsSet(PAID_FLAG_KEY,'1');
+      lastEntitlementGrantAt=Date.now(); // v138: 降格ガードの起点（下記リスナー参照）
       showToast('家族プランをご利用いただけます。ありがとうございます','success');
     }else if(r&&r.status==='pending'){
       showToast('購入の承認をお待ちしています','');
@@ -7445,6 +7450,7 @@ async function planRestore(){
   try{
     const r=await IAP.restorePurchases();
     isPaid=!!(r&&r.active);lsSet(PAID_FLAG_KEY,isPaid?'1':'0');
+    if(isPaid)lastEntitlementGrantAt=Date.now(); // v138: 降格ガードの起点（下記リスナー参照）
     showToast(isPaid?'購入を復元しました':'復元できる購入が見つかりませんでした',isPaid?'success':'');
   }catch(e){
     showToast('購入の復元に失敗しました','warn');
@@ -7763,7 +7769,13 @@ async function refreshEntitlement(){
 // addListener は native 注入ブリッジ(Pluginsプロキシ)の機能＝バンドラ不要。Web/非IAP時は IAP=null で非登録（後方互換）。
 if(IAP && typeof IAP.addListener==='function'){
   IAP.addListener('entitlementChanged',(d)=>{
-    isPaid=!!(d&&d.active);
+    const active=!!(d&&d.active);
+    // v138: 購入/復元の直後は StoreKit の currentEntitlements 反映が遅れうる（特に Sandbox）。
+    // 昇格(false→true)は常に即反映し、降格(→false)のみ猶予窓の間は無視する
+    // （過去の Guideline 2.1(b) リジェクトと同型の「購入直後に無料へ落ちる」経路の再発防止）。
+    // 猶予窓を過ぎた真の失効・返金は、このリスナーの次回発火／フォア復帰時の refreshEntitlement が反映する。
+    if(!active && (Date.now()-lastEntitlementGrantAt)<ENTITLEMENT_GRACE_MS)return;
+    isPaid=active;
     lsSet(PAID_FLAG_KEY,isPaid?'1':'0');
     if(document.getElementById('plan-modal').classList.contains('open'))renderPlanModal();
     renderAll(); // 上限ゲート/上限モーダル誘導を即時更新
