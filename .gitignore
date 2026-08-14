@@ -1,6 +1,12 @@
 .DS_Store
 *.log
-.claude/
+# Claude Code のローカル設定は非公開。ただしカスタムスラッシュコマンドだけは
+# 共有する（Web/リモートセッションは repo を新規クローンするため、コミット
+# されていないコマンドは "Unknown command" になる）。
+# 注: `.claude/` とディレクトリごと無視すると中の `!` 再包含が効かないので、
+#     `.claude/*` で中身を無視してから commands/ だけ戻す。
+.claude/*
+!.claude/commands/
 CLAUDE.md
 HANDOVER.md
 handover-doc.md
