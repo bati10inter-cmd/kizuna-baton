@@ -1,8 +1,26 @@
 ---
 description: セッション開始。作業ルール・git状態・版数・引き継ぎを確認し、現在地と次の一手を報告する
 argument-hint: [今回やりたいこと（任意）]
-allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git branch:*), Bash(git fetch:*), Bash(grep:*), Bash(ls:*), Read, Glob, Grep
+allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git branch:*), Bash(sed:*), Bash(find:*), Read, Glob, Grep
 ---
+
+<!--
+【このファイルを編集する人へ】
+埋め込みシェル実行（エクスクラメーション＋バッククォート）は終了コード0が必須。
+非0だとコマンド全体が "Error: Shell command failed for pattern" で落ちる。
+しかもこの記法は HTML コメントの中でも実行されるので、
+説明のためであってもコメント内に記法そのものを書いてはいけない。
+
+そのため下記は「見つからなくても0で終わる」形だけを使っている:
+  NG  ls A B C 2>/dev/null   → 全滅で exit 2（これが実際の破損原因だった）
+  NG  grep pat file          → 不一致で exit 1
+  OK  find . -maxdepth 1 ... → 0件でも exit 0
+  OK  sed -n 's/../../p' file → 不一致でも exit 0（ただしファイルは存在必須）
+
+sed/find は macOS(BSD) と Linux(GNU) 双方で動く書き方に限定すること。
+アプリ版数の sed を 1,50 行に限定しているのは、6300行台の JS コメント内の
+古い版数表記を誤検出したため。
+-->
 
 # セッションを開く（きずなbaton）
 
@@ -15,9 +33,9 @@ allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git branch:*), Bash(git
 - 未コミット: !`git status --porcelain | head -30`
 - 直近コミット: !`git log --oneline -10`
 - origin との差: !`git status -sb | head -1`
-- アプリ版数: !`grep -o -m1 'きずなbaton v[0-9]*' shukatsu-prototype.html`
-- iOS 版数: !`grep -m2 -E 'MARKETING_VERSION|CURRENT_PROJECT_VERSION' native/ios/App/App.xcodeproj/project.pbxproj | tr -d '\t;'`
-- ローカル限定ファイルの有無: !`ls CLAUDE.md HANDOVER.md TASKS.md NEXT_SESSION_PROMPT.md 2>/dev/null`
+- アプリ版数: !`sed -n '1,50{s/.*<title>[^<]*\(v[0-9][0-9]*\).*/\1/p;}' shukatsu-prototype.html`
+- iOS 版数: !`sed -n -e 's/.*MARKETING_VERSION = \([0-9.]*\).*/marketing \1/p' -e 's/.*CURRENT_PROJECT_VERSION = \([0-9]*\).*/build \1/p' native/ios/App/App.xcodeproj/project.pbxproj | sort -u`
+- ローカル限定ファイル（**空＝1つも無い**）: !`find . -maxdepth 1 \( -name CLAUDE.md -o -name HANDOVER.md -o -name TASKS.md -o -name NEXT_SESSION_PROMPT.md \)`
 
 ## やること
 
@@ -28,7 +46,7 @@ allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git branch:*), Bash(git
 
 ### 2. 引き継ぎを読む
 
-上の「ローカル限定ファイルの有無」に出たものだけを読む。
+上の「ローカル限定ファイル」に出たものだけを読む。
 `HANDOVER.md` → `TASKS.md` → `NEXT_SESSION_PROMPT.md` の順。
 
 ⚠️ **これらは `.gitignore` 済み＝オーナーのMacにしか無い。**
