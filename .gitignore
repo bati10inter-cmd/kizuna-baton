@@ -45,6 +45,10 @@ native/www/
 /docs/appstore-v16-submission.md
 /docs/native-v137-fixplan-backup-demo-nudge.md
 /docs/video-storyboard.md
+# 提出前アドバーサリアル監査レポート（内部・2026-08-06 追加。セキュリティ所見を含むため公開しない）
+/docs/audit/
+# ASC 提出メタデータ草案（オーナー個人の連絡先を含む内部・2026-08-09 追加。除外漏れの是正＝REFEREE A-1）
+/docs/app-store-metadata-draft.md
 # 外部AI引き継ぎプロンプト（内部・2026-08-05 追加。既存の codex-refactor-exec と同じ扱い）
 /docs/codex-android-strategy-prompt-paste.md
 /docs/codex-customerjourney-audit-prompt-paste.md
