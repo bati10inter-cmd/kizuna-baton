@@ -1116,7 +1116,7 @@ img.owner-dot{width:20px;padding:0}
       </div>
       <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">プレビュー</div>
-        <button id="invite-accept-open-btn" onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）</button>
+        <button id="invite-accept-open-btn" onclick="openInviteAcceptModal()" style="width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px"><i class="ti ti-user-check"></i>招待の受け取りを試す</button>
       </div>
       <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">
         <div style="font-size:10px;color:var(--color-text-tertiary);letter-spacing:0.5px;margin-bottom:6px">アカウント</div>
@@ -1510,7 +1510,7 @@ img.owner-dot{width:20px;padding:0}
         <input type="text" id="invite-accept-otp" placeholder="000000" maxlength="6" inputmode="numeric" style="font-family:var(--font-mono);font-size:18px;letter-spacing:6px;text-align:center">
       </div>
       <div style="margin-top:8px" id="invite-accept-sample-row">
-        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の確認コードを入力（デモ用）</button>
+        <button onclick="fillSampleOtp()" style="width:100%;padding:7px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:10px;cursor:pointer">サンプル招待の確認コードを入力</button>
       </div>
       <div id="invite-accept-error" style="font-size:11px;color:#A32D2D;margin-top:8px;display:none"></div>
       <div class="btn-row">
@@ -1959,6 +1959,11 @@ function getDemoState(){
 // たとえ id/name がサンプルと一致していても実データとして扱う（isShowingDemo 等の判定に使用）。
 function isDemoSampleContract(c){return getDemoState()==='seeded'&&isBuiltInSampleContract(c);}
 function betaActiveContractCount(){return contracts.filter(c=>!c.archived&&!isDemoSampleContract(c)).length;}
+// v138(B-1): 組込サンプル招待は無料枠の分母に数えない（isDemoSampleContractと同じ考え方）。
+// 未修正時は inv_sample_accepted が無料枠1名を恒久的に占め、新規の無料ユーザーが招待を1件も
+// 発行できずいきなりアップグレード誘導が出ていた（料金画面の「1名（お試し）」と矛盾）。
+const SAMPLE_INVITATION_IDS=['inv_sample_pending','inv_sample_accepted'];
+function isSampleInvitation(inv){return getDemoState()==='seeded'&&SAMPLE_INVITATION_IDS.includes(inv&&inv.id);}
 // APPSTORE-IAP(v82): 家族プラン(竹/isPaid)は無制限。無料(梅)は CONTRACT_BETA_MAX 件まで。
 function contractLimitReached(){return !isPaid && betaActiveContractCount()>=CONTRACT_BETA_MAX;}
 
@@ -1974,6 +1979,11 @@ const INVITE_REVOKE_WINDOW_MS=24*60*60*1000; // 受諾後24時間の本人取消
 const INVITE_MAX_FREE=1;
 function inviteShareCap(paid){return paid?INVITE_MAX_PENDING_ACCEPTED:INVITE_MAX_FREE;}
 const FAMILY_LABELS_BETA=['配偶者','子','親']; // extendedFamilyCategories=false の間はこの3区分のみ
+
+// v138(B-1): クラウド招待モード時、checkInvitationLimits() が参照するサーバ由来の招待一覧キャッシュ。
+// renderCloudInvitations() が listInvites 取得のたびに更新する（新規のネットワーク呼び出しは増やさない）。
+// 取得失敗時は前回値を保持（他のクラウド系フォールバックと同じ方針）。
+let cloudInvitesCache=[];
 
 let invitations=[
   // pending サンプル: 妹を招待中
@@ -3890,18 +3900,37 @@ function readForm(){
 // APP-DATA-SCOPE-HARD / APP-DATA-SCOPE-2: 機密メモの番号類を保存前に拒否し、CLAUDE.md の「保存しない」方針へ寄せる。
 // ①全角数字を半角へ正規化（IME 入力対策）②ルールA=日付に出ない区切り（空白/ハイフン/長音/中黒）除去後の連続7桁以上
 // ③ルールB=カード/マイナンバー型（3〜4桁グループが3つ以上連なり総桁数12以上）。/. は除去せず日付(2桁要素含む)を誤検知しない。
+function normalizeDigits(s){
+  return String(s||'').replace(/[０-９]/g,d=>'０１２３４５６７８９'.indexOf(d));
+}
+// v138(B-2): ルールBのみを単体判定として切り出す（confirmSecretSafeの新規対象欄で使う）。
+// カード/マイナンバー型は総桁12以上を要求するため、電話番号(10〜11桁)は該当しない
+// （CLAUDE.md上、連絡先は「保存OK」＝解約方法欄の「0120-xxx-xxxへ電話」等を誤検知しない）。
+function looksLikeCardOrMyNumber(s){
+  const t=normalizeDigits(s);
+  const m=t.match(/(?:\d{3,4}[\s\u3000\-－/／._．＿・ー]){2,}\d{3,4}/);
+  return !!(m&&m[0].replace(/\D/g,'').length>=12);
+}
 function looksLikeSensitiveNumber(s){
-  const t=String(s||'').replace(/[０-９]/g,d=>'０１２３４５６７８９'.indexOf(d));
+  const t=normalizeDigits(s);
   // ルールA: 連続7桁以上（口座番号・全角番号・ハイフン/中黒区切り等）
   if(/\d{7,}/.test(t.replace(/[\s\u3000\-－ー・]/g,'')))return true;
   // ルールB: カード番号(4-4-4-4)・マイナンバー(4-4-4)型。3〜4桁グループ×3以上＋総桁12以上
-  const m=t.match(/(?:\d{3,4}[\s\u3000\-－/／._．＿・ー]){2,}\d{3,4}/);
-  if(m&&m[0].replace(/\D/g,'').length>=12)return true;
-  return false;
+  return looksLikeCardOrMyNumber(s);
 }
+// v138(B-2): secret（所在メモ＝番号を書かせない専用欄）はフル強度（ルールA+B）のまま。
+// cancel/memo/familyMessage は自由記述欄として新規に対象化するが、電話番号等の正当な連絡先を
+// 誤って拒否しないよう、ルールB（カード/マイナンバー型）のみを適用する（誤検知は実測で確認済み）。
 function confirmSecretSafe(data){
-  if(!looksLikeSensitiveNumber(data.secret))return true;
-  alert('メモに口座番号・カード番号・暗証番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管してください。');
+  const fields=[
+    {v:data.secret,label:'その他のメモ',rule:looksLikeSensitiveNumber},
+    {v:data.cancel,label:'解約方法',rule:looksLikeCardOrMyNumber},
+    {v:data.memo,label:'メモ',rule:looksLikeCardOrMyNumber},
+    {v:data.familyMessage,label:'家族への一言メッセージ',rule:looksLikeCardOrMyNumber}
+  ];
+  const hit=fields.find(f=>f.rule(f.v));
+  if(!hit)return true;
+  alert(`${hit.label}に口座番号・カード番号・暗証番号とみられる数字が含まれています（全角・スラッシュ等の区切りも対象）。番号は保存できません。通帳・金庫などアプリ外で保管してください。`);
   return false;
 }
 
@@ -5673,11 +5702,21 @@ function refreshInvitationStatuses(){
   });
   if(changed)persistState(); // 遷移が起きた時だけ保存（毎描画での無駄書込を防ぐ）
 }
+// v138(B-1・S-2/S-3是正): クラウド招待モードはサーバ由来の cloudInvitesCache を数える
+// （ローカル invitations[] はクラウド発行分を push しないため実態と乖離していた＝S-2）。
+// モック(デモ)モードは invitations[] からサンプルを除外して数える（サンプルが無料枠を恒久的に
+// 占めていた＝S-3）。同一根本原因（分母が実態を反映していない）の対称的な2件を同時に是正する。
 function checkInvitationLimits(){
-  refreshInvitationStatuses();
   const dayAgo=nowMs()-24*60*60*1000;
-  const issuedToday=invitations.filter(i=>i.invitedBy===MY_ID && new Date(i.createdAt).getTime() > dayAgo).length;
-  const activeCount=invitations.filter(i=>i.invitedBy===MY_ID && (i.status==='pending'||i.status==='accepted')).length;
+  let issuedToday,activeCount;
+  if(isCloudInviteMode()){
+    issuedToday=cloudInvitesCache.filter(i=>typeof i.createdAtMs==='number' && i.createdAtMs>dayAgo).length;
+    activeCount=cloudInvitesCache.filter(i=>i.status==='pending'||i.status==='accepted').length;
+  } else {
+    refreshInvitationStatuses();
+    issuedToday=invitations.filter(i=>i.invitedBy===MY_ID && !isSampleInvitation(i) && new Date(i.createdAt).getTime() > dayAgo).length;
+    activeCount=invitations.filter(i=>i.invitedBy===MY_ID && !isSampleInvitation(i) && (i.status==='pending'||i.status==='accepted')).length;
+  }
   if(issuedToday>=INVITE_MAX_PER_DAY)return {message:`1日の発行上限（${INVITE_MAX_PER_DAY}件）に達しています。明日以降にお試しください。`,showUpgrade:false};
   const cap=inviteShareCap(isPaid);
   if(activeCount>=cap){
@@ -5712,7 +5751,7 @@ function cloudInviteErrorMessage(err){
 // 実際には届かない端末内モック招待（偽URL kizuna-baton.example・画面表示OTP）を「招待で追加（推奨）」
 // から発行できてしまい、実ユーザーがそれを家族に送ってしまう実害経路だった。稼働中は発行前にアカウント
 // 作成へ誘導する（maybeOpenPendingInviteAccept と同型）。cloudInvite=false（休眠時）の端末内モックは
-// 「招待受諾フローを試す（デモ）」側の体験と対になる発行側プレビューとして維持する。
+// 「招待の受け取りを試す」側の体験と対になる発行側プレビューとして維持する。
 function inviteIssueRequiresAccountFirst(){return !!(FEATURES.cloudSync && FEATURES.cloudInvite && !cloudUser);}
 function openInviteIssueModal(){
   if(inviteIssueRequiresAccountFirst()){
@@ -5734,8 +5773,24 @@ function openInviteIssueModal(){
   if(memberRow)memberRow.style.display=cloud?'':'none';
   if(cloud)populateInviteMemberSelect();
   const msg=document.getElementById('invite-limit-msg');
-  const limitErr=checkInvitationLimits();
   const issueBtn=document.getElementById('invite-issue-btn');
+  if(cloud){
+    // v138(B-1): cloudInvitesCache が古い/空のまま上限判定してしまわないよう、モーダルは即座に開きつつ
+    // 発行ボタンを一旦disabledにし、実データ取得後に確定する（renderCloudInvitationsと同じ「読み込み中」方針）。
+    msg.style.display='none';
+    issueBtn.disabled=true;issueBtn.style.opacity='0.4';issueBtn.style.cursor='not-allowed';
+    refreshCloudInvitesCache().catch(()=>{/* 失敗時は前回キャッシュのまま判定 */}).finally(()=>{
+      applyInviteLimitUi(msg,issueBtn);
+    });
+  } else {
+    applyInviteLimitUi(msg,issueBtn);
+  }
+  openModalById('invite-issue-modal');
+}
+// v138(B-1): checkInvitationLimits() の結果を上限メッセージ・発行ボタンへ反映する共通処理
+// （openInviteIssueModal のモック即時判定／クラウド非同期判定の両方から呼ぶ）。
+function applyInviteLimitUi(msg,issueBtn){
+  const limitErr=checkInvitationLimits();
   if(limitErr){
     msg.innerHTML=esc(limitErr.message)+(limitErr.showUpgrade?' <a onclick="closeInviteIssueModal();openPlanModal(\'invite\')" style="color:#185FA5;text-decoration:underline;cursor:pointer">家族プランのご案内を見る</a>':'');
     msg.style.display='';
@@ -5744,7 +5799,6 @@ function openInviteIssueModal(){
     msg.style.display='none';
     issueBtn.disabled=false;issueBtn.style.opacity='1';issueBtn.style.cursor='pointer';
   }
-  openModalById('invite-issue-modal');
 }
 function closeInviteIssueModal(){
   closeModalById('invite-issue-modal');
@@ -5867,7 +5921,7 @@ function renderInvitations(){
   const acceptBtn=document.getElementById('invite-accept-open-btn');
   if(acceptBtn)acceptBtn.innerHTML=isCloudInviteMode()
     ?'<i class="ti ti-user-check"></i>招待を受ける（メールのリンクから）'
-    :'<i class="ti ti-user-check"></i>招待受諾フローを試す（デモ）';
+    :'<i class="ti ti-user-check"></i>招待の受け取りを試す';
   if(isCloudInviteMode()){renderCloudInvitations();return;}
   refreshInvitationStatuses();
   const el=document.getElementById('invitations-list');
@@ -5890,15 +5944,24 @@ function renderInvitations(){
   }).join('');
 }
 
+// v138(B-1): listInvites 取得を切り出し、生の招待一覧（pending 絞り込み前）を cloudInvitesCache へ
+// 保存する。checkInvitationLimits() がこのキャッシュを参照するため、新規のネットワーク呼び出しを
+// 増やさずに上限判定が実データを反映できる。取得失敗時は cloudInvitesCache を前回値のまま保持する。
+async function refreshCloudInvitesCache(){
+  const fns=await initCloudFunctions();
+  const res=await cloudFnsMod.httpsCallable(fns,'listInvites')({});
+  cloudInvitesCache=(res&&res.data&&res.data.invites)||[];
+  return cloudInvitesCache;
+}
+
 // APP-V2 stage-2a: クラウド実経路の未受諾一覧＝サーバ listInvites（OTP 抜き）を取得して描画。
 async function renderCloudInvitations(){
   const el=document.getElementById('invitations-list');
   if(!el)return;
   el.innerHTML='<div style="font-size:11px;color:var(--color-text-tertiary);padding:6px 0">読み込み中…</div>';
   try{
-    const fns=await initCloudFunctions();
-    const res=await cloudFnsMod.httpsCallable(fns,'listInvites')({});
-    const pending=((res&&res.data&&res.data.invites)||[]).filter(i=>i.status==='pending');
+    const invites=await refreshCloudInvitesCache();
+    const pending=invites.filter(i=>i.status==='pending');
     if(pending.length===0){
       el.innerHTML='<div style="font-size:11px;color:var(--color-text-tertiary);padding:6px 0">未受諾の招待はありません</div>';
       return;

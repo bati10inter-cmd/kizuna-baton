@@ -130,6 +130,13 @@
         W.looksLikeSensitiveNumber('１２３４５６７'),
         W.looksLikeSensitiveNumber('通帳は金庫')
       ], [true, false, true, true, false]));
+      // v138(B-2): looksLikeCardOrMyNumber単体＝カード/マイナンバー型のみ検知し、電話番号(10〜11桁)は
+      // 誤検知しないこと（解約方法欄の「0120-xxx-xxxへ電話」等、CLAUDE.md上「保存OK」の連絡先を保護する）。
+      add('T19b', () => assertDeepEqual([
+        W.looksLikeCardOrMyNumber('0120-111-222'),
+        W.looksLikeCardOrMyNumber('090-1234-5678'),
+        W.looksLikeCardOrMyNumber('1234-5678-9012-3456')
+      ], [false, false, true]));
       add('T20', () => assertDeepEqual([W.isBuiltInSampleContract({id:1,name:'Netflix'}), W.isBuiltInSampleContract({id:1,name:'改名'})], [true, false]));
       // v137(APP-DEMO-STATE) T20b: 初期状態（組込サンプル12件のまま）は demoState 未保存でも 'seeded' と
       // 導出され、isShowingDemo() も true のままであること。T33/T34（app2 使用）より前に置く＝
@@ -294,15 +301,20 @@
           out.manifest.members
         ], [ok, false, ['m1','m2']]);
       });
-      // APP-PLAN-LIMIT-SYNC 第2弾(v127): 無料プランの共有上限(1名)エンフォース。既存2件(pending+accepted)は
-      // サンプルデータのまま維持＝grandfather(新規発行のみブロック)を、初期状態(isPaid=false)がそのまま検証する。
+      // APP-PLAN-LIMIT-SYNC 第2弾(v127): 無料プランの共有上限(1名)エンフォース。
       add('T31', () => {
         assertDeepEqual([W.inviteShareCap(false), W.inviteShareCap(true)], [1, 5]);
       });
+      // v138(B-1是正): 組込サンプル招待(inv_sample_pending/inv_sample_accepted)は無料枠の分母から除外する。
+      // 是正前は同梱サンプルが無料枠1名を恒久的に占め、新規の無料ユーザーが初回から発行ブロックされていた
+      // （料金画面の「1名（お試し）」と矛盾）。初期状態(isPaid=false・サンプルのみ)は発行可であること。
       add('T32', () => {
-        // 初期状態: サンプルで pending+accepted=2件既存・isPaid=false → 新規ブロック(超過分は解除されない)
-        const blocked = W.checkInvitationLimits();
-        assertDeepEqual([blocked && blocked.showUpgrade, typeof (blocked && blocked.message)], [true, 'string']);
+        assertDeepEqual([
+          W.checkInvitationLimits(),
+          W.isSampleInvitation({id:'inv_sample_accepted'}),
+          W.isSampleInvitation({id:'inv_sample_pending'}),
+          W.isSampleInvitation({id:'inv_user_123'})
+        ], [null, true, true, false]);
       });
 
       snapshots.S01 = W.document.querySelector('#contract-list').innerHTML;
