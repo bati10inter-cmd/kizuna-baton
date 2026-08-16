@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
+<!-- v139(C-6): 静的ページ（JS・画像・フォームなし）に合わせた最小CSP。frame-ancestors は meta では無効＝GitHub Pages では HTTP ヘッダを設定できないため clickjacking 対策は別手段が必要 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'none'; base-uri 'self'; object-src 'none'">
 <title>特定商取引法に基づく表記 — きずなbaton</title>
 <style>
   :root{
@@ -86,7 +88,7 @@
     <tr><th>支払方法</th><td>Apple アカウントに登録された決済手段によるアプリ内課金（App Store 決済）</td></tr>
     <tr><th>支払時期</th><td>ご購入手続きの完了時に課金されます。サブスクリプションは、各期間ごとに自動更新で課金されます。</td></tr>
     <tr><th>役務の提供時期</th><td>ご購入手続きの完了後、ただちに有料機能をご利用いただけます。</td></tr>
-    <tr><th>解約方法</th><td>アプリ内の「家族プラン」→「サブスクの管理・解約」、または iPhone の「設定」→ Apple ID →「サブスクリプション」からいつでも解約できます。期間終了の24時間前までにお手続きいただくと、次回の自動更新は行われません。</td></tr>
+    <tr><th>解約方法</th><td>アプリの「設定」→「きずなbaton の解約・プラン変更」、または iPhone の「設定」→ Apple ID →「サブスクリプション」からいつでも解約できます。期間終了の24時間前までにお手続きいただくと、次回の自動更新は行われません。</td></tr>
     <tr><th>自動更新について</th><td>サブスクリプションは、現在の期間が終了する24時間以上前に解約しない限り、自動的に更新されます。更新の際は、各期間の料金が課金されます。</td></tr>
     <tr><th>返品・キャンセル</th><td>デジタル役務の性質上、購入後の返金は原則としてお受けできません。返金をご希望の場合は、Apple の「<a href="https://reportaproblem.apple.com/" target="_blank" rel="noopener">問題を報告する</a>」からお手続きください。</td></tr>
     <tr><th>動作環境</th><td>iOS（対応バージョンは App Store の記載をご確認ください）</td></tr>

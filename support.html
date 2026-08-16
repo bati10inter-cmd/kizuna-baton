@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
+<!-- v139(C-6): 静的ページ（JS・画像・フォームなし）に合わせた最小CSP。frame-ancestors は meta では無効＝GitHub Pages では HTTP ヘッダを設定できないため clickjacking 対策は別手段が必要 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'none'; base-uri 'self'; object-src 'none'">
 <title>きずなbaton サポート</title>
 <style>
   :root{
@@ -60,7 +62,7 @@
   <section>
     <h2>有料プラン（家族プラン）について</h2>
     <p>家族プランは、App Store のアプリ内課金（自動更新サブスクリプション）でご利用いただけます。</p>
-    <p>解約は、アプリ内の「家族プラン」→「サブスクの管理・解約」、または iPhone の「設定」→ ご自身の Apple ID →「サブスクリプション」からいつでも行えます。期間終了の24時間前までにお手続きいただくと、次回の自動更新は行われません。</p>
+    <p>解約は、アプリの「設定」→「きずなbaton の解約・プラン変更」、または iPhone の「設定」→ ご自身の Apple ID →「サブスクリプション」からいつでも行えます。期間終了の24時間前までにお手続きいただくと、次回の自動更新は行われません。</p>
     <p>返金のご相談は、Apple の「<a href="https://reportaproblem.apple.com/" target="_blank" rel="noopener">問題を報告する</a>」からお手続きください。</p>
   </section>
 

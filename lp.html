@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- v139(C-6): 実依存に合わせたCSP＝インラインJS/CSS・Tabler(cdn.jsdelivr.net)・ローカル画像・Formspree送信。frame-ancestors は meta では無効（GitHub Pages は HTTP ヘッダ非設定） -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; form-action https://formspree.io; base-uri 'self'; object-src 'none'">
   <title>きずなbaton — もしもの時、家族が契約を探せるように</title>
   <meta name="description" content="サブスク・保険・ローンなど、家族の契約の存在と手続き先を、今のうちにやさしく手渡すアプリ。カード番号や暗証番号は預からず、無料ではじめられます。App Store 版・ブラウザ版。">
   <meta name="theme-color" content="#FAF8F2">
@@ -1554,6 +1556,7 @@
           <a href="support.html">サポート・お問い合わせ</a>
           <a href="docs/terms-of-service.html" target="_blank" rel="noopener">利用規約</a>
           <a href="docs/privacy-policy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+          <a href="tokushoho.html">特定商取引法に基づく表記</a>
           <a href="https://x.com/kizuna_baton" target="_blank" rel="noopener">X（旧Twitter）</a>
           <a href="https://note.com/kizuna_baton" target="_blank" rel="noopener">note</a>
           <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a>
