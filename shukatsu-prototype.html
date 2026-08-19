@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v138</title>
+<title>きずなbaton v139</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -2072,7 +2072,10 @@ let members=[
 
 const MY_ID='m1';
 const TERMS_VERSION='v3.3.2';  // v113(APP-DEBETA): App Store 公開＝β終了の表記整理（「β版」→「現行版」・機能仕様の変更なし）
-const PRIVACY_VERSION='v5.2'; // v122(APP-MEMBER-PHOTO): 家族メンバー写真（任意）追加＝クラウド保存有効時のみ本人可読ミラーへ複製
+// v139(LEGAL-PP-INVENTORY-SYNC): PP v5.3＝開示の正確化（端末内キー一覧 10→20・外部通信 ⑤→⑧・第7条 解析ツール）。
+// 新たな取得/提供/越境なし＝第17条2項「通常の改定」→ CONSENT_KEY は :v29 据置（再同意を求めない）。
+// ∴ ここを上げても同意ゲートは再発火しない。以後の同意ログ（consentLog/consentLogs）に v5.3 が記録される。
+const PRIVACY_VERSION='v5.3';
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: 公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
@@ -5198,6 +5201,9 @@ function applyOwnCloudSnapshot(snap){
   // 端末間同期で本人の所在メモを失わせない（データ生存則）。secret doc が無い契約は '' 既定。
   const secretMap={};
   (snap.contractSecrets||[]).forEach(s=>{if(s&&s.cid!=null)secretMap[String(s.cid)]=(typeof s.secret==='string'?s.secret:'');});
+  // v139(C-3・仕様として明文化／監査 monetization S-4): クラウド pull も件数上限を「検査しない」のが意図した仕様。
+  // 自分の端末で作った記録を別端末へ降ろす経路であり、ここで間引くとデータ生存則（未同期は失わせない）に反する。
+  // 詳細な根拠は applyRestore() の同名コメントを参照。
   contracts=(snap.contracts||[]).map(coerceContractNums).map(c=>{c.secret=secretMap[String(c.id)]||'';return c;});
   // cloud は card 型資産を cards コレクションへ振り分け済み。ローカルモデル（v101: card は type:'card' 資産）へ合流。
   const mergedAssets=(snap.assets||[]).slice();
@@ -7403,13 +7409,16 @@ function closeLegalModal(){closeModalById('legal-modal');}
 
 // --- v115: 規約/ポリシーをアプリ内 iframe で表示（iOS WKWebView で target=_blank が無反応な問題の恒久対応。バンドル同梱HTML＝オフライン可）---
 function openLegalDoc(name){
-  const titles={'terms-of-service':'利用規約','privacy-policy':'プライバシーポリシー'};
+  const titles={'terms-of-service':'利用規約','privacy-policy':'プライバシーポリシー','tokushoho':'特定商取引法に基づく表記'};
   const ov=document.getElementById('legal-doc-overlay');
   const frame=document.getElementById('legal-doc-frame');
   const ttl=document.getElementById('legal-doc-title');
   if(!ov||!frame)return;
   if(ttl)ttl.textContent=titles[name]||'規約';
-  frame.src='docs/'+name+'.html';
+  // v139(C-2): 特商法だけ配置が非対称。規約/PPは docs/*.md が正本で Web は Jekyll が docs/*.html を生成するが、
+  // 特商法は .md を持たずルートの tokushoho.html 自体が公開ページ＝Web に docs/tokushoho.html は存在しない。
+  // native へは gen-legal-html.py が COPY_DOCS でバンドルの docs/ へ複製する。∴ 参照先を実体のある側へ振り分ける。
+  frame.src=(name==='tokushoho'&&!IS_NATIVE)?'tokushoho.html':'docs/'+name+'.html';
   ov.style.display='flex';
 }
 function closeLegalDoc(){
@@ -7625,7 +7634,8 @@ function renderPlanModal(){
       ※ お支払いは Apple ID に請求され、サブスクリプションは期間終了の24時間前までに解約しない限り自動更新されます。${isPaid?'解約は上記「きずなbaton の解約・プラン変更」または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。':'解約は、購入後にアプリ内または iPhone の「設定」＞ご自身のアカウント＞サブスクリプションからいつでも行えます。'}
     </div>
     <div style="font-size:13px;line-height:1.6;margin-top:8px;text-align:center">
-      <a onclick="openLegalDoc('terms-of-service');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">利用規約</a>　・　<a onclick="openLegalDoc('privacy-policy');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー</a>
+      <a onclick="openLegalDoc('terms-of-service');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">利用規約</a>　・　<a onclick="openLegalDoc('privacy-policy');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー</a><br>
+      <a onclick="openLegalDoc('tokushoho');return false;" style="display:inline-block;padding:6px 6px;color:#185FA5;text-decoration:underline;cursor:pointer">特定商取引法に基づく表記</a>
     </div>`;
 }
 
@@ -7719,6 +7729,12 @@ function closeRestoreConfirmModal(){
 }
 function applyRestore(){
   if(!pendingRestore){closeRestoreConfirmModal();return;}
+  // v139(C-3・仕様として明文化／監査 monetization S-4): 一括流し込み経路は件数上限（CONTRACT_BETA_MAX/ASSET_BETA_MAX）を
+  // 「検査しない」のが意図した仕様。理由＝有料期間に書き出したバックアップを失効後に復元しても記録を失わせない
+  // grandfather 方針（データ生存則「未同期は失わせない」）と地続きだから。上限は "追加" の入口
+  // （openModal / addContract / restoreContract、資産も同型）で守り、復元後の新規追加は従来どおりブロックされる。
+  // ∴ ここに上限ガードを足すと「復元でデータが消える」挙動になり方針に反する。塞ぐ場合は破棄ではなく
+  // 「超過分をアーカイブ状態で取り込む」設計が必要（未実装・オーナー判断事項）。
   contracts=pendingRestore.contracts.map(coerceContractNums); // v68(APP-DATA-RESTORE-NUM): 数値フィールド強制
   members=pendingRestore.members.slice().map(sanitizeMemberPhoto); // v122(APP-MEMBER-PHOTO): 細工JSONのphotoを排除
   // v56(APP-DATA-BACKUP): categories も復元（loadPersistentState と同型のバックフィル）。

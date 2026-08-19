@@ -36,6 +36,14 @@ DOCS = [
     ("docs/privacy-policy.md", "privacy-policy.html"),
 ]
 
+# v139(C-2): 生成せず「そのまま複製」する自己完結HTML。
+# 特商法表記は Web 公開ページ（ルートの tokushoho.html）が正本で .md ソースを持たない。
+# ここで .md を別途起こすと Web 版とアプリ版で二重管理＝copy-drift を新規に生むため、
+# 正本ファイルを1本のままバンドルへ複製する。--check は複製先の一致も検査する。
+COPY_DOCS = [
+    ("tokushoho.html", "tokushoho.html"),
+]
+
 # 出力先（アプリ内リンクは index.html からの相対 docs/…＝各バンドル直下に docs/ を作る）
 OUT_DIRS = [
     "native/www/docs",
@@ -253,6 +261,10 @@ def build_pages():
                 break
         body = md_to_body(md)
         pages[outname] = PAGE_TEMPLATE.format(title=html.escape(title, quote=False), body=body)
+    # v139(C-2): 自己完結HTMLはテンプレートを通さずそのまま複製（正本＝ルートの公開ページ）
+    for src, outname in COPY_DOCS:
+        with open(os.path.join(ROOT, src), encoding="utf-8") as f:
+            pages[outname] = f.read()
     return pages
 
 
