@@ -13,6 +13,7 @@
 // ============================================================================
 
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import test, { before, after, beforeEach } from 'node:test';
@@ -36,6 +37,7 @@ import otpLib from '../functions/lib/otp.js';
 import constantsLib from '../functions/lib/constants.js';
 import emailLib from '../functions/lib/email.js';
 import inviteLib from '../functions/lib/invite.js';
+import validatorsLib from '../functions/lib/validators.js';
 
 const { hashOtp } = otpLib;
 const { USER_SUBCOLLECTIONS, INVITE_CLEANUP_RETENTION_MS } = constantsLib;
@@ -208,6 +210,31 @@ test('issueInvite: pending+accepted 5件を超える発行は resource-exhausted
   );
 });
 
+test('issueInvite: privacyVersion を渡すと招待 doc に ppVersion を記録し、省略時（旧版）も従来どおり発行できる', async () => {
+  await signInOwner();
+  const withVer = await call('issueInvite')({
+    inviteeEmail: 'p1@example.com',
+    suggestedRelation: '子',
+    privacyVersion: 'v5.4',
+  });
+  const inv1 = await adminGet(`invitations/${withVer.data.token}`);
+  assert.equal(inv1.ppVersion, 'v5.4');
+
+  // エミュレータは EMAIL_PROVIDER=log＝版数ゲート非発動（resend 時のみ発動）＝後方互換
+  const noVer = await call('issueInvite')({ inviteeEmail: 'p2@example.com', suggestedRelation: '子' });
+  const inv2 = await adminGet(`invitations/${noVer.data.token}`);
+  assert.equal(inv2.status, 'pending');
+  assert.equal(inv2.ppVersion, undefined, '旧版クライアントの発行は ppVersion を持たない');
+});
+
+test('issueInvite: privacyVersion が空文字など不正なら invalid-argument', async () => {
+  await signInOwner();
+  await expectReject(
+    call('issueInvite')({ inviteeEmail: 'p3@example.com', suggestedRelation: '子', privacyVersion: '' }),
+    'invalid-argument'
+  );
+});
+
 test('issueInvite: 未認証は unauthenticated', async () => {
   await signOut(auth);
   await expectReject(
@@ -265,6 +292,193 @@ test('email: sendInviteAcceptedEmail は呼び名未指定でも「ご家族」�
   emailLib._clearAcceptOutbox();
   await emailLib.sendInviteAcceptedEmail({ to: 'o@example.com' });
   assert.equal(emailLib._getAcceptOutbox()[0].viewerName, 'ご家族');
+});
+
+// ---- メール本文の固定（v140 OPS-EMAIL-RESEND）----------------------------------
+// プロバイダを替えても本文は一字も変えない。期待値は v139 の email.js から写した**文字列リテラル**
+// （共通化した build*Mail 自体を期待値にすると、両方が同時に壊れても検出できないため）。
+const FIXTURE_FOOTER =
+  '――――――\n' +
+  '送信元: きずなbaton（本メールは家族招待の確認のみを目的としたご連絡です）\n' +
+  'お問い合わせ・登録情報の削除依頼: kizunabaton.official@gmail.com\n' +
+  'プライバシーポリシー: https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.html';
+const FIXTURE_OTP_SUBJECT = 'きずなbaton — 家族招待の確認コード';
+const FIXTURE_OTP_TEXT =
+  '太郎さんから、きずなbaton の家族招待が届いています。\n\n' +
+  '確認コード（6桁）: 123456\n' +
+  '招待リンク: https://example.com/app#invite=abc\n\n' +
+  'このコードは、招待リンクを開いた画面で入力してください。\n' +
+  'お心当たりがない場合は、このメールを破棄してください。\n\n' +
+  FIXTURE_FOOTER;
+const FIXTURE_ACCEPT_SUBJECT = 'きずなbaton — 家族招待が受諾されました';
+const fixtureAcceptText = (who) =>
+  'あなたが送った家族招待が受諾されました。\n\n' +
+  `受諾した方（あなたが設定した呼び名）: ${who}\n\n` +
+  'きずなbaton アプリを開くと、共有した契約の一覧に反映されています。\n' +
+  'お心当たりのない受諾の場合は、アプリの家族管理から共有の解除ができます。\n\n' +
+  FIXTURE_FOOTER;
+const OTP_ARGS = {
+  to: 'invitee@example.com',
+  otp: '123456',
+  inviterName: '太郎',
+  link: 'https://example.com/app#invite=abc',
+};
+
+test('email: 招待 OTP メールの件名・本文は v139 と全文一致（発行者名・リンク省略時の既定値も）', () => {
+  const m = emailLib.buildInviteOtpMail(OTP_ARGS);
+  assert.equal(m.subject, FIXTURE_OTP_SUBJECT);
+  assert.equal(m.text, FIXTURE_OTP_TEXT);
+  const d = emailLib.buildInviteOtpMail({ otp: '000111' });
+  assert.ok(d.text.startsWith('ご家族さんから、きずなbaton の家族招待が届いています。\n\n'));
+  assert.ok(d.text.includes('確認コード（6桁）: 000111\n招待リンク: \n\n'));
+});
+
+test('email: 受諾通知メールの件名・本文は v139 と全文一致（呼び名あり／なし／空白のみ）', () => {
+  const a = emailLib.buildInviteAcceptedMail({ viewerName: ' 花子 ' });
+  assert.equal(a.subject, FIXTURE_ACCEPT_SUBJECT);
+  assert.equal(a.text, fixtureAcceptText('花子'));
+  assert.equal(emailLib.buildInviteAcceptedMail({}).text, fixtureAcceptText('ご家族'));
+  assert.equal(emailLib.buildInviteAcceptedMail({ viewerName: '   ' }).text, fixtureAcceptText('ご家族'));
+});
+
+// 環境変数と fetch を一時的に差し替えて実行し、必ず元に戻す。
+async function withEmailEnv(vars, fetchImpl, fn) {
+  const keys = ['EMAIL_PROVIDER', 'EMAIL_FROM', 'RESEND_API_KEY', 'SENDGRID_API_KEY'];
+  const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
+  const savedFetch = globalThis.fetch;
+  try {
+    for (const k of keys) {
+      if (vars[k] === undefined) delete process.env[k];
+      else process.env[k] = vars[k];
+    }
+    if (fetchImpl) globalThis.fetch = fetchImpl;
+    return await fn();
+  } finally {
+    for (const k of keys) {
+      if (saved[k] === undefined) delete process.env[k];
+      else process.env[k] = saved[k];
+    }
+    globalThis.fetch = savedFetch;
+  }
+}
+const RESEND_ENV = {
+  EMAIL_PROVIDER: 'resend',
+  EMAIL_FROM: 'noreply@kizuna-baton.com',
+  RESEND_API_KEY: 're_test_key',
+};
+
+test('email: resend は fetch で Resend API へ送り、本文は fixture と一致', async () => {
+  const calls = [];
+  const fakeFetch = async (url, init) => {
+    calls.push({ url, init });
+    return { ok: true, status: 200 };
+  };
+  await withEmailEnv(RESEND_ENV, fakeFetch, async () => {
+    const r1 = await emailLib.sendInviteOtpEmail(OTP_ARGS);
+    assert.deepEqual(r1, { ok: true, provider: 'resend' });
+    const r2 = await emailLib.sendInviteAcceptedEmail({ to: 'owner@example.com', viewerName: '花子' });
+    assert.equal(r2.provider, 'resend');
+  });
+  assert.equal(calls.length, 2);
+  const [otpCall, acceptCall] = calls;
+  assert.equal(otpCall.url, 'https://api.resend.com/emails');
+  assert.equal(otpCall.init.method, 'POST');
+  assert.equal(otpCall.init.headers.Authorization, 'Bearer re_test_key');
+  assert.equal(otpCall.init.headers['Content-Type'], 'application/json');
+  assert.ok(otpCall.init.signal, '有限の待ち時間（AbortSignal）を付ける');
+  assert.deepEqual(JSON.parse(otpCall.init.body), {
+    from: 'noreply@kizuna-baton.com',
+    to: ['invitee@example.com'],
+    subject: FIXTURE_OTP_SUBJECT,
+    text: FIXTURE_OTP_TEXT,
+  });
+  assert.deepEqual(JSON.parse(acceptCall.init.body), {
+    from: 'noreply@kizuna-baton.com',
+    to: ['owner@example.com'],
+    subject: FIXTURE_ACCEPT_SUBJECT,
+    text: fixtureAcceptText('花子'),
+  });
+});
+
+test('email: resend は 4xx/429/5xx・通信失敗・タイムアウトで throw し、宛先や OTP をエラーに含めない', async () => {
+  const cases = [
+    async () => ({ ok: false, status: 422 }),
+    async () => ({ ok: false, status: 429 }),
+    async () => ({ ok: false, status: 503 }),
+    async () => { throw new TypeError('fetch failed'); },
+    async () => { throw new DOMException('timed out', 'TimeoutError'); },
+  ];
+  for (const impl of cases) {
+    await withEmailEnv(RESEND_ENV, impl, async () => {
+      await assert.rejects(emailLib.sendInviteOtpEmail(OTP_ARGS), (e) => {
+        assert.match(e.message, /^Resend send failed: /);
+        assert.ok(!e.message.includes('123456'), 'OTP を含めない');
+        assert.ok(!e.message.includes('invitee@example.com'), '宛先を含めない');
+        assert.ok(!e.message.includes('re_test_key'), 'API キーを含めない');
+        return true;
+      });
+    });
+  }
+});
+
+test('email: resend はキーまたは送信元が未設定なら送らずに throw', async () => {
+  let called = 0;
+  const fakeFetch = async () => { called++; return { ok: true, status: 200 }; };
+  await withEmailEnv({ ...RESEND_ENV, RESEND_API_KEY: undefined }, fakeFetch, async () => {
+    await assert.rejects(emailLib.sendInviteOtpEmail(OTP_ARGS), /RESEND_API_KEY/);
+  });
+  await withEmailEnv({ ...RESEND_ENV, EMAIL_FROM: undefined }, fakeFetch, async () => {
+    await assert.rejects(emailLib.sendInviteAcceptedEmail({ to: 'o@example.com' }), /EMAIL_FROM/);
+  });
+  assert.equal(called, 0);
+});
+
+test('email: sendgrid 経路も同じ本文を渡す（@sendgrid/mail を偽モジュールに差し替え・実送信なし）', async () => {
+  const req = createRequire(join(__dirname, '..', 'functions', 'lib', 'email.js'));
+  const sgPath = req.resolve('@sendgrid/mail');
+  const sent = [];
+  const fake = { setApiKey: () => {}, send: async (msg) => { sent.push(msg); } };
+  const saved = req.cache[sgPath];
+  req.cache[sgPath] = { id: sgPath, filename: sgPath, loaded: true, exports: fake };
+  try {
+    await withEmailEnv(
+      { EMAIL_PROVIDER: 'sendgrid', EMAIL_FROM: 'noreply@kizuna-baton.com', SENDGRID_API_KEY: 'SG.test' },
+      null,
+      async () => {
+        const r = await emailLib.sendInviteOtpEmail(OTP_ARGS);
+        assert.equal(r.provider, 'sendgrid');
+      }
+    );
+  } finally {
+    if (saved) req.cache[sgPath] = saved;
+    else delete req.cache[sgPath];
+  }
+  assert.deepEqual(sent, [{
+    to: 'invitee@example.com',
+    from: 'noreply@kizuna-baton.com',
+    subject: FIXTURE_OTP_SUBJECT,
+    text: FIXTURE_OTP_TEXT,
+  }]);
+});
+
+test('email: 未知のプロバイダは throw（無症状な誤設定デプロイを防ぐ）', async () => {
+  await withEmailEnv({ EMAIL_PROVIDER: 'mailgun' }, null, async () => {
+    await assert.rejects(emailLib.sendInviteOtpEmail(OTP_ARGS), /未対応/);
+  });
+});
+
+test('validators: meetsMinPrivacyVersion は版数を数値で比べ、空・形式外は false', () => {
+  const { meetsMinPrivacyVersion } = validatorsLib;
+  assert.equal(meetsMinPrivacyVersion('v5.3', 'v5.4'), false);
+  assert.equal(meetsMinPrivacyVersion('v5.4', 'v5.4'), true);
+  assert.equal(meetsMinPrivacyVersion('v5.4.1', 'v5.4'), true);
+  assert.equal(meetsMinPrivacyVersion('v5.10', 'v5.4'), true);
+  assert.equal(meetsMinPrivacyVersion('v6.0', 'v5.4'), true);
+  assert.equal(meetsMinPrivacyVersion('v4.9', 'v5.4'), false);
+  assert.equal(meetsMinPrivacyVersion(undefined, 'v5.4'), false);
+  assert.equal(meetsMinPrivacyVersion('', 'v5.4'), false);
+  assert.equal(meetsMinPrivacyVersion('5.4', 'v5.4'), false);
+  assert.equal(meetsMinPrivacyVersion('v5.4-beta', 'v5.4'), false);
 });
 
 // ---- 失効・取消招待のクリーンアップ選定（APP-INVITE-EXPIRE-CLEANUP v109・純関数）----

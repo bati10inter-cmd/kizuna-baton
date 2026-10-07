@@ -37,6 +37,10 @@ const PRIVACY_POLICY_URL =
   'https://bati10inter-cmd.github.io/kizuna-baton/docs/privacy-policy.html';
 // 失効・取消招待の保持期間（PP第14条1項＝30日以内に機械削除）。
 const INVITE_CLEANUP_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+// v140(OPS-EMAIL-RESEND): Resend 経由で送るには、PP v5.4（配信事業者 Resend を開示・再同意 :v30）
+// 以上への同意が必要。EMAIL_PROVIDER='resend' のときだけ、発行・受諾でこの版数未満を拒否する
+// （旧版アプリ＝旧 PP に同意したまま新しい委託先へ送らせない。PP 附則 v5.4＝バージョン単位の発効）。
+const RESEND_MIN_PRIVACY_VERSION = 'v5.4';
 
 module.exports = {
   INVITE_MAX_PENDING_ACCEPTED,
@@ -50,4 +54,5 @@ module.exports = {
   OPERATOR_CONTACT_EMAIL,
   PRIVACY_POLICY_URL,
   INVITE_CLEANUP_RETENTION_MS,
+  RESEND_MIN_PRIVACY_VERSION,
 };

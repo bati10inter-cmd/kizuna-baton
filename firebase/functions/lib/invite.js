@@ -26,6 +26,7 @@ function buildInviteDoc({
   viewerMemberId,
   createdAtMs,
   expiresAtMs,
+  ppVersion,
 }) {
   return stripUndefined({
     token,
@@ -35,6 +36,9 @@ function buildInviteDoc({
     suggestedRelation,
     otpHash,
     viewerMemberId,
+    // v140(OPS-EMAIL-RESEND): 発行者が同意していた PP の版数（任意・旧版クライアントは未送信＝保存しない）。
+    // 配信事業者の切替前に「旧 PP のまま発行された pending 招待」を数えるための記録。
+    ppVersion,
     status: 'pending',
     otpAttempts: 0,
     createdAtMs,

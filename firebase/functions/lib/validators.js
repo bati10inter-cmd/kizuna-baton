@@ -55,6 +55,25 @@ function validateVersion(raw, label) {
   return { ok: true, value: v };
 }
 
+// 版数文字列 'vX.Y[.Z]' を数値配列へ。形式外は null。
+function parseDocVersion(raw) {
+  const v = typeof raw === 'string' ? raw.trim() : '';
+  const m = /^v(\d+)\.(\d+)(?:\.(\d+))?$/.exec(v);
+  if (!m) return null;
+  return [Number(m[1]), Number(m[2]), Number(m[3] || 0)];
+}
+
+// raw が min 以上の版数なら true（数値比較＝v5.10 > v5.4）。空・形式外は false。
+function meetsMinPrivacyVersion(raw, min) {
+  const a = parseDocVersion(raw);
+  const b = parseDocVersion(min);
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i++) {
+    if (a[i] !== b[i]) return a[i] > b[i];
+  }
+  return true;
+}
+
 // 招待先メンバー ID: アプリの member スキーム（'m2' 等）に対応させ、rules の
 // liveViewers（'m2'）照合を一致させるための任意引数。未指定なら空文字を返し、
 // 呼び出し側でサーバ auto-id 採番へフォールバックする（後方互換）。
@@ -75,4 +94,5 @@ module.exports = {
   validateOtpInput,
   validateVersion,
   validateMemberId,
+  meetsMinPrivacyVersion,
 };

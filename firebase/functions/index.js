@@ -20,15 +20,20 @@ const admin = require('firebase-admin');
 // 未定義になる場合があるため、モジュラーAPIから直接 import する（firebase-admin v13 推奨形）。
 const { FieldValue } = require('firebase-admin/firestore');
 
-// SendGrid API キー（本番のメール送信）。値はリポジトリに置かず Firebase Secret で管理し、
-// 実送信を行う issueInvite にのみ bind する（下記 onCall options）。
+// メール配信の API キー。値はリポジトリに置かず Firebase Secret で管理し、
+// 実送信を行う issueInvite / acceptInvite にのみ bind する（下記 onCall options）。
+// v140(OPS-EMAIL-RESEND): 移行・切り戻し期間中はどちらのプロバイダでも送れるよう両方を bind。
+// 後片付けは「bind 除去→deploy→確認」の後に Secret を削除する（逆順だと本番関数が壊れる）。
 const SENDGRID_API_KEY = defineSecret('SENDGRID_API_KEY');
+const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
+const EMAIL_SECRETS = [SENDGRID_API_KEY, RESEND_API_KEY];
 
 const {
   INVITE_EXPIRY_MS,
   OTP_MAX_ATTEMPTS,
   OWNER_MEMBER_ID,
   INVITE_CLEANUP_RETENTION_MS,
+  RESEND_MIN_PRIVACY_VERSION,
 } = require('./lib/constants');
 const { genInviteToken, genOtp6, hashOtp, verifyOtp } = require('./lib/otp');
 const {
@@ -38,7 +43,9 @@ const {
   validateOtpInput,
   validateVersion,
   validateMemberId,
+  meetsMinPrivacyVersion,
 } = require('./lib/validators');
+const { provider: emailProvider } = require('./lib/email');
 const { checkIssueAllowed } = require('./lib/rateLimit');
 const {
   buildInviteDoc,
@@ -79,6 +86,19 @@ function badInput(message) {
   return new HttpsError('invalid-argument', message);
 }
 
+// v140(OPS-EMAIL-RESEND): Resend 経由で送るのは、PP v5.4 以上に同意したクライアントの操作だけ。
+// 旧版アプリ（旧 PP に同意したまま）からの発行・受諾は、新しい委託先へ送る前に拒否する。
+// sendgrid の間は効かせない＝dark deploy・現行クライアントと両立する。
+function requireConsentForEmailProvider(privacyVersionRaw) {
+  if (emailProvider() !== 'resend') return;
+  if (!meetsMinPrivacyVersion(privacyVersionRaw, RESEND_MIN_PRIVACY_VERSION)) {
+    throw new HttpsError(
+      'failed-precondition',
+      'アプリを最新版に更新してください（プライバシーポリシーの改定へのご同意が必要です）。'
+    );
+  }
+}
+
 // 招待リンクのベースURL（stage-2b）。クライアント boot() が `#invite=<token>` を解釈する。
 // index.html は lp.html へリダイレクトするため、必ずアプリ本体へ直リンクすること。
 const APP_INVITE_BASE_URL =
@@ -105,10 +125,20 @@ function ownerNameFromSnap(snap) {
 }
 
 // ---- issueInvite（owner が招待を発行）----------------------------------------
-// SENDGRID_API_KEY を bind＝実送信時のみ Secret を process.env で参照可能にする。
-exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) => {
+// メール配信の Secret を bind＝実送信時のみ process.env で参照可能にする。
+exports.issueInvite = onCall({ secrets: EMAIL_SECRETS }, async (request) => {
   const ownerUid = requireUid(request);
   const data = request.data || {};
+
+  // v140: 発行者が同意している PP の版数（任意・旧版クライアントは送らない）。
+  // resend 時は v5.4 未満を拒否（レート制限の集計・DB 書込より前に判定）。
+  let ppVersion;
+  if (data.privacyVersion !== undefined) {
+    const pp = validateVersion(data.privacyVersion, 'プライバシーポリシー');
+    if (!pp.ok) throw badInput(pp.message);
+    ppVersion = pp.value;
+  }
+  requireConsentForEmailProvider(ppVersion);
 
   const email = validateEmail(data.inviteeEmail);
   if (!email.ok) throw badInput(email.message);
@@ -155,6 +185,7 @@ exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) =>
     viewerMemberId,
     createdAtMs: now,
     expiresAtMs: now + INVITE_EXPIRY_MS,
+    ppVersion,
   });
 
   const batch = db.batch();
@@ -208,8 +239,8 @@ exports.issueInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) =>
 
 // ---- acceptInvite（invitee が OTP＋同意で受諾）--------------------------------
 // APP-INVITE-ACCEPT-NOTIFY(v108): 受諾成功後に招待元本人へ実メール通知するため
-// SENDGRID_API_KEY を bind（issueInvite と同型）。忘れると本番で Secret 参照不可＝送信失敗。
-exports.acceptInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) => {
+// メール配信の Secret を bind（issueInvite と同型）。忘れると本番で Secret 参照不可＝送信失敗。
+exports.acceptInvite = onCall({ secrets: EMAIL_SECRETS }, async (request) => {
   const viewerUid = requireUid(request);
   const data = request.data || {};
 
@@ -221,6 +252,7 @@ exports.acceptInvite = onCall({ secrets: [SENDGRID_API_KEY] }, async (request) =
   if (!tos.ok) throw badInput(tos.message);
   const pp = validateVersion(data.privacyVersion, 'プライバシーポリシー');
   if (!pp.ok) throw badInput(pp.message);
+  requireConsentForEmailProvider(pp.value);
   if (!data.residencyConfirmed || !data.ageConfirmed) {
     throw badInput('日本国内居住・18歳以上の確認が必要です。');
   }

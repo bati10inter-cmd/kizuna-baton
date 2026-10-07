@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v139</title>
+<title>きずなbaton v140</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -1342,7 +1342,9 @@ img.owner-dot{width:20px;padding:0}
 
       <!-- OTP説明（v3.2 ToS 6.5.3） -->
       <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.6">
-        ※ 確認コード（ワンタイムパスワード／OTP）は招待先メールへの到達確認のみを目的としており、身元保証ではありません。
+        ※ 確認コード（ワンタイムパスワード／OTP）は招待先メールへの到達確認のみを目的としており、身元保証ではありません。<br>
+        <!-- v140(OPS-EMAIL-RESEND・PP v5.4 附則＝受諾時の個別同意): 受諾のお知らせメールの配信事業者を明示 -->
+        ※ 招待メールと、受諾のお知らせ（招待した方へのメール）は、配信事業者（Resend〔移行期間中は Twilio SendGrid〕・米国）を経由します。
       </div>
 
       <!-- §4.2.2: 法的位置づけの明示（ボタン直前に表示） -->
@@ -1354,11 +1356,11 @@ img.owner-dot{width:20px;padding:0}
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-tos" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（v3.3.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（<span data-legal-ver="tos">v3.3.2</span>）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="consent-pp" onchange="onConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（<span data-legal-ver="pp">v5.4</span>）</a>に同意します</span>
       </label>
       <!-- ToS 6.5.3: 居住地・年齢確認（事前チェック禁止） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
@@ -1392,20 +1394,27 @@ img.owner-dot{width:20px;padding:0}
         <span style="font-size:12px;color:var(--color-text-tertiary)"><strong>基本機能は無料</strong>でご利用いただけます。ご家族への引き継ぎにご活用ください。</span>
       </div>
 
+      <!-- v140(OPS-EMAIL-RESEND・PP v5.4 第18条第11項): 再同意（既存ユーザー）のときだけ表示する改定のお知らせ。
+           初回起動では出さない（openOwnerConsentModal が isFirstRunLaunch で切替）。 -->
+      <div id="owner-consent-revision-notice" class="beta-info-box" style="margin-bottom:10px;display:none">
+        <i class="ti ti-info-circle"></i> <strong>プライバシーポリシーを v5.4 に改定しました。</strong><br>変わるのは<strong>招待メールの配信事業者だけ</strong>で、取得する情報・利用目的・所在国（米国）は変わりません。ご家族を招待しない限り、メールは送信されません。
+      </div>
+
       <!-- データ取扱いの簡潔説明（v125: 旧2段落〔約500字〕→1段落へ短縮＋12→13px。詳細はPP第2条リンクで担保。
-           要素は削らず一文ずつ維持: クラウド保管先(Firebase東京)／写真は本人のみ可読／招待メールはSendGrid経由 -->
+           要素は削らず一文ずつ維持: クラウド保管先(Firebase東京)／写真は本人のみ可読／招待メールの配信事業者
+           （v140: Resend。移行期間中は Twilio SendGrid も併記＝PP v5.4 第7条第1項と一致させる） -->
       <div style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:10px;line-height:1.7">
-        ※ クラウド保存を有効にした場合の保管先は Google（Firebase・東京リージョン）です。ご家族アイコンの写真（任意）はご本人だけが読める形で扱われ、招待メールは配信事業者（Twilio SendGrid・米国）を経由します。外部送信の詳細は<a onclick="openLegalDoc('privacy-policy');return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー第2条</a>をご覧ください。
+        ※ クラウド保存を有効にした場合の保管先は Google（Firebase・東京リージョン）です。ご家族アイコンの写真（任意）はご本人だけが読める形で扱われ、招待メールは配信事業者（Resend〔移行期間中は Twilio SendGrid〕・米国）を経由します。外部送信の詳細は<a onclick="openLegalDoc('privacy-policy');return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー第2条</a>をご覧ください。
       </div>
 
       <!-- 同意チェックボックス（事前チェック禁止: checked 属性なし） -->
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-tos" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（v3.3.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('terms-of-service');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">利用規約（<span data-legal-ver="tos">v3.3.2</span>）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-pp" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
-        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（v5.2）</a>に同意します</span>
+        <span><a onclick="openLegalDoc('privacy-policy');event.stopPropagation();return false;" style="color:#185FA5;text-decoration:underline;cursor:pointer">プライバシーポリシー（<span data-legal-ver="pp">v5.4</span>）</a>に同意します</span>
       </label>
       <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;font-size:12px;cursor:pointer;line-height:1.6">
         <input type="checkbox" id="owner-consent-residency" onchange="onOwnerConsentChange()" style="margin-top:3px;flex-shrink:0">
@@ -2074,8 +2083,10 @@ const MY_ID='m1';
 const TERMS_VERSION='v3.3.2';  // v113(APP-DEBETA): App Store 公開＝β終了の表記整理（「β版」→「現行版」・機能仕様の変更なし）
 // v139(LEGAL-PP-INVENTORY-SYNC): PP v5.3＝開示の正確化（端末内キー一覧 10→20・外部通信 ⑤→⑧・第7条 解析ツール）。
 // 新たな取得/提供/越境なし＝第17条2項「通常の改定」→ CONSENT_KEY は :v29 据置（再同意を求めない）。
-// ∴ ここを上げても同意ゲートは再発火しない。以後の同意ログ（consentLog/consentLogs）に v5.3 が記録される。
-const PRIVACY_VERSION='v5.3';
+// v140(OPS-EMAIL-RESEND): PP v5.4＝招待メールの配信事業者を Resend へ（新規委託先の追加＝重大な改定）。
+// オーナー決定（i′）＝第17条2項ただし書き（30日前通知の代替）＋全員への再同意（CONSENT_KEY :v29→:v30）＋
+// 版単位で発効。サーバは EMAIL_PROVIDER=resend のとき v5.4 未満の発行・受諾を拒否する（functions 版数ゲート）。
+const PRIVACY_VERSION='v5.4';
 const LOGO_DEV_FALLBACK_PK='pk_bgptBZ2iQy-c04YjQnSTwg'; // v26: 公開可・Allowed Domains制限済（localhost / 127.0.0.1 / bati10inter-cmd.github.io）
 let previewAsId=null;
 let previewStage='live'; // 'live' | 'inheritance' | 'full' （家族プレビュー中のみ意味を持つ）
@@ -4209,6 +4220,11 @@ function acceptConsent(){
   showToast('同意を受け付けました','success');
 }
 
+// v140: 同意画面の版数表示を定数から流し込む（直書きが定数とずれた実例＝v5.3 なのに「v5.2」表示が残っていた）。
+function syncLegalVersionLabels(){
+  document.querySelectorAll('[data-legal-ver="tos"]').forEach(el=>{el.textContent=TERMS_VERSION;});
+  document.querySelectorAll('[data-legal-ver="pp"]').forEach(el=>{el.textContent=PRIVACY_VERSION;});
+}
 function openOwnerConsentModal(){
   // 事前チェック禁止: 開く度に毎回クリア
   document.getElementById('owner-consent-tos').checked=false;
@@ -4218,6 +4234,9 @@ function openOwnerConsentModal(){
   onOwnerConsentChange();
   // v131(APP-FIRSTRUN-FLOW): 真の初回起動のみ専用フルスクリーン。再同意（既存ユーザー）は従来の下部シートのまま。
   document.getElementById('owner-consent-modal').classList.toggle('startup-flow',isFirstRunLaunch);
+  // v140(PP v5.4 第18条第11項): 改定のお知らせは再同意のときだけ（初回起動の方には「改定」が無意味）
+  const revNotice=document.getElementById('owner-consent-revision-notice');
+  if(revNotice)revNotice.style.display=isFirstRunLaunch?'none':'';
   openModalById('owner-consent-modal');
 }
 // v131(APP-FIRSTRUN-FLOW): 初回起動スプラッシュ。同意モーダルは既に下で同期的に開いている前提＝
@@ -4261,6 +4280,7 @@ function acceptOwnerConsent(){
   try{lsSet(CONSENT_LOG_KEY,JSON.stringify(log));}catch(e){}
   lsSet(CONSENT_KEY,'1');
   try{lsRemove('kizuna-baton:consent-shown:v25');}catch(e){} // v100(C5): 旧同意キー残骸の掃除（Fable L-2）
+  try{lsRemove('kizuna-baton:consent-shown:v29');}catch(e){} // v140: :v30 への再同意で旧キーを掃除
   closeModalById('owner-consent-modal');
   // 同意取得後にオンボーディングへチェーン
   maybeShowOnboarding();
@@ -4329,7 +4349,7 @@ const DATA_KEY='kizuna-baton:data:v20';
 // Logo.dev（Publishable Key は端末内に保存・未設定時はデフォルトpk_を使用）
 const LOGO_DEV_TOKEN_KEY='kizuna-baton:logo-dev:pk';
 // === v22: 本人向け初回起動同意（S3 / ToS 6.2・PP 18条） ===
-const CONSENT_KEY='kizuna-baton:consent-shown:v29'; // v122: PP v5.2 発効＝家族メンバー写真（任意）追加の再同意（:v28→:v29・ToS v3.3.2 不変）
+const CONSENT_KEY='kizuna-baton:consent-shown:v30'; // v140: PP v5.4 発効＝招待メールの配信事業者の差し替え（Resend）の再同意（:v29→:v30・ToS v3.3.2 不変）。旧 v122: PP v5.2＝家族メンバー写真（:v28→:v29）
 const CONSENT_LOG_KEY='kizuna-baton:consentLog:v22';
 // === v16: オンボーディング画面 ===
 const ONBOARDING_KEY='kizuna-baton:onboarding-shown:v16';
@@ -5751,6 +5771,9 @@ function cloudInviteErrorMessage(err){
   if(/resource-exhausted/.test(code))return '招待の発行上限に達しています。しばらくしてからお試しください。';
   if(/invalid-argument/.test(code))return '入力内容をご確認ください（メールアドレス・関係性など）。';
   if(/unauthenticated/.test(code))return 'クラウドへの再ログインが必要です。設定からログインし直してください。';
+  // v140: サーバの版数ゲート（PP 改定への同意が必要＝旧版アプリ）。revokeInvite の「未受諾のみ取消可」も
+  // failed-precondition なので、サーバ文言の「最新版」で区別する
+  if(/failed-precondition/.test(code)&&/最新版/.test((err&&err.message)||''))return 'アプリを最新版に更新してから、もう一度お試しください。';
   return '招待の処理に失敗しました。通信状況をご確認のうえ、もう一度お試しください。';
 }
 // v129(APP-INVITE-MOCK-REMOVE): クラウド招待が稼働中（cloudSync&&cloudInvite）なのに未ログインだと、
@@ -5831,7 +5854,7 @@ function issueInvitation(){
     // APP-INVITE-ISSUE-CONSENT(v109・18条9項要点): 受諾されると「全員に見せる」契約がこの家族に
     // 開示されることを、発行前に件数提示して確認する（附則v5.0「発行時の個別同意」の実装裏付け）。
     const allCount=contracts.filter(c=>c.ownerId===MY_ID&&!c.archived&&getVisibility(c).mode==='all').length;
-    if(!confirm(`いま「全員に見せる」に設定している契約が ${allCount} 件あります。\nこの方が招待を受諾すると、その ${allCount} 件をご家族の画面で見られるようになります。\n（「選んだ家族だけ」「表示しない」「もしもの時だけ」の契約は含まれません。これから追加する契約も、既定では「全員に見せる」です。）\n\n招待を送りますか？`)){
+    if(!confirm(`いま「全員に見せる」に設定している契約が ${allCount} 件あります。\nこの方が招待を受諾すると、その ${allCount} 件をご家族の画面で見られるようになります。\n（「選んだ家族だけ」「表示しない」「もしもの時だけ」の契約は含まれません。これから追加する契約も、既定では「全員に見せる」です。）\n\n招待メールは配信事業者（Resend〔移行期間中は Twilio SendGrid〕・米国）を経由して、この方のメールアドレスに届きます。\nご家族には、きずなbaton から確認メールが届くことを事前にお伝えください。\n\nお伝えのうえで、招待を送りますか？`)){
       return;
     }
     const btn=document.getElementById('invite-issue-btn');
@@ -5843,7 +5866,8 @@ function issueInvitation(){
           inviteeEmail:email,
           suggestedName:name,
           suggestedRelation:relation,
-          memberId:memberId||undefined
+          memberId:memberId||undefined,
+          privacyVersion:PRIVACY_VERSION // v140: 発行者が同意している PP 版数（サーバ版数ゲート・招待 doc の ppVersion）
         });
         const data=(res&&res.data)||{};
         const link=data.inviteLink||`https://kizuna-baton.example/invite/${data.token||''}`;
@@ -6020,6 +6044,8 @@ function extractInviteToken(input){
 function cloudAcceptErrorMessage(err){
   const code=(err&&(err.code||err.message))||'';
   if(/permission-denied/.test(code))return '確認コードが正しくないか、入力回数の上限に達しています。メールの6桁コードをもう一度お確かめください。';
+  // v140: サーバの版数ゲート（PP 改定への同意が必要）も failed-precondition＝期限切れ等と文言で区別する
+  if(/failed-precondition/.test(code)&&/最新版/.test((err&&err.message)||''))return 'アプリを最新版に更新してから、もう一度お試しください。';
   if(/failed-precondition/.test(code))return 'この招待は使用できません（期限切れ・取消・受諾済みのいずれか）。ご家族に再発行を依頼してください。';
   if(/not-found/.test(code))return '招待が見つかりませんでした。メールのリンクをもう一度ご確認ください。';
   if(/unauthenticated/.test(code))return 'クラウドへの再ログインが必要です。設定からログインし直してください。';
@@ -7999,6 +8025,7 @@ async function boot(){
   loadSortPrefs();
   loadPersistentState();    // v20: 契約・メンバーを復元（renderAll 前）
   isFirstRunLaunch=!lsGet(CONSENT_KEY)&&!lsGet(ONBOARDING_KEY); // v131(APP-FIRSTRUN-FLOW)
+  syncLegalVersionLabels(); // v140: 同意画面の規約・PP 版数表示を定数と一致させる
   initDarkMode();
   initLargeMode();
   updateSortBtnLabel();

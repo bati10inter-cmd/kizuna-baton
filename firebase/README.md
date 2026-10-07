@@ -103,7 +103,7 @@ npm run test:rules                                   # Firestore エミュレー
 | `deleteAccount` | 本人 | **アカウントと全データの即時完全削除**（APP-V2-ACCOUNT-DELETE・Apple 5.1.1(v)・ToS第18条/PP第14条「14日以内・復元不可」整合）。順序＝shares 両方向整理（viewer 側は相手 owner の member を `unlinked` 化）→ invitations（発行分＋受諾分）削除 → `users/{uid}` サブツリー＋`consentLogs/{uid}` を `recursiveDelete` → **最後に Auth `deleteUser`**（途中失敗時は認証が残り再実行で完遂＝冪等） |
 
 - **OTP は平文保存しない**（`otpHash` のみ・token を salt に sha256）。純ロジックは `functions/lib/`（`otp.js`/`rateLimit.js`/`validators.js`/`invite.js`/`constants.js`）に分離しテスト容易化。
-- **メール送信は差替アダプタ** `functions/lib/email.js`（env `EMAIL_PROVIDER`）。既定 `'log'`＝**エミュレータ限定**で OTP を console 出力（実送信なし）。`'smtp'`/`'sendgrid'` は**デプロイ時にオーナーが有効化するスタブ**。**⚠️本番（エミュレータ外）で `EMAIL_PROVIDER` 未設定のまま呼ばれると `'log'` は使えず明示 throw**（OTP 平文が Cloud Logging に残る誤設定デプロイを防ぐ厳格ゲート＝`_devOutbox` と同型・APP-V2-SEC-REVIEW 2026-07-07）。よって deploy 前に下記手順2で実プロバイダ設定が必須。
+- **メール送信は差替アダプタ** `functions/lib/email.js`（env `EMAIL_PROVIDER`）。既定 `'log'`＝**エミュレータ限定**で OTP を console 出力（実送信なし）。本番は `'sendgrid'`（`@sendgrid/mail`・Secret `SENDGRID_API_KEY`）か **`'resend'`（v140・Node 22 標準 fetch で `https://api.resend.com/emails`・Secret `RESEND_API_KEY`・追加依存なし・送信待ち10秒）**。件名・本文は `buildInviteOtpMail`／`buildInviteAcceptedMail`（プロバイダ非依存の純関数）で組み立て、プロバイダを替えても一字も変えない。両 Secret を `issueInvite`/`acceptInvite` に並べて bind（移行・切り戻し期間中はどちらでも送れる）。**版数ゲート（v140）**＝`EMAIL_PROVIDER='resend'` のときだけ、`privacyVersion` が `RESEND_MIN_PRIVACY_VERSION`（v5.4）未満の発行・受諾を `failed-precondition` で拒否する（旧版アプリ＝旧 PP の同意のまま新しい委託先へ送らせない）。`issueInvite` は任意の `privacyVersion` を招待 doc の `ppVersion` に記録する。**⚠️本番（エミュレータ外）で `EMAIL_PROVIDER` 未設定のまま呼ばれると `'log'` は使えず明示 throw**（OTP 平文が Cloud Logging に残る誤設定デプロイを防ぐ厳格ゲート＝`_devOutbox` と同型・APP-V2-SEC-REVIEW 2026-07-07）。よって deploy 前に下記手順2で実プロバイダ設定が必須。
 - **`_devOutbox/{token}`** はエミュレータ限定（`isEmulator()` ゲート）の OTP 露出で、結合テストが受諾に使う。firestore.rules に match が無く既定 deny＝クライアント不可視。**本番デプロイでは絶対に書かれない**。
 
 ### テスト（エミュレータ・Java 必須）
@@ -114,9 +114,19 @@ npm run test:functions:deps    # 初回のみ（functions/ の firebase-admin・
 npm run test:functions         # Functions+Firestore+Auth エミュレータで結合テスト
 ```
 
-`test/functions.test.mjs` が issueInvite（正常/不正入力/1日3件超/pending5件超/未認証）・acceptInvite（正常で share/consentLog/member/通知生成・誤OTP・5回ロック・期限切れ・revoked・自己受諾不可）・revokeInvite・unlinkShare（rules 経由で家族 read が遮断されることまで）・listInvites（OTP 非返却）・**deleteAccount（未認証拒否／本人の全データ・共有・招待・Auth の完全削除＋家族 read 遮断＋再サインイン不可／viewer 側削除の owner 非干渉＋member unlinked 化）**を検証。**全 24 ケース PASS が受け入れ基準**（削除系は専用 Auth ユーザーを都度作成＝共有 owner/viewer 非破壊。stage-2b v99 で acceptInvite の ownerName 転写 2件＋inviteLink 形式検証を追加／**v108 で受諾通知メール〔APP-INVITE-ACCEPT-NOTIFY〕の `email.js` log プロバイダ挙動を in-process で検証する2件を追加**／**v109 で失効・取消招待クリーンアップ〔APP-INVITE-EXPIRE-CLEANUP〕の純関数 `selectExpiredInviteIdsToDelete` の選定境界・空/不正入力を検証する2件を追加**）。なお v109 で `cleanupExpiredInvites`（onSchedule・毎日）を追加＝失効/取消招待を30日で機械削除（PP14条1項）。実送信フッター（運営者情報・PPリンク・削除窓口）は `email.js inviteMailFooter()`。なお `acceptInvite` は v108 で onCall に `secrets:[SENDGRID_API_KEY]` を bind し、tx 成功後に owner のメールへ受諾通知を送る（実送信は functions runtime の別プロセス＝結合テストからは非観測のため email.js を直接検証）。
+`test/functions.test.mjs` が issueInvite（正常/不正入力/1日3件超/pending5件超/未認証）・acceptInvite（正常で share/consentLog/member/通知生成・誤OTP・5回ロック・期限切れ・revoked・自己受諾不可）・revokeInvite・unlinkShare（rules 経由で家族 read が遮断されることまで）・listInvites（OTP 非返却）・**deleteAccount（未認証拒否／本人の全データ・共有・招待・Auth の完全削除＋家族 read 遮断＋再サインイン不可／viewer 側削除の owner 非干渉＋member unlinked 化）**を検証。**全 39 ケース PASS が受け入れ基準**（v140 時点。**v140 で 10件追加**＝メール本文を v139 の文字列リテラル〔fixture〕と全文一致で固定・resend 経路〔fetch スタブで送信内容・4xx/429/5xx/通信失敗/タイムアウトで throw・エラーに宛先/OTP/キーを含めない・キー/送信元欠落〕・sendgrid 経路〔`@sendgrid/mail` を偽モジュールに差し替え〕・未知プロバイダ・版数比較 `meetsMinPrivacyVersion`・`issueInvite` の `ppVersion` 記録と不正値。以下は v109 時点の内訳＝24件削除系は専用 Auth ユーザーを都度作成＝共有 owner/viewer 非破壊。stage-2b v99 で acceptInvite の ownerName 転写 2件＋inviteLink 形式検証を追加／**v108 で受諾通知メール〔APP-INVITE-ACCEPT-NOTIFY〕の `email.js` log プロバイダ挙動を in-process で検証する2件を追加**／**v109 で失効・取消招待クリーンアップ〔APP-INVITE-EXPIRE-CLEANUP〕の純関数 `selectExpiredInviteIdsToDelete` の選定境界・空/不正入力を検証する2件を追加**）。なお v109 で `cleanupExpiredInvites`（onSchedule・毎日）を追加＝失効/取消招待を30日で機械削除（PP14条1項）。実送信フッター（運営者情報・PPリンク・削除窓口）は `email.js inviteMailFooter()`。なお `acceptInvite` は v108 で onCall に `secrets:[SENDGRID_API_KEY]` を bind し、tx 成功後に owner のメールへ受諾通知を送る（実送信は functions runtime の別プロセス＝結合テストからは非観測のため email.js を直接検証）。
 
 > ⚠️ **`.env.local`（エミュレータ専用・deploy 非同梱）**: O4 deploy 用の `.env` が `EMAIL_PROVIDER=sendgrid` を持つため、エミュレータではそのままだと Secret 不在で issueInvite が throw する。`functions/.env.local` が `EMAIL_PROVIDER=log` で上書きしテストを成立させる（firebase emulators は `.env.local` を優先）。
+
+### メール配信事業者の移行（SendGrid → Resend・v140・OPS-EMAIL-RESEND）
+
+正本の手順は `docs/email-provider-migration-plan.local.md`（A-1〜A-6）。要点だけ:
+
+1. Resend で `kizuna-baton.com` を認証（DNS は管理画面の生成値どおり・ルート SPF は触らない・Click/Open Tracking OFF）し、送信専用 API キーを発行。
+2. `firebase functions:secrets:set RESEND_API_KEY`（キーはプロンプトに貼付・リポジトリに置かない）→ `EMAIL_PROVIDER=sendgrid` のまま deploy（dark deploy）。
+3. 保留中の招待を数える: `GOOGLE_APPLICATION_CREDENTIALS=… npm run report:pending-invites`（件数のみ出力）。旧同意（v5.4 未満）の pending が0件になってから切り替える。
+4. `functions/.env` を `EMAIL_PROVIDER=resend` にして deploy → 実メール E2E。切り戻しは `sendgrid` に戻して deploy。
+5. 切り戻し期間の終了後: sendgrid 分岐・bind・`@sendgrid/mail` を除去して deploy・確認 → **その後に** `SENDGRID_API_KEY` の Secret を削除（逆順だと本番関数が壊れる）→ SendGrid 解約。
 
 ### オーナー deploy 作業（P3-deploy・本セッション対象外）
 
