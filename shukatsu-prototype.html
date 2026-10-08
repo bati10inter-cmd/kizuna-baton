@@ -8,7 +8,7 @@
      許可先を増やす変更（新CDN・新API）時はこの meta にも追記しないと本番で読込失敗する。 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://img.logo.dev; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://*.cloudfunctions.net https://*.a.run.app https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formspree.io">
 <meta name="referrer" content="no-referrer">
-<title>きずなbaton v141</title>
+<title>きずなbaton v142</title>
 <link rel="manifest" href="./manifest.json">
 <!-- APP-DEBETA-WEBLINK(v123): App Store 公開後は LP の主導線をアプリ版へ移行。
      本ページは「既存ユーザーのデータ到達」「招待リンク(#invite=)の着地」「Android/PC の受け皿」として存置するが、
@@ -4766,7 +4766,13 @@ function renderCloudAccountModal(view){
       <div class="btn-row"><button class="btn-primary" id="cloud-submit-btn" onclick="submitCloudReset()"><i class="ti ti-mail"></i>ご案内メールを送る</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">ログインにもどる</button>`;
   }else{ // menu
-    html=`<div class="beta-info-box"><strong>アカウント作成は任意</strong>です。つくらなくても、この端末だけでお使いいただけます。<br>アカウントを作成すると、記録のクラウド保管と、ご家族のスマホとのつながり（招待）をお使いいただけます。</div>
+    // v142: 招待リンクから開いた場合（#invite= を保留中）は「任意」と書くと矛盾する＝受諾にはアカウントが必須。
+    //   設定から開いた通常時の「任意」文言は不変。自分の記録がアカウント無しで使える点は肯定形で残す。
+    const invitedNow=!!pendingCloudInviteToken;
+    const menuIntro=invitedNow
+      ?`<strong>ご家族からの招待を受け取るには、アカウントが必要です。</strong><br>登録（またはログイン）すると、招待してくれた方が共有した契約を、このスマホで見られるようになります（見るだけで、書き換えはできません）。<br>あなたご自身の記録は、アカウントがなくても、この端末だけでお使いいただけます。`
+      :`<strong>アカウント作成は任意</strong>です。つくらなくても、この端末だけでお使いいただけます。<br>アカウントを作成すると、記録のクラウド保管と、ご家族のスマホとのつながり（招待）をお使いいただけます。`;
+    html=`<div class="beta-info-box">${menuIntro}</div>
       <div class="btn-row"><button class="btn-primary" onclick="renderCloudAccountModal('signup')"><i class="ti ti-user-plus"></i>はじめて登録する</button></div>
       <button class="plan-cta" style="margin-top:8px" onclick="renderCloudAccountModal('signin')">すでにお持ちの方（ログイン）</button>
       ${note}`;
