@@ -343,7 +343,7 @@ test('email: 受諾通知メールの件名・本文は v139 と全文一致（�
 
 // 環境変数と fetch を一時的に差し替えて実行し、必ず元に戻す。
 async function withEmailEnv(vars, fetchImpl, fn) {
-  const keys = ['EMAIL_PROVIDER', 'EMAIL_FROM', 'RESEND_API_KEY', 'SENDGRID_API_KEY'];
+  const keys = ['EMAIL_PROVIDER', 'EMAIL_FROM', 'EMAIL_REPLY_TO', 'RESEND_API_KEY', 'SENDGRID_API_KEY'];
   const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
   const savedFetch = globalThis.fetch;
   try {
@@ -366,6 +366,33 @@ const RESEND_ENV = {
   EMAIL_FROM: 'noreply@kizuna-baton.com',
   RESEND_API_KEY: 're_test_key',
 };
+
+test('email: resend は表示名付き From と EMAIL_REPLY_TO を送る（未設定時は reply_to を付けない）', async () => {
+  const calls = [];
+  const fakeFetch = async (url, init) => {
+    calls.push(JSON.parse(init.body));
+    return { ok: true, status: 200 };
+  };
+  const env = {
+    ...RESEND_ENV,
+    EMAIL_FROM: 'きずなbaton <hello@kizuna-baton.com>',
+    EMAIL_REPLY_TO: 'kizunabaton.official@gmail.com',
+  };
+  await withEmailEnv(env, fakeFetch, async () => {
+    await emailLib.sendInviteOtpEmail(OTP_ARGS);
+    await emailLib.sendInviteAcceptedEmail({ to: 'owner@example.com', viewerName: '花子' });
+  });
+  await withEmailEnv({ ...env, EMAIL_REPLY_TO: undefined }, fakeFetch, async () => {
+    await emailLib.sendInviteOtpEmail(OTP_ARGS);
+  });
+  assert.equal(calls.length, 3);
+  for (const c of calls.slice(0, 2)) {
+    assert.equal(c.from, 'きずなbaton <hello@kizuna-baton.com>');
+    assert.equal(c.reply_to, 'kizunabaton.official@gmail.com');
+  }
+  assert.equal(calls[2].from, 'きずなbaton <hello@kizuna-baton.com>');
+  assert.equal('reply_to' in calls[2], false);
+});
 
 test('email: resend は fetch で Resend API へ送り、本文は fixture と一致', async () => {
   const calls = [];

@@ -113,7 +113,9 @@ async function sendViaSendgrid({ to, subject, text }) {
   // 遅延 require: emulator/log 経路や未使用時に依存を読み込まない。
   const sgMail = require('@sendgrid/mail');
   sgMail.setApiKey(key);
-  await sgMail.send({ to, from, subject, text });
+  // 任意 EMAIL_REPLY_TO＝返信先（送信元が実在しない no-reply 系でも返信を受け取れる）。未設定なら従来どおり。
+  const replyTo = process.env.EMAIL_REPLY_TO;
+  await sgMail.send(replyTo ? { to, from, replyTo, subject, text } : { to, from, subject, text });
   return { ok: true, provider: 'sendgrid' };
 }
 
@@ -133,7 +135,11 @@ async function sendViaResend({ to, subject, text }) {
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from, to: [to], subject, text }),
+      body: JSON.stringify(
+        process.env.EMAIL_REPLY_TO
+          ? { from, to: [to], subject, text, reply_to: process.env.EMAIL_REPLY_TO }
+          : { from, to: [to], subject, text }
+      ),
       signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
     });
   } catch (e) {
